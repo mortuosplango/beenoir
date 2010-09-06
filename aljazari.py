@@ -1,6 +1,8 @@
 
 import random
 import math
+import osc
+
 
 import pyglet.window
 import pyglet.clock
@@ -13,12 +15,11 @@ WIN_HEIGHT=800
 WORLD_SIZE=10
 DEBUG=True
 
-filenames = [
-	'sea-cube-01.png',    'sea-cube-02.png',    'sea-cube-03.png',
-	'grass-cube-01.png', 'grass-cube-02.png','grass-cube-03.png',
-	'red-grass-cube-01.png', 'red-grass-cube-02.png', 'red-grass-cube-03.png',
-	'green-cube.png', 'blue-cube.png'
-	]
+SC_NETADDR="127.0.0.1"
+SC_PORT=57120
+
+PHP_NETADDR="127.0.0.1"
+PHP_PORT=57300
 
 class vec3(object):
 	"""
@@ -43,27 +44,6 @@ class vec3(object):
 			    self.y * (1-t) + other.y,
 			    self.z * (1-t) +other.z)
 	
-
-
-class rnd_gen(object):
-	"""
-	"""
-	
-	def __init__(self):
-		"""
-		"""
-		self.state=0
-
-	def seed(self,s):
-		self.state=s
-
-	def rnd_int(self):
-		self.state=10331 * self.state + 1203432033
-		self.state=self.state % 256
-		return self.state
-
-	def rnd_flt(self):
-		return self.rnd_int()/256.0
 
 class circle(object):
 	"""
@@ -155,21 +135,49 @@ class tile(entity):
 		"""
 		"""
 		entity.__init__(self,pos,'graphics/tile.png')
+		self.active = False
+
+	def activate(self):
+		self.change_state(True)
+
+	def deactivate(self):
+		self.change_state(False)
+
+	def change_state(self,state):
+		self.active = state
+		if state:
+			self.change_bitmap('graphics/tile-active.png')
+		else:
+			self.change_bitmap('graphics/tile.png')
+
+		
 
 class player_entity(entity):
 	""" Player Avatar
 	"""
-	images = ['graphics/player.png',
-		  'graphics/player.png',
-		  'graphics/player.png',
-		  'graphics/player.png']
-	
-	def __init__(self, pos):
-		entity.__init__(self,pos,self.images[0])
+	image = 'graphics/player.png'
+	def __init__(self, pos, player_id):
+		entity.__init__(self,pos,self.image)
+		self.image.anchor_x = self.image.width // 2
+		self.image.anchor_y = self.image.height // 2
+		self.update_pos()
 		self.direction = 1
-		self.code = [1,1,2,1,
-			     1,1,2,4]
+		self.code = []
+		for i in range(8):
+			self.code.append(random.randint(0,4))
 		self.index = 0
+		self.id = player_id
+		self.label = pyglet.text.Label('Player',
+					       font_name='Terminus',
+					       font_size=14,
+					       x=20, 
+					       y= WIN_HEIGHT - (self.id * 20) - 20,
+					       anchor_x='left', anchor_y='center',
+					       batch=batch)
+		self.update_label()
+
+		if DEBUG:
+			print "player id ", self.id, " created"
 
 	def update(self,dt):
 		action = self.code[self.index]
@@ -182,7 +190,24 @@ class player_entity(entity):
 				self.turn_left()
 			elif action == (4 or 'action'):
 				self.action()
+		self.update_label()
+		if (self.code[self.index-1] == (4 or 'action')) and (action != (4 or 'action')):
+			world.get_tile(self.pos).deactivate()
+			
 		self.index = (self.index + 1) % len(self.code)
+
+	def update_label(self):
+		text = ("Player "  + str(self.id) + ": ")
+		for index,i in enumerate(self.code):
+			if self.index == index:
+				text += '>'
+				print self.index, index
+			else:
+				text += ' '
+			text += str(['_','M','R','L','A'][i])
+
+		self.label.document.text = text
+
 
 	def turn(self, direction):
 		self.direction = (self.direction + direction) % 6
@@ -190,7 +215,6 @@ class player_entity(entity):
 		if DEBUG:
 			print "Turn", self.direction, " ", self.sprite.rotation
 			
-
 	def turn_right(self):
 		self.turn(1)
 
@@ -198,7 +222,23 @@ class player_entity(entity):
 		self.turn(-1)
 
 	def action(self):
-		print "actione!"
+		world.get_tile(self.pos).activate()
+		osc.sendMsg("/alj/action",
+			    [self.id, self.pos.x, self.pos.y],
+			    SC_NETADDR, SC_PORT)
+		
+		if DEBUG:
+			print "actione!"
+
+	def pos2screenpos(self,pos):
+		if (pos.x%2) == 1: # odd
+			y = pos.y + 0.5
+		else:
+			y = pos.y
+		return vec3(
+			WIN_WIDTH*0.4  + 50*pos.x + 25 + self.sprite.width/2,
+			WIN_HEIGHT*0.8 - self.tileHeight*y + self.tileHeight/2,
+			0)
 
 	def move(self):
 		pos = vec3(self.pos.x,self.pos.y,self.pos.z)
@@ -227,13 +267,14 @@ class player_entity(entity):
 			pos.y=world.height-1
 		if pos.y >= world.height:
 			pos.y=0
-		if world.get_cube(pos).pos.z > -1:
+		if world.get_tile(pos).pos.z == 0:
+			world.get_tile(self.pos).pos.z = 0
 			self.pos = pos
-			self.pos.z = world.get_cube(self.pos).pos.z+1
+			world.get_tile(self.pos).pos.z = 1
 			self.update_pos()
 
 		if DEBUG:
-			print "Move ", self.direction
+			print self.id, "Move ", self.direction, world.get_tile(self.pos).pos.z
 
 
 
@@ -249,15 +290,24 @@ class wilderness_world(object):
 		self.objs = []
 		self.my_name = "no name"
 
+                ## start communication and send specs
+		osc.init()
+		osc.sendMsg("/alj/start",
+			    [w, h],
+			    SC_NETADDR, SC_PORT)
+		#osc.listen(PHP_NETADDR, PHP_PORT)
+		#osc.bind(update_code, "/alj/code")
+
 		for y in range(h):
 			for x in range(w):
 				self.objs.append(tile(vec3()))
 
 		self.update_world(vec3())
 		self.players = [ ]
-		self.players.append(player_entity(vec3(5,5,1)))
+		for i in range(5):
+			self.players.append(player_entity(vec3(i,5,1), i))
 
-		
+
 	def update_world(self,pos):
 		"""
 		"""
@@ -276,7 +326,13 @@ class wilderness_world(object):
 		for p in self.players:
 			p.update(dt)
 
-	def get_cube(self,pos):
+	def tile_occupied(self, pos):
+		if self.get_tile(pos).z == 1:
+			return True
+		else:
+			return False
+
+	def get_tile(self,pos):
 		"""
 		"""
 		return self.objs[pos.x+pos.y*self.width]
@@ -288,14 +344,12 @@ class wilderness_world(object):
 					 self.world_pos,
 					 type))
 
-window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='tune-x')
 
-label = pyglet.text.Label('Hello, groworld',
-                          font_name='Trebuchet MS',
-                          font_size=36,
-                          x=window.width//2, y= (7 * window.height//8),
-                          anchor_x='center', anchor_y='center')
+def update_code(*msg):
+	print "got message: ", msg
+		
 
+window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='alj')
 
 batch = pyglet.graphics.Batch()
 world = wilderness_world(WORLD_SIZE,WORLD_SIZE)
@@ -316,6 +370,9 @@ def on_key_press(symbol, modifiers):
 	    world.players[0].move()
     elif symbol == key.DOWN:
 	    world.players[0].move()
+    elif symbol == key.ESCAPE:
+	    osc.dontListen()
+	    pyglet.app.exit()
 #    return pyglet.event.EVENT_HANDLED
 
 
@@ -323,7 +380,6 @@ def on_key_press(symbol, modifiers):
 def on_draw():
     window.clear()
     batch.draw()
-    label.draw()
 #    world.player.sprite.draw()
 
 
