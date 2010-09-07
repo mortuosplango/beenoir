@@ -72,10 +72,10 @@ class entity(object):
 		self.pos = pos
 		self.image = pyglet.resource.image(image_filename)
 		self.sprite = pyglet.sprite.Sprite(self.image, batch=batch)
-		self.scale = 1.0 # todo: replace with matrix
-		self.rotate = 0.0
-		self.tileWidth = 67
-		self.tileHeight = 58
+		#self.scale = 1.0 # todo: replace with matrix
+		#self.rotate = 0.0
+		self.tile_width = 67
+		self.tile_height = 58
 		self.update_pos()
 
 	def change_bitmap(self,image_filename):
@@ -84,13 +84,13 @@ class entity(object):
 		self.sprite.image = self.image
 
 	def pos2screenpos(self,pos):
-		if (pos.x%2) == 1: # odd
-			y = pos.y + 0.5
+		if (pos.x%2) == 0: # even
+			y = pos.y 
 		else:
-			y = pos.y
+			y = pos.y + 0.5
 		return vec3(
 			(WIN_WIDTH * 0.4)  + (50 * pos.x),
-			(WIN_HEIGHT * 0.8) - (self.tileHeight * y),
+			(WIN_HEIGHT * 0.8) - (self.tile_height * y),
 			0)
 
 	def update_pos(self):
@@ -237,7 +237,7 @@ class player_entity(entity):
 			y = pos.y
 		return vec3(
 			WIN_WIDTH*0.4  + 50*pos.x + 25 + self.sprite.width/2,
-			WIN_HEIGHT*0.8 - self.tileHeight*y + self.tileHeight/2,
+			WIN_HEIGHT*0.8 - self.tile_height*y + self.tile_height/2,
 			0)
 
 	def move(self):
@@ -252,7 +252,7 @@ class player_entity(entity):
 		elif 4 <= self.direction <= 5: # leftish
 			pos.x -= 1
 
-		if self.pos.x%2 == 0: # even
+		if self.pos.x%2 == 1: # odd
 			if (self.direction == 2) or (self.direction == 4):
 				pos.y -= 1
 		else:
@@ -278,7 +278,7 @@ class player_entity(entity):
 
 
 
-class wilderness_world(object):
+class world(object):
 	"""
 	"""
 	
@@ -352,9 +352,9 @@ def update_code(*msg):
 window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='alj')
 
 batch = pyglet.graphics.Batch()
-world = wilderness_world(WORLD_SIZE,WORLD_SIZE)
+world = world(WORLD_SIZE,WORLD_SIZE)
 
-pyglet.clock.schedule_interval(world.update, 1/1.0)
+pyglet.clock.schedule_interval(world.update, 1/4.0)
 
 window.push_handlers(world.players[0])
 
