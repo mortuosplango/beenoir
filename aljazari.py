@@ -18,8 +18,8 @@ DEBUG=True
 SC_NETADDR="127.0.0.1"
 SC_PORT=57120
 
-PHP_NETADDR="127.0.0.1"
-PHP_PORT=57300
+NET_NETADDR="127.0.0.1"
+NET_PORT=57140
 
 class vec3(object):
 	"""
@@ -295,8 +295,8 @@ class world(object):
 		osc.sendMsg("/alj/start",
 			    [w, h],
 			    SC_NETADDR, SC_PORT)
-		#osc.listen(PHP_NETADDR, PHP_PORT)
-		#osc.bind(update_code, "/alj/code")
+		osc.listen(NET_NETADDR, NET_PORT)
+		osc.bind(update_code, "/alj/code")
 
 		for y in range(h):
 			for x in range(w):
@@ -304,7 +304,7 @@ class world(object):
 
 		self.update_world(vec3())
 		self.players = [ ]
-		for i in range(5):
+		for i in range(1):
 			self.players.append(player_entity(vec3(i,5,1), i))
 
 
@@ -346,7 +346,8 @@ class world(object):
 
 
 def update_code(*msg):
-	print "got message: ", msg
+	print "got message: ", msg[0][2:]
+	world.players[0].code = msg[0][2:]
 		
 
 window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='alj')
