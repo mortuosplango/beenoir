@@ -19,7 +19,7 @@ WORLD_HEIGHT=10
 
 # (verbose) debugging output
 DEBUG=True
-VERBOSE=False
+VERBOSE=True
 
 # Webserver-OSC->alj
 NET_NETADDR="127.0.0.1"
@@ -42,8 +42,18 @@ class vec3(object):
 		self.y=y
 		self.z=z
 
-	def add(self,other): return vec3(self.x + other.x,self.y + other.y, self.z + other.z)
-	def sub(self,other): return vec3(self.x - other.x,self.y - other.y, self.z - other.z)
+	def add(self,other): 
+		return vec3(
+			self.x + other.x,
+			self.y + other.y, 
+			self.z + other.z)
+
+	def sub(self,other): 
+		return vec3(
+			self.x - other.x,
+			self.y - other.y, 
+			self.z - other.z)
+
 	def mag(self):
 		return math.sqrt(self.x * self.x
 				 + self.y * self.y
@@ -54,23 +64,23 @@ class vec3(object):
 			    self.y * (1-t) + other.y,
 			    self.z * (1-t) +other.z)
 	
-
-class circle(object):
-	"""
-	"""
+## needs update: makes no sense in hex
+# class circle(object):
+# 	"""
+# 	"""
 	
-	def __init__(self, centre, radius):
-		"""
+# 	def __init__(self, centre, radius):
+# 		"""
 		
-                Arguments:
-                - `centre`:
-                - `radius`:
-                """
-		self.centre = centre
-                self.radius = radius
+#                 Arguments:
+#                 - `centre`:
+#                 - `radius`:
+#                 """
+# 		self.centre = centre
+#                 self.radius = radius
 
-	def inside(self,pos):
-		return pos.sub(self.centre).mag() < self.radius
+# 	def inside(self,pos):
+# 		return pos.sub(self.centre).mag() < self.radius
 
 class entity(object):
 	"""
@@ -82,10 +92,8 @@ class entity(object):
 		self.pos = pos
 		self.image = pyglet.resource.image(image_filename)
 		self.sprite = pyglet.sprite.Sprite(self.image, batch=batch)
-		#self.scale = 1.0 # todo: replace with matrix
-		#self.rotate = 0.0
-		self.tile_width = 67
-		self.tile_height = 58
+		self.tile_width = 67 # TODO
+		self.tile_height = 58 # TODO
 		self.update_pos()
 
 	def change_bitmap(self,image_filename):
@@ -94,6 +102,9 @@ class entity(object):
 		self.sprite.image = self.image
 
 	def pos2screenpos(self,pos):
+		"""
+		2d grid -> hexagonal positioning
+		"""
 		if (pos.x%2) == 0: # even
 			y = pos.y 
 		else:
@@ -112,32 +123,32 @@ class entity(object):
 		pass
 
 
-class animated_entity(entity):
-	"""
-	"""
-	def __init__(self, pos, bitmap_filename):
-		"""
-		"""
-		entity.__init__(self,pos,bitmap_filename)
-		self.src_pos= vec3()
-		self.dest_pos= vec3()
-		self.time=10.0
-		self.speed=0.0
+# class animated_entity(entity):
+# 	"""
+# 	"""
+# 	def __init__(self, pos, bitmap_filename):
+# 		"""
+# 		"""
+# 		entity.__init__(self,pos,bitmap_filename)
+# 		self.src_pos= vec3()
+# 		self.dest_pos= vec3()
+# 		self.time=10.0
+# 		self.speed=0.0
 		
-	def move_to(self,pos,speed):
-		self.src_pos=pos
-		self.dest_pos=pos
-		self.time=0.0
-		self.speed=speed
+# 	def move_to(self,pos,speed):
+# 		self.src_pos=pos
+# 		self.dest_pos=pos
+# 		self.time=0.0
+# 		self.speed=speed
 		
-	def update(self,dt, frame,world):
-		## if self.time<1:
-		## 	self.time += self.speed
-		## 	if self.time>1:
-		## 		self.time=1
-		## 	self.pos = self.src_pos.lerp(self.dest_pos,self.time)
-		self.pos = self.dest_pos
-		self.update_pos()
+# 	def update(self,dt, frame,world):
+# 		## if self.time<1:
+# 		## 	self.time += self.speed
+# 		## 	if self.time>1:
+# 		## 		self.time=1
+# 		## 	self.pos = self.src_pos.lerp(self.dest_pos,self.time)
+# 		self.pos = self.dest_pos
+# 		self.update_pos()
 
 
 class tile(entity):
@@ -161,24 +172,24 @@ class tile(entity):
 			self.change_bitmap('graphics/tile.png')
 
 		
-
 class player_entity(entity):
 	""" Player Avatar
 	"""
 	image = 'graphics/player.png'
 	def __init__(self, pos, player_id):
 		entity.__init__(self,pos,self.image)
-		self.image.anchor_x = self.image.width // 2
+		# center image anchor for rotation
+		self.image.anchor_x = self.image.width // 2 
 		self.image.anchor_y = self.image.height // 2
 		self.update_pos()
-		self.direction = 1
+		self.direction = 0
+		self.index = 0
+		self.timeout = 5
 		self.code = []
 		for i in range(8):
 			self.code.append(0) #random.randint(0,4))
-		self.index = 0
 		self.id = player_id
-		self.name = str(self.id)
-		self.timeout = 5
+		self.name = self.id
 		self.label = pyglet.text.Label(self.name[-12:],
 					       font_name='Terminus',
 					       font_size=14,
@@ -187,7 +198,6 @@ class player_entity(entity):
 					       anchor_x='left', anchor_y='center',
 					       batch=batch)
 		self.update_label()
-
 		if DEBUG:
 			print "player id ", self.id, " created"
 
@@ -226,9 +236,7 @@ class player_entity(entity):
 			else:
 				text += ' '
 			text += str(['_','M','R','L','A'][i])
-
 		self.label.document.text = text
-
 
 	def turn(self, direction):
 		self.direction = (self.direction + direction) % 6
@@ -252,6 +260,9 @@ class player_entity(entity):
 			print "actione!"
 
 	def pos2screenpos(self,pos):
+		"""
+		slightly different positioning for smaller graphics (hacky)
+		"""
 		if (pos.x%2) == 1: # odd
 			y = pos.y + 0.5
 		else:
@@ -304,7 +315,7 @@ class player_entity(entity):
 
 
 
-class world(object):
+class aljWorld(object):
 	"""
 	"""
 	
@@ -316,38 +327,18 @@ class world(object):
 		self.objs = []
 		self.my_name = "no name"
 
-                ## start communication and send specs
-		osc.init()
-		osc.sendMsg("/alj/start",
-			    [w, h],
-			    SC_NETADDR, SC_PORT)
-		osc.listen(NET_NETADDR, NET_PORT)
-
-		osc.bind(update_code, "/alj/code")
-		osc.bind(ping_players, "/alj/ping")
-		osc.bind(change_player_name, "/alj/name")
+		self.players = dict()
+		#for i in range(5):
+		#	self.players.append(player_entity(vec3(i,5,1), i))
 
 		for y in range(h):
 			for x in range(w):
 				self.objs.append(tile(vec3()))
 
-		self.update_world(vec3())
-		self.players = dict()
-		#for i in range(5):
-		#	self.players.append(player_entity(vec3(i,5,1), i))
-
-
-	def update_world(self,pos):
-		"""
-		"""
-		self.world_pos=pos
-		circles = []
-		
 		for i in range(len(self.objs)):
 			pos = vec3(i % self.width,
 				   math.floor(i / self.width),
 				   0)
-
 			self.objs[i].pos = pos
 			self.objs[i].update_pos()
 
@@ -379,19 +370,21 @@ def is_player(key):
 	if key in world.players:
 		return True
 	else:
-		if(len(world.players) < MAX_PLAYERS):
-			print "new player!"
+		if len(world.players) < MAX_PLAYERS:
 			world.players[key] = player_entity(
 				vec3(
 					random.randint(0,world.width),
 					random.randint(0,world.height),
 					0), 
 				key)
+			print "new player!"
 			return True
 		else:
 			print "too many players!"
 			return False
 
+
+## osc functions
 def update_code(*msg):
 	if DEBUG:
 		print "updating: ", msg[0][2:]
@@ -414,41 +407,36 @@ def change_player_name(*msg):
 		world.players[key].changeName(msg[0][3])
 
 
-window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='alj')
 
-batch = pyglet.graphics.Batch()
-world = world(WORLD_WIDTH,WORLD_HEIGHT)
-
-pyglet.clock.schedule_interval(world.update, 1/4.0)
-
-#window.push_handlers(world.players[0])
-
-@window.event
-def on_key_press(symbol, modifiers):
-	if symbol == key.ENTER:
-		world.players[0].turn_right()
-	elif symbol == key.RIGHT:
-		world.players[0].move()
-	elif symbol == key.LEFT:
-		world.players[0].move()
-	elif symbol == key.UP:
-		world.players[0].move()
-	elif symbol == key.DOWN:
-		world.players[0].move()
-	elif symbol == key.ESCAPE:
-		print "shutting down..."
-		osc.dontListen()
-		pyglet.app.exit()
-#    return pyglet.event.EVENT_HANDLED
-
-
-@window.event
-def on_draw():
-	window.clear()
-	batch.draw()
-#    world.player.sprite.draw()
+if __name__ == '__main__':
+	window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='alj')
+	batch = pyglet.graphics.Batch()
+	world = aljWorld(WORLD_WIDTH,WORLD_HEIGHT)
 
 
 
-#buildWorld(10)
-pyglet.app.run()
+	@window.event
+	def on_key_press(symbol, modifiers):
+		if symbol == key.ESCAPE:
+			print "shutting down..."
+			osc.dontListen()
+			pyglet.app.exit()
+		return pyglet.event.EVENT_HANDLED
+
+	@window.event
+	def on_draw():
+		window.clear()
+		batch.draw()
+
+	## start communication and send specs
+	osc.init()
+	osc.sendMsg("/alj/start",
+		    [world.width, world.height],
+		    SC_NETADDR, SC_PORT)
+	osc.listen(NET_NETADDR, NET_PORT)
+	osc.bind(update_code, "/alj/code")
+	osc.bind(ping_players, "/alj/ping")
+	osc.bind(change_player_name, "/alj/name")
+
+	pyglet.clock.schedule_interval(world.update, 1/4.0)
+	pyglet.app.run()

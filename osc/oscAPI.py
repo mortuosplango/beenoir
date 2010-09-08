@@ -51,6 +51,7 @@ def init() :
 def bind(func, oscaddress):
     """ bind given oscaddresses with given functions in address manager
     """
+    print "binding ", oscaddress
     addressManager.add(func, oscaddress)
 
 
@@ -106,19 +107,19 @@ class OSCServer(Thread) :
         try :
             self.socket.bind( (ipAddr, port) )
             self.socket.settimeout(1.0) # make sure its not blocking forever...
-            self.haveSocket = True
-        except socket.error :
+            self.haveSocket=True
+        except socket.error:
             print 'there was an error binding to ip %s and port %i , maybe the port is already taken by another process?' % (ipAddr. port)
             self.haveSocket=False
             
-    def run(self) :
+    def run(self):
         if self.haveSocket :
             self.isRunning = True
-            while self.isRunning :
-                try :
+            while self.isRunning:
+                try:
                     while 1:
                         addressManager.handle( self.socket.recv(1024) ) # self.socket.recvfrom(2**13)
-                except :
+                except:
                     return "no data arrived" # not data arrived
 
 
@@ -127,7 +128,8 @@ def listen(ipAddr='127.0.0.1', port = 9001) :
     defaults to ipAddr='127.0.0.1', port 9001
     """
     global oscThread
-    oscThread = OSCServer( ipAddr, port )
+    print "listening to ", port
+    oscThread = OSCServer(ipAddr, port)
     oscThread.start()
     
 

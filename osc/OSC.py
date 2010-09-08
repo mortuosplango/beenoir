@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/sr/bin/python
 #
 # Open SoundControl for Python
 # Copyright (C) 2002 Daniel Holth, Clinton McChesney
@@ -181,6 +181,10 @@ def OSCArgument(next):
         OSCstringLength = math.ceil((len(next)+1) / 4.0) * 4
         binary  = struct.pack(">%ds" % (OSCstringLength), next)
         tag = "s"
+    elif type(next) == type(u""):
+        OSCstringLength = math.ceil((len(str(next))+1) / 4.0) * 4
+        binary  = struct.pack(">%ds" % (OSCstringLength), str(next))
+        tag = "s"
     elif type(next) == type(42.5):
         binary  = struct.pack(">f", next)
         tag = "f"
@@ -285,7 +289,6 @@ class CallbackManager:
             pass
         except None, e:
             print "Exception in", address, "callback :", e
-
         return
 
     def add(self, callback, name):
