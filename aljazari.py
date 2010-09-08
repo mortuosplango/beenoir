@@ -1,4 +1,3 @@
-
 import random
 import math
 import osc
@@ -6,20 +5,31 @@ import osc
 
 import pyglet.window
 import pyglet.clock
+
 from pyglet.window import key
 from pyglet.gl import *
 
 
 WIN_WIDTH=1200
 WIN_HEIGHT=800
-WORLD_SIZE=10
-DEBUG=True
 
+WORLD_WIDTH=12
+WORLD_HEIGHT=10
+
+
+# (verbose) debugging output
+DEBUG=True
+VERBOSE=False
+
+# Webserver-OSC->alj
+NET_NETADDR="127.0.0.1"
+NET_PORT=57140
+
+# alj-OSC->SuperCollider
 SC_NETADDR="127.0.0.1"
 SC_PORT=57120
 
-NET_NETADDR="127.0.0.1"
-NET_PORT=57140
+MAX_PLAYERS=15
 
 class vec3(object):
 	"""
@@ -164,10 +174,12 @@ class player_entity(entity):
 		self.direction = 1
 		self.code = []
 		for i in range(8):
-			self.code.append(random.randint(0,4))
+			self.code.append(0) #random.randint(0,4))
 		self.index = 0
 		self.id = player_id
-		self.label = pyglet.text.Label('Player',
+		self.name = str(self.id)
+		self.timeout = 5
+		self.label = pyglet.text.Label(self.name[-12:],
 					       font_name='Terminus',
 					       font_size=14,
 					       x=20, 
@@ -179,7 +191,13 @@ class player_entity(entity):
 		if DEBUG:
 			print "player id ", self.id, " created"
 
+	
+	def resetTimeout(self):
+		self.timeout = 5
+
 	def update(self,dt):
+		self.timeout -= dt
+		
 		action = self.code[self.index]
 		if 0 < action <= 5:
 			if action == (1 or 'move'):
@@ -190,14 +208,17 @@ class player_entity(entity):
 				self.turn_left()
 			elif action == (4 or 'action'):
 				self.action()
+
 		self.update_label()
-		if (self.code[self.index-1] == (4 or 'action')) and (action != (4 or 'action')):
+
+		if ((self.code[self.index-1] == (4 or 'action')) 
+		    and (action != (4 or 'action'))):
 			world.get_tile(self.pos).deactivate()
 			
 		self.index = (self.index + 1) % len(self.code)
 
 	def update_label(self):
-		text = ("Player "  + str(self.id) + ": ")
+		text = (self.name[-12:]  + str(self.id) + ": ")
 		for index,i in enumerate(self.code):
 			if self.index == index:
 				text += '>'
@@ -241,23 +262,26 @@ class player_entity(entity):
 			0)
 
 	def move(self):
+		""" 
+		movement in hexagonal fields 
+		"""
 		pos = vec3(self.pos.x,self.pos.y,self.pos.z)
 
 		if self.direction == 0: # up
 			pos.y -= 1
+		elif self.direction < 3: # rightish
+			pos.x += 1
 		elif self.direction == 3: # down
 			pos.y += 1
-		elif 1 <= self.direction <= 2: # rightish
-			pos.x += 1
-		elif 4 <= self.direction <= 5: # leftish
+		else: # leftish
 			pos.x -= 1
 
 		if self.pos.x%2 == 1: # odd
 			if (self.direction == 2) or (self.direction == 4):
-				pos.y -= 1
+				pos.y += 1
 		else:
 			if (self.direction == 1) or (self.direction == 5):
-				pos.y += 1
+				pos.y -= 1
 
 		if pos.x < 0:
 			pos.x=world.width-1
@@ -268,6 +292,8 @@ class player_entity(entity):
 		if pos.y >= world.height:
 			pos.y=0
 		if world.get_tile(pos).pos.z == 0:
+			#if DEBUG:
+			#	print pos.x, pos.y, self.pos.x, self.pos.y
 			world.get_tile(self.pos).pos.z = 0
 			self.pos = pos
 			world.get_tile(self.pos).pos.z = 1
@@ -296,16 +322,19 @@ class world(object):
 			    [w, h],
 			    SC_NETADDR, SC_PORT)
 		osc.listen(NET_NETADDR, NET_PORT)
+
 		osc.bind(update_code, "/alj/code")
+		osc.bind(ping_players, "/alj/ping")
+		osc.bind(change_player_name, "/alj/name")
 
 		for y in range(h):
 			for x in range(w):
 				self.objs.append(tile(vec3()))
 
 		self.update_world(vec3())
-		self.players = [ ]
-		for i in range(1):
-			self.players.append(player_entity(vec3(i,5,1), i))
+		self.players = dict()
+		#for i in range(5):
+		#	self.players.append(player_entity(vec3(i,5,1), i))
 
 
 	def update_world(self,pos):
@@ -313,7 +342,7 @@ class world(object):
 		"""
 		self.world_pos=pos
 		circles = []
-					
+		
 		for i in range(len(self.objs)):
 			pos = vec3(i % self.width,
 				   math.floor(i / self.width),
@@ -323,8 +352,11 @@ class world(object):
 			self.objs[i].update_pos()
 
 	def update(self,dt):
-		for p in self.players:
-			p.update(dt)
+		if VERBOSE:
+			print "upd ", self.players
+		if len(self.players) > 0:
+			for p in self.players:
+				p.update(dt)
 
 	def tile_occupied(self, pos):
 		if self.get_tile(pos).z == 1:
@@ -337,50 +369,83 @@ class world(object):
 		"""
 		return self.objs[pos.x+pos.y*self.width]
 
-	def add_server_plant(self,pos,type=-1):
-		# call by reference! :S
-		self.plants.append(plant(self.my_name,
-					 vec3(pos.x,pos.y,1),
-					 self.world_pos,
-					 type))
 
+
+def is_player(key):
+	""" 
+	Make sure there is a player by that key or create one
+	unless there are too many players
+	"""
+	if key in world.players:
+		return True
+	else:
+		if(len(world.players) < MAX_PLAYERS):
+			print "new player!"
+			world.players[key] = player_entity(
+				vec3(
+					random.randint(0,world.width),
+					random.randint(0,world.height),
+					0), 
+				key)
+			return True
+		else:
+			print "too many players!"
+			return False
 
 def update_code(*msg):
-	print "got message: ", msg[0][2:]
-	world.players[0].code = msg[0][2:]
-		
+	if DEBUG:
+		print "updating: ", msg[0][2:]
+	key = msg[0][2]
+	if is_player(key):
+		world.players[key].code = msg[0][3:]
+
+def ping_players(*msg):
+	if DEBUG:
+		print "pinging: ", msg[0][2]
+	key = msg[0][2]
+	if is_player(key):
+		world.players[key].resetTimeout()
+
+def change_player_name(*msg):
+	if DEBUG:
+		print "changing name: ", msg[0][2:]
+	key = msg[0][2]
+	if is_player(key):
+		world.players[key].changeName(msg[0][3])
+
 
 window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='alj')
 
 batch = pyglet.graphics.Batch()
-world = world(WORLD_SIZE,WORLD_SIZE)
+world = world(WORLD_WIDTH,WORLD_HEIGHT)
 
 pyglet.clock.schedule_interval(world.update, 1/4.0)
 
-window.push_handlers(world.players[0])
+#window.push_handlers(world.players[0])
 
 @window.event
 def on_key_press(symbol, modifiers):
-    if symbol == key.ENTER:
-	    world.players[0].turn_right()
-    elif symbol == key.RIGHT:
-	    world.players[0].move()
-    elif symbol == key.LEFT:
-	    world.players[0].move()
-    elif symbol == key.UP:
-	    world.players[0].move()
-    elif symbol == key.DOWN:
-	    world.players[0].move()
-    elif symbol == key.ESCAPE:
-	    osc.dontListen()
-	    pyglet.app.exit()
+	if symbol == key.ENTER:
+		world.players[0].turn_right()
+	elif symbol == key.RIGHT:
+		world.players[0].move()
+	elif symbol == key.LEFT:
+		world.players[0].move()
+	elif symbol == key.UP:
+		world.players[0].move()
+	elif symbol == key.DOWN:
+		world.players[0].move()
+	elif symbol == key.ESCAPE:
+		print "shutting down..."
+		osc.dontListen()
+		pyglet.app.exit()
 #    return pyglet.event.EVENT_HANDLED
 
 
 @window.event
 def on_draw():
-    window.clear()
-    batch.draw()
+	window.clear()
+	batch.draw()
 #    world.player.sprite.draw()
 
 
