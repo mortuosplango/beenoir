@@ -145,19 +145,6 @@ class PoloServer (BaseHTTPServer.HTTPServer):
         else:
             self.notifications = Notifications()
 
-
-# class PoloCGIServer (CGIHTTPServer.HTTPServer):
-#     def __init__(self, server_address, handler_class, mappings = None, notifications = None):
-#         BaseHTTPServer.HTTPServer.__init__(self, server_address, handler_class)
-#         if mappings:
-#             self.mappings = mappings
-#         else:
-#             self.mappings = Mappings()
-#         if notifications:
-#             self.notifications = notifications
-#         else:
-#             self.notifications = Notifications()
-
 def run(server_class = PoloServer,
         handler_class = PoloHandler,
         server_port = 8000,

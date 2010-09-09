@@ -50,7 +50,7 @@ function setValue (name, value, expiration) {
 }
 
 function getID () {
-    var expiration = 1000 * 60 * 60 * 24; // 24 hours
+    var expiration = 1000 * 30; // 30 seconds
     var ID = getValue();
     if (ID == "") {
 	var now = new Date();

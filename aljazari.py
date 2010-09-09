@@ -161,10 +161,15 @@ class tile(entity):
 		"""
 		entity.__init__(self,pos,'graphics/tile.png')
 		self.active = False
+		self.occupied = False
 
 	def activate(self):
 		self.change_state(True)
 
+	def update(self, dt):
+		if self.active:
+			self.deactivate()
+	
 	def deactivate(self):
 		self.change_state(False)
 
@@ -233,11 +238,7 @@ class player_entity(entity):
 				self.turn_left()
 			elif action == (4 or 'action'):
 				self.action()
-		self.update_label()
-		if ((self.code[self.index-1] == (4 or 'action')) 
-		    and (action != (4 or 'action'))):
-			world.get_tile(self.pos).deactivate()
-			
+		self.update_label()			
 		self.index = (self.index + 1) % len(self.code)
 
 	def update_label(self):
@@ -318,12 +319,12 @@ class player_entity(entity):
 			pos.y=world.height-1
 		if pos.y >= world.height:
 			pos.y=0
-		if world.get_tile(pos).pos.z == 0:
+		if not world.get_tile(pos).occupied:
 			#if DEBUG:
 			#	print pos.x, pos.y, self.pos.x, self.pos.y
-			world.get_tile(self.pos).pos.z = 0
+			world.get_tile(self.pos).occupied = False
 			self.pos = pos
-			world.get_tile(self.pos).pos.z = 1
+			world.get_tile(self.pos).occupied = True
 			self.update_pos()
 
 		# if DEBUG:
@@ -341,8 +342,6 @@ class aljWorld(object):
 		self.width=w
 		self.height=h
 		self.objs = []
-		self.my_name = "no name"
-
 		self.players = []
 		self.controllers = dict()
 		for i, color in enumerate(['maroon', 'red','green', 'lime', 'olive', 
@@ -365,19 +364,13 @@ class aljWorld(object):
 	def update(self,dt):
 		if VERBOSE:
 			print "upd ", self.players, len(self.players)
+		for t in self.objs:
+			t.update(dt)
 		if len(self.players) > 0:
 			for p in self.players:
 				p.update(dt)
 
-	def tile_occupied(self, pos):
-		if self.get_tile(pos).z == 1:
-			return True
-		else:
-			return False
-
 	def get_tile(self,pos):
-		"""
-		"""
 		return self.objs[pos.x+pos.y*self.width]
 
 ## osc functions
@@ -407,7 +400,7 @@ def ping_players(addr, tags, data, client_addr):
 				client.sendto(msg, NET_SEND_ADDR) 
 				break
 			else:
-				print "something went wrong: no free player!"
+				print "something went wrong: there should be free players!"
 	else:
 		msg = osc.OSCMessage()
 		msg.setAddress("/alj/dict")
