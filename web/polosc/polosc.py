@@ -7,11 +7,13 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
+#import CGIHTTPServer
 import BaseHTTPServer
 import logging
 import csv
 import sys
-import osc
+import OSC as osc
+import threading
 import json
 import random
 
@@ -20,7 +22,12 @@ logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG,)
 logging.info("")
 logging.info("***STARTING***")
 
-osc.init()
+# Webserver-OSC->alj
+NET_SEND_ADDR=('127.0.0.1', 57140)
+# alj->Webserver-OSC:
+NET_ADDR=('127.0.0.1', 57141)
+
+players = dict()
 
 class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     def write_response(self):
@@ -38,6 +45,25 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write("%x"%(random_int))
+        elif self.path[:3] == "/id":
+            logging.debug("got request with id %s"%(self.path[3:]))
+            print players
+            if self.path[3:] in players:
+                self.send_response(200)
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                self.wfile.write(
+                    self.server.mappings["/start.html"]%(
+                        ['maroon', 'red','green', 'lime', 'olive', 
+                         'yellow', 'navy', 'blue', 'purple', 'fuchsia'
+                         ][players[self.path[3:]]]))
+                for i in range(8):
+                    self.wfile.write(self.server.mappings["/field.html"]%(i))
+                self.wfile.write(self.server.mappings["/end.html"])
+            else:
+                self.wfile.write("<html><body><h1>Error</h1>: all seats taken, %s</body></html>"%(self.path[3:]))
+            #self.wfile.write(self.server.mappings["/index.html"])
+            #self.wfile.write("%x"%(random_int))
         else:
             logging.debug("path '%s' is not mapped"%(self.path))
             self.send_response(404)
@@ -50,7 +76,11 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             for n in self.server.notifications[self.path]:
                 logging.debug("sending notification to '%s:%s%s'"%(n.host, n.port, osc_address))
                 if (type(osc_address) == str and type(osc_data) == list):
-                    osc.sendMsg(osc_address, osc_data, n.host, n.port)
+                        msg = osc.OSCMessage()
+                        msg.setAddress(osc_address)
+                        for i in osc_data:
+                            msg.append(i)
+                            client.sendto(msg, (n.host, n.port)) 
                 else:
                     logging.error("did not send message. string address and list message expected, got %s %s."%(type(osc_address), type(osc_data)))
         else:
@@ -115,6 +145,19 @@ class PoloServer (BaseHTTPServer.HTTPServer):
         else:
             self.notifications = Notifications()
 
+
+# class PoloCGIServer (CGIHTTPServer.HTTPServer):
+#     def __init__(self, server_address, handler_class, mappings = None, notifications = None):
+#         BaseHTTPServer.HTTPServer.__init__(self, server_address, handler_class)
+#         if mappings:
+#             self.mappings = mappings
+#         else:
+#             self.mappings = Mappings()
+#         if notifications:
+#             self.notifications = notifications
+#         else:
+#             self.notifications = Notifications()
+
 def run(server_class = PoloServer,
         handler_class = PoloHandler,
         server_port = 8000,
@@ -126,6 +169,10 @@ def run(server_class = PoloServer,
     try:
         httpd.serve_forever()
     except:
+        print "\nClosing OSCServer."
+        oscServer.close()
+        print "Waiting for Server-thread to finish"
+        oscServerThread.join()
         httpd.server_close()
 
 def get_filenames(arg_list, extension):
@@ -205,6 +252,14 @@ class Notification (object):
         self.host = host
         self.port = port
 
+def update_dict(*msg):
+    print "got message ", msg
+    if msg[2][1] != -1:
+        players[msg[2][0]] = msg[2][1]
+    else:
+        logging.debug("got max players message")
+
+
 if "__main__" == __name__:
     mapping_extension = ".map"
     notification_extension = ".not"
@@ -216,6 +271,18 @@ if "__main__" == __name__:
     notification_filenames = get_filenames(sys.argv, notification_extension)
     notifications = Notifications()
     notifications.read_notifications(notification_filenames)
+
+    ## start communication and send specs
+    client = osc.OSCClient()
+
+    oscServer = osc.OSCServer(NET_ADDR)
+    oscServer.addDefaultHandlers()
+
+    oscServer.addMsgHandler("/alj/dict", update_dict)
+    # Start OSCServer
+    print "\nStarting OSCServer. Use ctrl-C to quit."
+    oscServerThread = threading.Thread( target = oscServer.serve_forever )
+    oscServerThread.start()
 
     port = 8000
     if (sys.argv[1] not in mapping_filenames) and (sys.argv[1] not in notification_filenames):

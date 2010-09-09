@@ -65,7 +65,7 @@ function getID () {
 
 function pingServer() {
     sendMsg("/alj/ping", [ID], "s");
-    window.setTimeout("pingServer()", 4000);
+    window.setTimeout("pingServer()", 1500);
 }
 
 function changeName (ID) {
