@@ -56,6 +56,7 @@ function getID () {
 	var now = new Date();
 	ID = now.getTime();
 	ID = new String(ID);
+	ID = ID + "id"
 	setValue("ID", ID , expiration);
 	//document.code.name.value = ID.slice(ID.length - 13, ID.length - 1);
     }

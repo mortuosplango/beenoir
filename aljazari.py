@@ -1,6 +1,7 @@
 import random
 import math
-import osc
+import OSC as osc
+import threading
 
 
 import pyglet.window
@@ -16,20 +17,19 @@ WIN_HEIGHT=800
 WORLD_WIDTH=12
 WORLD_HEIGHT=10
 
+MAX_PLAYERS=15
 
 # (verbose) debugging output
 DEBUG=True
 VERBOSE=True
 
 # Webserver-OSC->alj
-NET_NETADDR="127.0.0.1"
-NET_PORT=57140
+NET_ADDR=('127.0.0.1', 57140)
 
 # alj-OSC->SuperCollider
-SC_NETADDR="127.0.0.1"
-SC_PORT=57120
+SC_ADDR=('127.0.0.1', 57120)
 
-MAX_PLAYERS=15
+
 
 class vec3(object):
 	"""
@@ -179,6 +179,7 @@ class player_entity(entity):
 	def __init__(self, pos, player_id):
 		entity.__init__(self,pos,self.image)
 		# center image anchor for rotation
+		print "in player"
 		self.image.anchor_x = self.image.width // 2 
 		self.image.anchor_y = self.image.height // 2
 		self.update_pos()
@@ -189,15 +190,18 @@ class player_entity(entity):
 		for i in range(8):
 			self.code.append(0) #random.randint(0,4))
 		self.id = player_id
-		self.name = self.id
-		self.label = pyglet.text.Label(self.name[-12:],
-					       font_name='Terminus',
-					       font_size=14,
-					       x=20, 
-					       y= WIN_HEIGHT - (self.id * 20) - 20,
-					       anchor_x='left', anchor_y='center',
+		self.name = self.id[-12:]
+		print "in player3", self.name
+		self.label = pyglet.text.Label("test",
+					       #font_name='Terminus',
+					       #font_size=14,
+					       #x=20, 
+					       #y= WIN_HEIGHT - 20, #(1 * 20) - 20,
+					       #anchor_x='left', 
+					       #anchor_y='center',
 					       batch=batch)
-		self.update_label()
+		print "in player4"
+		#self.update_label()
 		if DEBUG:
 			print "player id ", self.id, " created"
 
@@ -218,9 +222,7 @@ class player_entity(entity):
 				self.turn_left()
 			elif action == (4 or 'action'):
 				self.action()
-
-		self.update_label()
-
+		#self.update_label()
 		if ((self.code[self.index-1] == (4 or 'action')) 
 		    and (action != (4 or 'action'))):
 			world.get_tile(self.pos).deactivate()
@@ -228,7 +230,7 @@ class player_entity(entity):
 		self.index = (self.index + 1) % len(self.code)
 
 	def update_label(self):
-		text = (self.name[-12:]  + str(self.id) + ": ")
+		text = (self.name + ": ")
 		for index,i in enumerate(self.code):
 			if self.index == index:
 				text += '>'
@@ -252,9 +254,11 @@ class player_entity(entity):
 
 	def action(self):
 		world.get_tile(self.pos).activate()
-		osc.sendMsg("/alj/action",
-			    [self.id, self.pos.x, self.pos.y],
-			    SC_NETADDR, SC_PORT)
+		msg = osc.OSCMessage()
+		msg.setAddress("/alj/action")
+		for i in [self.id, self.pos.x, self.pos.y]:
+			msg.append(i)
+		client.sendto(msg, SC_ADDR) 
 		
 		if DEBUG:
 			print "actione!"
@@ -344,10 +348,10 @@ class aljWorld(object):
 
 	def update(self,dt):
 		if VERBOSE:
-			print "upd ", self.players
+			print "upd ", self.players, len(self.players)
 		if len(self.players) > 0:
 			for p in self.players:
-				p.update(dt)
+				self.players[p].update(dt)
 
 	def tile_occupied(self, pos):
 		if self.get_tile(pos).z == 1:
@@ -367,16 +371,15 @@ def is_player(key):
 	Make sure there is a player by that key or create one
 	unless there are too many players
 	"""
+	print "isplayer"
 	if key in world.players:
 		return True
 	else:
 		if len(world.players) < MAX_PLAYERS:
-			world.players[key] = player_entity(
-				vec3(
-					random.randint(0,world.width),
-					random.randint(0,world.height),
-					0), 
-				key)
+			print world.players
+			player = player_entity(vec3(5,5,0), key)
+			print player
+			world.players[key] = player
 			print "new player!"
 			return True
 		else:
@@ -385,24 +388,24 @@ def is_player(key):
 
 
 ## osc functions
-def update_code(*msg):
+def update_code(addr, tags, data, client_addr):
 	if DEBUG:
-		print "updating: ", msg[0][2:]
-	key = msg[0][2]
+		print "updating: ", data
+	key = data[0]
 	if is_player(key):
 		world.players[key].code = msg[0][3:]
 
-def ping_players(*msg):
+def ping_players(addr, tags, data, client_addr):
 	if DEBUG:
-		print "pinging: ", msg[0][2]
-	key = msg[0][2]
+		print "pinging: ", data
+	key = data[0]
 	if is_player(key):
 		world.players[key].resetTimeout()
 
-def change_player_name(*msg):
+def change_player_name(addr, tags, data, client_addr):
 	if DEBUG:
-		print "changing name: ", msg[0][2:]
-	key = msg[0][2]
+		print "changing name: ", data
+	key = data[0]
 	if is_player(key):
 		world.players[key].changeName(msg[0][3])
 
@@ -413,13 +416,15 @@ if __name__ == '__main__':
 	batch = pyglet.graphics.Batch()
 	world = aljWorld(WORLD_WIDTH,WORLD_HEIGHT)
 
-
-
 	@window.event
 	def on_key_press(symbol, modifiers):
 		if symbol == key.ESCAPE:
 			print "shutting down..."
-			osc.dontListen()
+
+			print "\nClosing OSCServer."
+			oscServer.close()
+			print "Waiting for Server-thread to finish"
+			oscServerThread.join()
 			pyglet.app.exit()
 		return pyglet.event.EVENT_HANDLED
 
@@ -427,16 +432,28 @@ if __name__ == '__main__':
 	def on_draw():
 		window.clear()
 		batch.draw()
-
+	
 	## start communication and send specs
-	osc.init()
-	osc.sendMsg("/alj/start",
-		    [world.width, world.height],
-		    SC_NETADDR, SC_PORT)
-	osc.listen(NET_NETADDR, NET_PORT)
-	osc.bind(update_code, "/alj/code")
-	osc.bind(ping_players, "/alj/ping")
-	osc.bind(change_player_name, "/alj/name")
+	client = osc.OSCClient()
+
+	oscServer = osc.OSCServer(NET_ADDR)
+	oscServer.addDefaultHandlers()
+
+	msg = osc.OSCMessage()
+	msg.setAddress("/alj/start")
+	for i in [world.width, world.height]:
+		msg.append(i)
+	client.sendto(msg, SC_ADDR) 
+
+	oscServer.addMsgHandler("/alj/code", update_code)
+	oscServer.addMsgHandler("/alj/ping", ping_players)
+	oscServer.addMsgHandler("/alj/name", change_player_name)
+
+	# Start OSCServer
+	print "\nStarting OSCServer. Use ctrl-C to quit."
+	oscServerThread = threading.Thread( target = oscServer.serve_forever )
+	oscServerThread.start()
+
 
 	pyglet.clock.schedule_interval(world.update, 1/4.0)
 	pyglet.app.run()
