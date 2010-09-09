@@ -1,0 +1,21 @@
+alj
+
+dependencies:
+ - python
+ - pyglet
+ - pyOSC
+ - (SuperCollider)
+
+to start:
+ - first start the server:
+	cd web/
+	python polosc/polosc.py 8000 cs.map cs.not
+ - then the game:
+	python aljasari.py
+ - then receive actions with OSC in e. g. SuperCollider:
+	port: 57120
+	address: /alj/action 
+	format: player_id (string), x-position (int), y-position (int)
+
+ - then go to http://127.0.0.1:8000/ to control one player
+
