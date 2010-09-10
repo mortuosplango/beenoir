@@ -1,4 +1,6 @@
-alj is alJazari plus hexagons minus one dimension ( http://pawfal.org/index.php?page=AlJazari )
+alj6 is alJazari[1] in python plus hexagons minus one dimension 
+
+the webserver code is based on polosc[2]
 
 dependencies:
  - python
@@ -7,15 +9,17 @@ dependencies:
  - (SuperCollider)
 
 to start:
- - first start the server:
+ 1) start the webserver:
 	cd web/
 	python polosc/polosc.py 8000 cs.map cs.not
- - then the game:
+ 2) start the game:
 	python aljasari.py
- - then receive actions with OSC in e. g. SuperCollider:
+ 3) you can receive actions with OSC in e. g. SuperCollider:
 	port: 57120
 	address: /alj/action 
 	format: player_id (string), x-position (int), y-position (int)
+ 4) to controll a player go to http://127.0.0.1:8000/
 
- - then go to http://127.0.0.1:8000/ to control one player
 
+[1] http://pawfal.org/index.php?page=AlJazari
+[2] http://www.pillowsopher.com/blog/?p=107
