@@ -7,6 +7,7 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="210mm"
@@ -22,14 +23,14 @@
      id="defs4" />
   <sodipodi:namedview
      id="base"
-     pagecolor="#ffffff"
+     pagecolor="#000000"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
      inkscape:cx="56.745704"
-     inkscape:cy="877.71262"
+     inkscape:cy="77.71262"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -46,7 +47,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -56,7 +57,7 @@
      id="layer1">
     <path
        sodipodi:type="star"
-       style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:#ff0000;stroke-opacity:1;stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none"
+       style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:#ffffff;stroke-opacity:1;stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none"
        id="path2985"
        sodipodi:sides="6"
        sodipodi:cx="108.57143"
@@ -68,7 +69,13 @@
        inkscape:flatsided="true"
        inkscape:rounded="0"
        inkscape:randomized="0"
-       d="m 157.72757,214.64598 -98.312291,-1e-5 -49.156139,-85.14094 49.156147,-85.140935 98.312283,5e-6 49.15614,85.14094 z" />
+       d="m 157.72757,214.64598 -98.312291,-1e-5 -49.156139,-85.14094 49.156147,-85.140935 98.312283,5e-6 49.15614,85.14094 z"
+       inkscape:tile-cx="108.57143"
+       inkscape:tile-cy="129.50504"
+       inkscape:tile-w="196.62457"
+       inkscape:tile-h="170.28188"
+       inkscape:tile-x0="10.25914"
+       inkscape:tile-y0="44.364095" />
     <path
        d="m 157.72757,214.64598 -98.312291,-1e-5 -49.156139,-85.14094 49.156147,-85.140935 98.312283,5e-6 49.15614,85.14094 z"
        inkscape:randomized="0"
@@ -104,9 +111,50 @@
        inkscape:randomized="0"
        d="m -200,-45.631599 58.26575,100.919244 -116.5315,-3e-6 z"
        inkscape:transform-center-y="-16.819874"
-       transform="matrix(0.32574947,0,0,1,170.86416,300.71428)"
+       transform="matrix(0.32574947,0,0,1,506.57845,297.85714)"
        inkscape:export-filename="/home/hb/alJasari-Remix/graphics/player.png"
        inkscape:export-xdpi="30"
        inkscape:export-ydpi="30" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3793"
+       style="font-size:12px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#787878;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Terminus"
+       transform="translate(0,-4.2857143)"><flowRegion
+         id="flowRegion3795"><rect
+           id="rect3797"
+           width="109.28571"
+           height="137.14287"
+           x="85"
+           y="85.933617"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#787878;fill-opacity:1;font-family:Sans;-inkscape-font-specification:Terminus" /></flowRegion><flowPara
+         id="flowPara3799"
+         style="font-size:72px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#787878;fill-opacity:1;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Vera Sans Bold">0</flowPara></flowRoot>    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#path2985"
+       xlink:href="#path2985"
+       transform="translate(0,187.31007)"
+       id="use3807" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#path2985"
+       xlink:href="#path2985"
+       transform="translate(0,374.62014)"
+       id="use3809" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#path2985"
+       xlink:href="#path2985"
+       transform="translate(0,561.9302)"
+       id="use3811" />
+    <use
+       x="0"
+       y="0"
+       inkscape:tiled-clone-of="#path2985"
+       xlink:href="#path2985"
+       transform="translate(0,749.24027)"
+       id="use3813" />
   </g>
 </svg>

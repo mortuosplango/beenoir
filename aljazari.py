@@ -156,12 +156,23 @@ class entity(object):
 
 
 class tile(entity):
+	vertex_list = []
+	max_value = 4
+	# for i in range(6):
+	# 	vertex_list.append(math.sin(i/6.0*2*M_PI))
+	# 	vertex_list.append(math.cos(i/6.0*2*M_PI))
+
 	def __init__(self, pos):
 		"""
 		"""
-		entity.__init__(self,pos,'graphics/tile.png')
+		self.image_file = 'graphics/tile_0.png'
+		entity.__init__(self,pos,self.image_file)
 		self.active = False
 		self.occupied = False
+		self.value = 0
+		# vertex_list = batch.add(2, pyglet.gl.GL_POLYGON, None,
+		# 			('v2i', vertex_list),
+		# 			('c3B', (0, 0, 255) * 6))
 
 	def activate(self):
 		self.change_state(True)
@@ -169,24 +180,40 @@ class tile(entity):
 	def update(self, dt):
 		if self.active:
 			self.deactivate()
-	
+
+	def decrease(self):
+		if self.value > 0:
+			self.value -= 1
+			self.update_bitmap()
+
+	def increase(self):
+		if self.value < self.max_value:
+			self.value += 1
+			self.update_bitmap()
+
+	def update_bitmap(self):
+		self.image_file = 'graphics/tile_' + str(self.value) + '.png'
+		self.change_bitmap(self.image_file)
+
 	def deactivate(self):
 		self.change_state(False)
+		
 
 	def change_state(self,state):
 		self.active = state
 		if state:
 			self.change_bitmap('graphics/tile-active.png')
 		else:
-			self.change_bitmap('graphics/tile.png')
+			self.change_bitmap(self.image_file)
 
 		
 class player_entity(entity):
 	""" Player Avatar
 	"""
-	image = 'graphics/player.png'
+	#image = 'graphics/player.png'
 	def __init__(self, pos, controller_id, color, player_id=0):
-		entity.__init__(self,pos,self.image, group=foreground)
+		self.image_file = 'graphics/player_' + str(player_id) + '.png'
+		entity.__init__(self,pos,self.image_file, group=foreground)
 		# center image anchor for rotation
 		self.image.anchor_x = self.image.width // 2 
 		self.image.anchor_y = self.image.height // 2
@@ -194,13 +221,15 @@ class player_entity(entity):
 
 		self.direction = 0
 		self.index = 0
+		self.time_index = 0
 		self.timeout = 0
 		self.color = color
 		self.code = []
 		for i in range(8):
-			self.code.append(random.randint(0,4))
+			self.code.append(random.randint(0,9))
 		self.controller = controller_id
 		self.player_id = player_id
+		self.granulation = 2
 		self.label = pyglet.text.Label(self.color,
 					       font_name='Terminus',
 					       font_size=14,
@@ -227,19 +256,33 @@ class player_entity(entity):
 				self.controller = False
 			else:
 				self.timeout -= dt
+		if (self.time_index % (24 / self.granulation)) == 0:
+			action = self.code[self.index]
+			if 0 < action <= 9:
+				if action == (1 or 'forward'):
+					self.move(forward=True)
+				elif action == (2 or 'back'):
+					self.move(forward=False)
+				elif action == (3 or 'turnRight'):
+					self.turn_right()
+				elif action == (4 or 'turnLeft'):
+					self.turn_left()
+				elif action == (5 or 'jump'):
+					self.jump()
+				elif action == (6 or 'action'):
+					self.action()
+				elif action == (7 or 'increase'):
+					world.get_tile(self.pos).increase()
+				elif action == (8 or 'decrease'):
+					world.get_tile(self.pos).decrease()
+				elif action == (9 or 'time'):
+					self.change_time()
+			self.update_label()			
+			self.index = (self.index + 1) % len(self.code)
+		self.time_index = (self.time_index + 1) % 24
 
-		action = self.code[self.index]
-		if 0 < action <= 5:
-			if action == (1 or 'move'):
-				self.move()
-			elif action == (2 or 'turnRight'):
-				self.turn_right()
-			elif action == (3 or 'turnLeft'):
-				self.turn_left()
-			elif action == (4 or 'action'):
-				self.action()
-		self.update_label()			
-		self.index = (self.index + 1) % len(self.code)
+	def change_time(self):
+		self.granulation = [2,3,4,6,8][world.get_tile(self.pos).value]
 
 	def update_label(self):
 		text = self.color
@@ -251,7 +294,7 @@ class player_entity(entity):
 				text += '>'
 			else:
 				text += ' '
-			text += str(['_','M','R','L','A'][i])
+			text += str(['_','F','B','R','L','J','A','I','D','T'][i])
 		self.label.document.text = text
 
 	def turn(self, direction):
@@ -267,10 +310,14 @@ class player_entity(entity):
 		self.turn(-1)
 
 	def action(self):
-		world.get_tile(self.pos).activate()
+		tile = world.get_tile(self.pos)
+		tile.activate()
 		msg = osc.OSCMessage()
 		msg.setAddress("/alj/action")
-		for i in [self.player_id, self.pos.x, self.pos.y]:
+		for i in [self.player_id, 
+			  self.pos.x/float(world.width), 
+			  self.pos.y/float(world.height), 
+			  tile.value /float(tile.max_value)]:
 			msg.append(i)
 		client.sendto(msg, SC_ADDR) 
 		if DEBUG:
@@ -289,27 +336,60 @@ class player_entity(entity):
 			WIN_HEIGHT*0.8 - self.tile_height*y + self.tile_height/2,
 			0)
 
-	def move(self):
+	def jump(self):
+		amount = world.get_tile(self.pos).value
+		if amount != 0:
+			if amount == 1:
+				self.move()
+			else:
+				new_pos = vec3(self.pos.x,self.pos.y,self.pos.z)
+				target = False
+				for i in range(amount):
+					result = self.move(do_it=False,pos=new_pos)
+					new_pos = result[1]
+					if result[0]:
+						target = new_pos
+				if target:
+					self.change_position(target)
+				
+				
+			
+	def change_position(self, pos): 
+		world.get_tile(self.pos).occupied = False
+		self.pos = pos
+		world.get_tile(self.pos).occupied = True
+		self.update_pos()
+
+	def move(self, forward=True, do_it=True, pos=False):
 		""" 
 		movement in hexagonal fields 
 		"""
-		pos = vec3(self.pos.x,self.pos.y,self.pos.z)
+		if not pos:
+			pos = vec3(self.pos.x,self.pos.y,self.pos.z)
+		dx, dy = 0, 0
 
 		if self.direction == 0: # up
-			pos.y -= 1
+			dy -= 1
 		elif self.direction < 3: # rightish
-			pos.x += 1
+			dx += 1
 		elif self.direction == 3: # down
-			pos.y += 1
+			dy += 1
 		else: # leftish
-			pos.x -= 1
+			dx -= 1
 
-		if self.pos.x%2 == 1: # odd
+		if pos.x%2 == 1: # odd
 			if (self.direction == 2) or (self.direction == 4):
-				pos.y += 1
+				dy += 1
 		else:
 			if (self.direction == 1) or (self.direction == 5):
-				pos.y -= 1
+				dy -= 1
+
+		if forward:
+			pos.x += dx
+			pos.y += dy
+		else:
+			pos.x -= dx
+			pos.y -= dy
 
 		if pos.x < 0:
 			pos.x=world.width-1
@@ -319,13 +399,15 @@ class player_entity(entity):
 			pos.y=world.height-1
 		if pos.y >= world.height:
 			pos.y=0
+
 		if not world.get_tile(pos).occupied:
 			#if DEBUG:
 			#	print pos.x, pos.y, self.pos.x, self.pos.y
-			world.get_tile(self.pos).occupied = False
-			self.pos = pos
-			world.get_tile(self.pos).occupied = True
-			self.update_pos()
+			if do_it:
+				self.change_position(pos)
+			return True, pos
+		else:
+			return False, pos
 
 		# if DEBUG:
 		# 	print self.player_id, "Move ", self.direction, world.get_tile(self.pos).pos.z
@@ -453,5 +535,5 @@ if __name__ == '__main__':
 	oscServerThread.start()
 
 
-	pyglet.clock.schedule_interval(world.update, 1/4.0)
+	pyglet.clock.schedule_interval(world.update, 1/24.0)
 	pyglet.app.run()
