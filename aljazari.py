@@ -35,6 +35,12 @@ batch = pyglet.graphics.Batch()
 background = pyglet.graphics.OrderedGroup(0)
 foreground = pyglet.graphics.OrderedGroup(1)
 
+colors = [ 'ffffff', 'ff0000', 'ff00ff', '0000ff', '00ffff',
+  '00ff00', 'ffff00', '7f0000', '7f007f', '00007f',
+  '007f7f', '007f00,' '827f00']
+
+
+
 class vec3(object):
 	"""
 	"""
@@ -182,11 +188,13 @@ class tile(entity):
 			self.deactivate()
 
 	def decrease(self):
+		self.activate()
 		if self.value > 0:
 			self.value -= 1
 			self.update_bitmap()
 
 	def increase(self):
+		self.activate()
 		if self.value < self.max_value:
 			self.value += 1
 			self.update_bitmap()
@@ -223,19 +231,25 @@ class player_entity(entity):
 		self.index = 0
 		self.time_index = 0
 		self.timeout = 0
-		self.color = color
+
+		self.color =  [] 
+		for i in range(3):
+			self.color.append(eval('0x' + colors[player_id][i*2:(i*2)+2]))
+		self.color.append(255)
+
 		self.code = []
 		for i in range(8):
 			self.code.append(random.randint(0,9))
 		self.controller = controller_id
 		self.player_id = player_id
 		self.granulation = 2
-		self.label = pyglet.text.Label(self.color,
+		self.label = pyglet.text.Label("",
 					       font_name='Terminus',
 					       font_size=14,
 					       x=20, 
 					       y= WIN_HEIGHT - (self.player_id * 20) - 20,
 					       anchor_x='left', 
+					       color=self.color,
 					       anchor_y='center',
 					       batch=batch)
 		self.update_label()
@@ -285,9 +299,9 @@ class player_entity(entity):
 		self.granulation = [2,3,4,6,8][world.get_tile(self.pos).value]
 
 	def update_label(self):
-		text = self.color
+		text = ""
 		if not self.controller:
-			text += " (inactive)"
+			text += "(inactive)"
 		text += ": "
 		for index,i in enumerate(self.code):
 			if self.index == index:
@@ -317,7 +331,8 @@ class player_entity(entity):
 		for i in [self.player_id, 
 			  self.pos.x/float(world.width), 
 			  self.pos.y/float(world.height), 
-			  tile.value /float(tile.max_value)]:
+			  tile.value /float(tile.max_value),
+			  self.granulation]:
 			msg.append(i)
 		client.sendto(msg, SC_ADDR) 
 		if DEBUG:
@@ -364,32 +379,30 @@ class player_entity(entity):
 		""" 
 		movement in hexagonal fields 
 		"""
+
 		if not pos:
 			pos = vec3(self.pos.x,self.pos.y,self.pos.z)
-		dx, dy = 0, 0
+		
+		if forward:
+			direction = self.direction
+		else:
+			direction = (self.direction + 3) % 6
 
-		if self.direction == 0: # up
-			dy -= 1
-		elif self.direction < 3: # rightish
-			dx += 1
-		elif self.direction == 3: # down
-			dy += 1
+		if direction == 0: # up
+			pos.y -= 1
+		elif direction < 3: # rightish
+			pos.x += 1
+		elif direction == 3: # down
+			pos.y += 1
 		else: # leftish
-			dx -= 1
+			pos.x -= 1
 
 		if pos.x%2 == 1: # odd
-			if (self.direction == 2) or (self.direction == 4):
-				dy += 1
+			if (direction == 2) or (direction == 4):
+				pos.y += 1
 		else:
-			if (self.direction == 1) or (self.direction == 5):
-				dy -= 1
-
-		if forward:
-			pos.x += dx
-			pos.y += dy
-		else:
-			pos.x -= dx
-			pos.y -= dy
+			if (direction == 1) or (direction == 5):
+				pos.y -= 1
 
 		if pos.x < 0:
 			pos.x=world.width-1
@@ -410,7 +423,7 @@ class player_entity(entity):
 			return False, pos
 
 		# if DEBUG:
-		# 	print self.player_id, "Move ", self.direction, world.get_tile(self.pos).pos.z
+		# 	print self.player_id, "Move ", direction, world.get_tile(self.pos).pos.z
 
 
 

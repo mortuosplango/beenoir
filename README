@@ -1,4 +1,4 @@
-Bee Noir is alJazari[1] in python plus hexagons minus one dimension 
+Bee Noir is alJazari[1] in python plus hexagons in 2D
 
 the webserver code is based on polosc[2]
 
@@ -6,22 +6,27 @@ dependencies:
  - python
  - pyglet
  - pyOSC
- - (SuperCollider)
+ - SuperCollider
 
 to start:
  1) start the webserver:
 	cd web/
 	python polosc/polosc.py 8000 cs.map cs.not
- 2) start the game:
+ 2) start SuperCollider or something else listening on port 57120
+ 3) start the game:
 	python aljasari.py
- 3) you can receive actions with OSC in e. g. SuperCollider:
+
+
+You can receive actions with OSC in e. g. SuperCollider:
 	port: 57120
 	address: /alj/action 
 	format: player_id (int), 
 		x-position (float), 
 		y-position (float), 
-		tile-value (float)
- 4) to controll a player go to http://127.0.0.1:8000/
+		tile-value (float),
+		quantisation (int)
+
+To control a player go to http://127.0.0.1:8000/
 
 
 [1] http://pawfal.org/index.php?page=AlJazari
