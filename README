@@ -3,10 +3,10 @@ Bee Noir is alJazari[1] in python plus hexagons in 2D
 the webserver code is based on polosc[2]
 
 dependencies:
- - python
- - pyglet
- - pyOSC
- - SuperCollider
+ - python	v2.6 or newer	http://www.python.org/
+ - pyglet 	v1.4 or newer	http://pyglet.org/
+ - pyOSC  	     		https://trac.v2.nl/wiki/pyOSC
+ - SuperCollider		http://supercollider.sf.net/
 
 to start:
  1) start the webserver:

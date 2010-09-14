@@ -174,7 +174,7 @@ class tile(entity):
 		self.image_file = 'graphics/tile_0.png'
 		entity.__init__(self,pos,self.image_file)
 		self.active = False
-		self.occupied = True
+		self.occupied = False
 		self.value = 0
 		# vertex_list = batch.add(2, pyglet.gl.GL_POLYGON, None,
 		# 			('v2i', vertex_list),
@@ -185,13 +185,13 @@ class tile(entity):
 			self.deactivate()
 
 	def increase(self):
-		self.activate()
+		#self.activate()
 		if self.value < self.max_value:
 			self.value += 1
 			self.update_bitmap()
 
 	def decrease(self):
-		self.activate()
+		#self.activate()
 		if self.value > 0:
 			self.value -= 1
 			self.update_bitmap()
