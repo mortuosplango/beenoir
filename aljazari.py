@@ -397,7 +397,7 @@ class player_entity(entity):
 		else: # leftish
 			pos.x -= 1
 
-		if pos.x%2 == 1: # odd
+		if pos.x%2 == 0: # even
 			if (direction == 2) or (direction == 4):
 				pos.y += 1
 		else:
