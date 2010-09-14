@@ -174,24 +174,15 @@ class tile(entity):
 		self.image_file = 'graphics/tile_0.png'
 		entity.__init__(self,pos,self.image_file)
 		self.active = False
-		self.occupied = False
+		self.occupied = True
 		self.value = 0
 		# vertex_list = batch.add(2, pyglet.gl.GL_POLYGON, None,
 		# 			('v2i', vertex_list),
 		# 			('c3B', (0, 0, 255) * 6))
 
-	def activate(self):
-		self.change_state(True)
-
 	def update(self, dt):
 		if self.active:
 			self.deactivate()
-
-	def decrease(self):
-		self.activate()
-		if self.value > 0:
-			self.value -= 1
-			self.update_bitmap()
 
 	def increase(self):
 		self.activate()
@@ -199,14 +190,22 @@ class tile(entity):
 			self.value += 1
 			self.update_bitmap()
 
+	def decrease(self):
+		self.activate()
+		if self.value > 0:
+			self.value -= 1
+			self.update_bitmap()
+
 	def update_bitmap(self):
 		self.image_file = 'graphics/tile_' + str(self.value) + '.png'
 		self.change_bitmap(self.image_file)
 
+	def activate(self):
+		self.change_state(True)
+
 	def deactivate(self):
 		self.change_state(False)
 		
-
 	def change_state(self,state):
 		self.active = state
 		if state:
