@@ -34,7 +34,7 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         if self.server.mappings.has_key(self.path):
             logging.debug("path '%s' is mapped"%(self.path))
             self.send_response(200)
-            self.send_header("Content-type", "text/html")
+            self.send_header("Content-type", self.mimeTypeForPath(self.path))
             self.end_headers()
             self.wfile.write(self.server.mappings[self.path])
         elif self.path == "/getrandom":
@@ -74,6 +74,17 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write("<html><body><h1>404 Error</h1>invalid path: '%s'</body></html>"%(self.path))
 
+    def mimeTypeForPath(self, path):
+        suffix = path.split(".")[-1].lower()
+        
+        mimeTypes = {
+            "png": "image/png",
+            "html": "text/html",
+            "js": "application/javascript"
+        }
+        
+        return mimeTypes.get(suffix, "text/html")
+    
     def send_notifications(self, osc_address, osc_data):
         if self.server.notifications.has_key(self.path):
             for n in self.server.notifications[self.path]:
@@ -248,7 +259,6 @@ def update_dict(*msg):
         players[msg[2][0]] = msg[2][1]
     else:
         logging.debug("got max players message")
-
 
 if "__main__" == __name__:
     mapping_extension = ".map"
