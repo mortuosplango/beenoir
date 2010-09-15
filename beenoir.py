@@ -2,7 +2,7 @@ import random
 import math
 import OSC as osc
 import threading
-
+import sys
 
 import pyglet.window
 import pyglet.clock
@@ -14,8 +14,8 @@ from pyglet.gl import *
 WIN_WIDTH=1200
 WIN_HEIGHT=800
 
-WORLD_WIDTH=12
-WORLD_HEIGHT=10
+WORLD_WIDTH=15
+WORLD_HEIGHT=12
 
 PLAYERS=10
 
@@ -73,24 +73,6 @@ class vec3(object):
 		return vec3(self.x * (1-t) + other.x,
 			    self.y * (1-t) + other.y,
 			    self.z * (1-t) +other.z)
-	
-## needs update: makes no sense in hex
-# class circle(object):
-# 	"""
-# 	"""
-	
-# 	def __init__(self, centre, radius):
-# 		"""
-		
-#                 Arguments:
-#                 - `centre`:
-#                 - `radius`:
-#                 """
-# 		self.centre = centre
-#                 self.radius = radius
-
-# 	def inside(self,pos):
-# 		return pos.sub(self.centre).mag() < self.radius
 
 class entity(object):
 	"""
@@ -120,8 +102,8 @@ class entity(object):
 		else:
 			y = pos.y + 0.5
 		return vec3(
-			(WIN_WIDTH * 0.4)  + (50 * pos.x),
-			(WIN_HEIGHT * 0.8) - (self.tile_height * y),
+			(WIN_WIDTH * 0.3)  + (50 * pos.x),
+			(WIN_HEIGHT * 0.9) - (self.tile_height * y),
 			0)
 
 	def update_pos(self):
@@ -144,6 +126,7 @@ class tile(entity):
 		self.active = False
 		self.occupied = False
 		self.animation = False
+		self.teleport = False
 		self.value = 0
 
 	def update(self, dt):
@@ -175,7 +158,7 @@ class tile(entity):
 	def change_state(self,state):
 		self.active = state
 		if state:
-			self.change_bitmap('graphics/tile-active.png')
+			self.change_bitmap('graphics/tile_active.png')
 		else:
 			self.change_bitmap(self.image_file)
 
@@ -191,34 +174,40 @@ class player_entity(entity):
 		# center image anchor for rotation
 		self.image.anchor_x = self.image.width // 2 
 		self.image.anchor_y = self.image.height // 2
+
+		## movement
 		self.moving = False
-		self.rotating = False
-
-
-
 		self.update_pos()
-
 		self.old_pos = vec3(self.pos.x, self.pos.y, self.pos.z)
-
+		
+		## direction
+		self.rotating = False
 		self.direction = 0
 		self.old_direction = 0
-		self.index = 0
+
+		## time
 		self.time_index = 0
 		self.timeout = 0
+		self.granulation = 2
 
+		## color
 		self.color =  [] 
 		for i in range(3):
 			self.color.append(eval('0x' + colors[player_id][i*2:(i*2)+2]))
 		self.color.append(255)
 
+		## code
 		self.code = []
+		self.index = 0
 		for i in range(8):
 			self.code.append(random.randint(0,9))
 		self.controller = controller_id
 		self.player_id = player_id
-		self.granulation = 2
+
+		## label
 		self.labels = []
-		self.opcodes_grid = pyglet.image.TextureGrid(pyglet.image.ImageGrid(self.opcodes, 2, 10))
+		self.opcodes_grid = pyglet.image.TextureGrid(
+			pyglet.image.ImageGrid(self.opcodes, 2, 10))
 		for i in range(len(self.code)):
 			self.labels.append(
 				pyglet.sprite.Sprite(
@@ -247,6 +236,9 @@ class player_entity(entity):
 	def resetTimeout(self):
 		self.timeout = 5
 
+	def change_time(self):
+		self.granulation = [2,3,4,6,8][world.get_tile(self.pos).value]
+
 	def active(self):
 		return self.controller
 
@@ -270,9 +262,9 @@ class player_entity(entity):
 				elif action == (2 or 'back'):
 					self.move(forward=False)
 				elif action == (3 or 'turnLeft'):
-					self.turn_left()
+					self.turn(-1)
 				elif action == (4 or 'turnRight'):
-					self.turn_right()
+					self.turn(1)
 				elif action == (5 or 'jump'):
 					self.jump()
 				elif action == (6 or 'increase'):
@@ -287,9 +279,6 @@ class player_entity(entity):
 			self.index = (self.index + 1) % len(self.code)
 		self.time_index = (self.time_index + 1) % 24
 
-	def change_time(self):
-		self.granulation = [2,3,4,6,8][world.get_tile(self.pos).value]
-
 	def update_label(self):
 		text = "Spieler " + str(self.player_id) + " "
 		if not self.controller:
@@ -303,42 +292,6 @@ class player_entity(entity):
 			else:
 				self.labels[index].image = self.opcodes_grid[i]
 
-	def turn(self, direction=0, percent=0):
-		if percent == 0:
-			self.rotating = True
-			self.old_direction = self.direction
-			self.direction =  (self.direction + direction) % 6
-			if (self.old_direction + direction) == 6:
-				self.old_direction = -1
-			elif (self.old_direction + direction) == -1:
-				self.old_direction = 6
-		elif percent == 1:
-			self.rotating = False
-		self.sprite.rotation = (
-			(self.direction * percent) +
-			(self.old_direction * (1-percent))) * 60
-		
-	def turn_right(self):
-		self.turn(1)
-
-	def turn_left(self):
-		self.turn(-1)
-
-	def action(self):
-		tile = world.get_tile(self.pos)
-		tile.activate()
-		msg = osc.OSCMessage()
-		msg.setAddress("/alj/action")
-		for i in [self.player_id, 
-			  self.pos.x/float(world.width), 
-			  self.pos.y/float(world.height), 
-			  tile.value /float(tile.max_value),
-			  self.granulation]:
-			msg.append(i)
-		client.sendto(msg, SC_ADDR) 
-		if DEBUG:
-			print "actione!"
-
 	def pos2screenpos(self,pos):
 		"""
 		slightly different positioning for smaller graphics (hacky)
@@ -350,27 +303,9 @@ class player_entity(entity):
 		else:
 			y = pos.y + (0.5 - (0.5 * ((pos.x%2) - 1)))
 		return vec3(
-			WIN_WIDTH*0.4  + 50*pos.x + 25 + self.sprite.width/2,
-			WIN_HEIGHT*0.8 - self.tile_height*y + self.tile_height/2,
+			WIN_WIDTH*0.3  + 50*pos.x + 25 + self.sprite.width/2,
+			WIN_HEIGHT*0.9 - self.tile_height*y + self.tile_height/2,
 			0)
-
-	def jump(self):
-		amount = world.get_tile(self.pos).value
-		if amount != 0:
-			if amount == 1:
-				self.move()
-			else:
-				new_pos = vec3(self.pos.x,self.pos.y,self.pos.z)
-				target = False
-				for i in range(amount):
-					result = self.move(do_it=False,pos=new_pos)
-					new_pos = result[1]
-					if result[0]:
-						target = new_pos
-				if target:
-					self.change_position(target, wrap=True)
-				
-				
 			
 	def change_position(self, pos=False, percent=0, wrap=False): 
 		if percent == 0:
@@ -391,6 +326,21 @@ class player_entity(entity):
 		realpos = self.pos2screenpos(new_pos)
 		self.sprite.x = realpos.x
 		self.sprite.y = realpos.y 
+
+	def turn(self, direction=0, percent=0):
+		if percent == 0:
+			self.rotating = True
+			self.old_direction = self.direction
+			self.direction =  (self.direction + direction) % 6
+			if (self.old_direction + direction) == 6:
+				self.old_direction = -1
+			elif (self.old_direction + direction) == -1:
+				self.old_direction = 6
+		elif percent == 1:
+			self.rotating = False
+		self.sprite.rotation = (
+			(self.direction * percent) +
+			(self.old_direction * (1-percent))) * 60
 
 	def move(self, forward=True, do_it=True, pos=False):
 		""" 
@@ -437,10 +387,52 @@ class player_entity(entity):
 
 		if not world.get_tile(pos).occupied:
 			if do_it:
+				if world.get_tile(pos).teleport:
+					print "teleport!"
+					target = False
+					while not target:
+						target, pos = self.move(
+							do_it=False,
+							pos=vec3(random.randint(0, world.width),
+								 random.randint(0, world.height),
+								 0))
+					
 				self.change_position(pos, wrap)
 			return True, pos
 		else:
 			return False, pos
+
+	def jump(self):
+		amount = world.get_tile(self.pos).value
+		if amount != 0:
+			if amount == 1:
+				self.move()
+			else:
+				new_pos = vec3(self.pos.x,self.pos.y,self.pos.z)
+				target = False
+				for i in range(amount):
+					result = self.move(do_it=False,pos=new_pos)
+					new_pos = result[1]
+					if result[0]:
+						target = new_pos
+				if target:
+					self.change_position(target, wrap=True)
+				
+	def action(self):
+		tile = world.get_tile(self.pos)
+		tile.activate()
+		msg = osc.OSCMessage()
+		msg.setAddress("/alj/action")
+		for i in [self.player_id, 
+			  self.pos.x/float(world.width), 
+			  self.pos.y/float(world.height), 
+			  tile.value /float(tile.max_value),
+			  self.granulation]:
+			msg.append(i)
+		client.sendto(msg, SC_ADDR) 
+		if DEBUG:
+			print "actione!"
+
 
 class aljWorld(object):
 	"""
@@ -461,6 +453,19 @@ class aljWorld(object):
 		for y in range(h):
 			for x in range(w):
 				self.objs.append(tile(vec3()))
+
+		# make teleport fields
+		middle = (w/2 * w + h/2)
+		fields = [middle, middle - w]
+		if (w/2)%2 == 0:
+			fields.append(middle + 1)
+			fields.append(middle - 1)
+		else:
+			fields.append(middle + 1 - w)
+			fields.append(middle - 1 - w)
+		for i in fields:
+			self.objs[i].teleport = True
+			self.objs[i].change_bitmap('graphics/tile_hole.png')
 
 		for i in range(len(self.objs)):
 			pos = vec3(i % self.width,
@@ -549,6 +554,9 @@ if __name__ == '__main__':
 	oscServer = osc.OSCServer(NET_ADDR)
 	oscServer.addDefaultHandlers()
 
+	if sys.argv[1]:
+		SC_ADDR = ('127.0.0.1', int(sys.argv[1]))
+	
 	msg = osc.OSCMessage()
 	msg.setAddress("/alj/start")
 	for i in [world.width, world.height]:

@@ -26,19 +26,13 @@ function sendNewCode (ID, image) {
 	window.document.images[column + (i+1)].src = "opcodes_1" + (i) + ".png";
     }
     window.document.images[opcode + 1 + column].src = "opcodes_" + opcode + ".png";
+    // first line:
     window.document.images[column].src = "opcodes_" + opcode + ".png";
 
     code[Math.floor(image/10)] = image%10
     sendMsg("/alj/code", 
-	    [ID, 
-	     code[0],
-	     code[1],
-	     code[2],
-	     code[3],
-	     code[4],
-	     code[5],
-	     code[6],
-	     code[7]], 
+	    [ID, code[0], code[1], code[2], code[3], code[4], 
+	     code[5], code[6], code[7]], 
 	    "siiiiiiii");
 }
 

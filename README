@@ -14,7 +14,7 @@ to start:
 	python polosc/polosc.py 8000 cs.map cs.not
  2) start SuperCollider or something else listening on port 57120
  3) start the game:
-	python aljasari.py
+	python beenoir.py
 
 
 You can receive actions with OSC in e. g. SuperCollider:

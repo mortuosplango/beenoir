@@ -7,7 +7,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
-#import CGIHTTPServer
 import BaseHTTPServer
 import logging
 import csv
@@ -59,20 +58,20 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                           '007f7f', '007f00,' '827f00'][players[self.path[3:]]]))
                 for i in range(8):
                     self.wfile.write(
-                        self.server.mappings["/field.html"]%(
-                            str(i), str(i), str(i), str(i), str(i), 
-                            str(i), str(i), str(i), str(i), str(i)))
+                        self.server.mappings["/field.html"]%(str(i)) * 10)
                 self.wfile.write(self.server.mappings["/end.html"])
             else:
-                self.wfile.write("<html><body><h1>Error</h1>: all seats taken, %s</body></html>"%(self.path[3:]))
-            #self.wfile.write(self.server.mappings["/index.html"])
-            #self.wfile.write("%x"%(random_int))
+                self.wfile.write(
+                    "<html><body><h1>Error</h1>: all seats taken, %s</body></html>"%(
+                        self.path[3:]))
         else:
             logging.debug("path '%s' is not mapped"%(self.path))
             self.send_response(404)
             self.send_header("Content-type", "text/html")
             self.end_headers()
-            self.wfile.write("<html><body><h1>404 Error</h1>invalid path: '%s'</body></html>"%(self.path))
+            self.wfile.write(
+                "<html><body><h1>404 Error</h1>invalid path: '%s'</body></html>"%(
+                    self.path))
 
     def mimeTypeForPath(self, path):
         suffix = path.split(".")[-1].lower()
@@ -129,11 +128,14 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             message = json.loads(message_str)
             try:
                 if (message.has_key(u"address") and message.has_key(u"data")):
-                    logging.debug("sending data '%s' '%s'"%(message["address"], message["data"]))
+                    logging.debug("sending data '%s' '%s'"
+                                  %(message["address"], message["data"]))
                     if message.has_key("types"):
                         try:
                             convertMap = {"s":str, "i":int, "f":float}
-                            message["data"] = [convertMap[t](d) for t, d in zip(message["types"], message["data"])]
+                            message["data"] = [convertMap[t](d) for t, d 
+                                               in zip(message["types"], 
+                                                      message["data"])]
                         except Exception, e:
                             logging.error("could not convert the data to the specified types '%s'"%(message["types"]))
                             logging.error("exception: %s"%(e))
@@ -256,7 +258,7 @@ class Notification (object):
 def update_dict(*msg):
     print "got message ", msg
     if msg[2][1] != -1:
-        players[msg[2][0]] = msg[2][1]
+        players[msg[2][0]] = msg[2][1] # player nr
     else:
         logging.debug("got max players message")
 
@@ -272,7 +274,7 @@ if "__main__" == __name__:
     notifications = Notifications()
     notifications.read_notifications(notification_filenames)
 
-    ## start communication and send specs
+    # start communication 
     client = osc.OSCClient()
 
     oscServer = osc.OSCServer(NET_ADDR)
