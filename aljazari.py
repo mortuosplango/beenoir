@@ -224,9 +224,15 @@ class player_entity(entity):
 		# center image anchor for rotation
 		self.image.anchor_x = self.image.width // 2 
 		self.image.anchor_y = self.image.height // 2
+		self.moving = False
+		self.rotating = False
+
 		self.update_pos()
 
+		self.old_pos = vec3(self.pos.x, self.pos.y, self.pos.z)
+
 		self.direction = 0
+		self.old_direction = 0
 		self.index = 0
 		self.time_index = 0
 		self.timeout = 0
@@ -269,6 +275,11 @@ class player_entity(entity):
 				self.controller = False
 			else:
 				self.timeout -= dt
+		percent = (self.time_index % (24 / self.granulation)) / ((24.0 / self.granulation) - 1)
+		if self.moving:
+			self.change_position(percent=percent)
+		if self.rotating:
+			self.turn(percent=percent)
 		if (self.time_index % (24 / self.granulation)) == 0:
 			action = self.code[self.index]
 			if 0 < action <= 9:
@@ -310,9 +321,21 @@ class player_entity(entity):
 			text += str(['_','F','B','R','L','J','A','I','D','T'][i])
 		self.label.document.text = text
 
-	def turn(self, direction):
-		self.direction = (self.direction + direction) % 6
-		self.sprite.rotation = self.direction * 60
+	def turn(self, direction=0, percent=0):
+		if percent == 0:
+			self.rotating = True
+			self.old_direction = self.direction
+			self.direction =  (self.direction + direction) % 6
+			if (self.old_direction + direction) == 6:
+				self.old_direction = -1
+			elif (self.old_direction + direction) == -1:
+				self.old_direction = 6
+		elif percent == 1:
+			self.rotating = False
+		self.sprite.rotation = (
+			(self.direction * percent) +
+			(self.old_direction * (1-percent))) * 60
+		
 		# if DEBUG:
 		# 	print "Turn", self.direction, " ", self.sprite.rotation
 			
@@ -364,15 +387,29 @@ class player_entity(entity):
 					if result[0]:
 						target = new_pos
 				if target:
-					self.change_position(target)
+					self.change_position(target, wrap=True)
 				
 				
 			
-	def change_position(self, pos): 
-		world.get_tile(self.pos).occupied = False
-		self.pos = pos
-		world.get_tile(self.pos).occupied = True
-		self.update_pos()
+	def change_position(self, pos=False, percent=0, wrap=False): 
+		if percent == 0:
+			self.moving = True
+			self.old_pos = self.pos
+			world.get_tile(self.pos).occupied = False
+			self.pos = pos
+			world.get_tile(self.pos).occupied = True
+			if wrap:
+				self.moving = False
+				self.old_pos = self.pos
+		elif percent == 1:
+			self.moving = False
+		new_pos = vec3(
+			(self.pos.x * percent) + (self.old_pos.x * (1-percent)), 
+			(self.pos.y * percent) + (self.old_pos.y * (1-percent)), 
+			self.pos.z)
+		realpos = self.pos2screenpos(new_pos)
+		self.sprite.x = realpos.x
+		self.sprite.y = realpos.y 
 
 	def move(self, forward=True, do_it=True, pos=False):
 		""" 
@@ -403,20 +440,25 @@ class player_entity(entity):
 			if (direction == 1) or (direction == 5):
 				pos.y -= 1
 
+		wrap = False
 		if pos.x < 0:
+			wrap = True
 			pos.x=world.width-1
 		if pos.x >= world.width:
+			wrap = True
 			pos.x=0
 		if pos.y < 0:
+			wrap = True
 			pos.y=world.height-1
 		if pos.y >= world.height:
+			wrap = True
 			pos.y=0
 
 		if not world.get_tile(pos).occupied:
 			#if DEBUG:
 			#	print pos.x, pos.y, self.pos.x, self.pos.y
 			if do_it:
-				self.change_position(pos)
+				self.change_position(pos, wrap)
 			return True, pos
 		else:
 			return False, pos
