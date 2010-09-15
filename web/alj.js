@@ -20,10 +20,14 @@ function sendMsg (address, data, types) {
 
 
 function sendNewCode (ID, image) {
+    var column = Math.floor(image/10) * 11;
+    var opcode = image%10;
     for (var i = 0; i < 10; i++) {
-	window.document.images[(Math.floor(image/10) * 10) + i].src = "opcodes_1" + i + ".png";
+	window.document.images[column + (i+1)].src = "opcodes_1" + (i) + ".png";
     }
-    window.document.images[image].src = "opcodes_" + image%10 + ".png";
+    window.document.images[opcode + 1 + column].src = "opcodes_" + opcode + ".png";
+    window.document.images[column].src = "opcodes_" + opcode + ".png";
+
     code[Math.floor(image/10)] = image%10
     sendMsg("/alj/code", 
 	    [ID, 
