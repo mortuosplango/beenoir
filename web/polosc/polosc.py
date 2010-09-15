@@ -58,7 +58,10 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                          'yellow', 'navy', 'blue', 'purple', 'fuchsia'
                          ][players[self.path[3:]]]))
                 for i in range(8):
-                    self.wfile.write(self.server.mappings["/field.html"]%(i))
+                    self.wfile.write(
+                        self.server.mappings["/field.html"]%(
+                            str(i), str(i), str(i), str(i), str(i), 
+                            str(i), str(i), str(i), str(i), str(i)))
                 self.wfile.write(self.server.mappings["/end.html"])
             else:
                 self.wfile.write("<html><body><h1>Error</h1>: all seats taken, %s</body></html>"%(self.path[3:]))

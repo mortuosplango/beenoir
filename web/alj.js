@@ -17,17 +17,24 @@ function sendMsg (address, data, types) {
 	}
     });
 }
-function sendNewCode (ID) {
+
+
+function sendNewCode (ID, image) {
+    for (var i = 0; i < 10; i++) {
+	window.document.images[(Math.floor(image/10) * 10) + i].src = "opcodes_1" + i + ".png";
+    }
+    window.document.images[image].src = "opcodes_" + image%10 + ".png";
+    code[Math.floor(image/10)] = image%10
     sendMsg("/alj/code", 
 	    [ID, 
-	     document.code.code0.selectedIndex,
-	     document.code.code1.selectedIndex,
-	     document.code.code2.selectedIndex,
-	     document.code.code3.selectedIndex,
-	     document.code.code4.selectedIndex,
-	     document.code.code5.selectedIndex,
-	     document.code.code6.selectedIndex,
-	     document.code.code7.selectedIndex], 
+	     code[0],
+	     code[1],
+	     code[2],
+	     code[3],
+	     code[4],
+	     code[5],
+	     code[6],
+	     code[7]], 
 	    "siiiiiiii");
 }
 

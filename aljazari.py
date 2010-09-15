@@ -304,10 +304,10 @@ class player_entity(entity):
 					self.move(forward=True)
 				elif action == (2 or 'back'):
 					self.move(forward=False)
-				elif action == (3 or 'turnRight'):
-					self.turn_right()
-				elif action == (4 or 'turnLeft'):
+				elif action == (3 or 'turnLeft'):
 					self.turn_left()
+				elif action == (4 or 'turnRight'):
+					self.turn_right()
 				elif action == (5 or 'jump'):
 					self.jump()
 				elif action == (6 or 'increase'):
