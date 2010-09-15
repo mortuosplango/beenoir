@@ -292,6 +292,21 @@ class player_entity(entity):
 			else:
 				self.labels[index].image = self.opcodes_grid[i]
 
+	def turn(self, direction=0, percent=0):
+		if percent == 0:
+			self.rotating = True
+			self.old_direction = self.direction
+			self.direction =  (self.direction + direction) % 6
+			if (self.old_direction + direction) == 6:
+				self.old_direction = -1
+			elif (self.old_direction + direction) == -1:
+				self.old_direction = 6
+		elif percent == 1:
+			self.rotating = False
+		self.sprite.rotation = (
+			(self.direction * percent) +
+			(self.old_direction * (1-percent))) * 60
+
 	def pos2screenpos(self,pos):
 		"""
 		slightly different positioning for smaller graphics (hacky)
@@ -327,21 +342,6 @@ class player_entity(entity):
 		self.sprite.x = realpos.x
 		self.sprite.y = realpos.y 
 
-	def turn(self, direction=0, percent=0):
-		if percent == 0:
-			self.rotating = True
-			self.old_direction = self.direction
-			self.direction =  (self.direction + direction) % 6
-			if (self.old_direction + direction) == 6:
-				self.old_direction = -1
-			elif (self.old_direction + direction) == -1:
-				self.old_direction = 6
-		elif percent == 1:
-			self.rotating = False
-		self.sprite.rotation = (
-			(self.direction * percent) +
-			(self.old_direction * (1-percent))) * 60
-
 	def move(self, forward=True, do_it=True, pos=False):
 		""" 
 		movement in hexagonal fields 
@@ -349,7 +349,6 @@ class player_entity(entity):
 
 		if not pos:
 			pos = vec3(self.pos.x,self.pos.y,self.pos.z)
-		
 		if forward:
 			direction = self.direction
 		else:
@@ -372,18 +371,12 @@ class player_entity(entity):
 				pos.y -= 1
 
 		wrap = False
-		if pos.x < 0:
+		if ((pos.x < 0) or (pos.x >= world.width) 
+		    or (pos.y < 0) or (pos.y >= world.height)):
 			wrap = True
-			pos.x=world.width-1
-		if pos.x >= world.width:
-			wrap = True
-			pos.x=0
-		if pos.y < 0:
-			wrap = True
-			pos.y=world.height-1
-		if pos.y >= world.height:
-			wrap = True
-			pos.y=0
+
+		pos.x= pos.x%world.width
+		pos.y= pos.y%world.height
 
 		if not world.get_tile(pos).occupied:
 			if do_it:
@@ -527,7 +520,7 @@ def ping_players(addr, tags, data, client_addr):
 		
 
 if __name__ == '__main__':
-	window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='alj')
+	window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='bee noir')
 
 	world = aljWorld(WORLD_WIDTH,WORLD_HEIGHT)
 
@@ -554,7 +547,7 @@ if __name__ == '__main__':
 	oscServer = osc.OSCServer(NET_ADDR)
 	oscServer.addDefaultHandlers()
 
-	if sys.argv[1]:
+	if len(sys.argv) > 1:
 		SC_ADDR = ('127.0.0.1', int(sys.argv[1]))
 	
 	msg = osc.OSCMessage()
@@ -570,7 +563,6 @@ if __name__ == '__main__':
 	print "\nStarting OSCServer. Use ctrl-C to quit."
 	oscServerThread = threading.Thread( target = oscServer.serve_forever )
 	oscServerThread.start()
-
 
 	pyglet.clock.schedule_interval(world.update, 1/24.0)
 	pyglet.app.run()
