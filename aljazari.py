@@ -132,41 +132,9 @@ class entity(object):
 	def update(self,frame,world):
 		pass
 
-
-# class animated_entity(entity):
-# 	"""
-# 	"""
-# 	def __init__(self, pos, bitmap_filename):
-# 		"""
-# 		"""
-# 		entity.__init__(self,pos,bitmap_filename)
-# 		self.src_pos= vec3()
-# 		self.dest_pos= vec3()
-# 		self.time=10.0
-# 		self.speed=0.0
-		
-# 	def move_to(self,pos,speed):
-# 		self.src_pos=pos
-# 		self.dest_pos=pos
-# 		self.time=0.0
-# 		self.speed=speed
-		
-# 	def update(self,dt, frame,world):
-# 		## if self.time<1:
-# 		## 	self.time += self.speed
-# 		## 	if self.time>1:
-# 		## 		self.time=1
-# 		## 	self.pos = self.src_pos.lerp(self.dest_pos,self.time)
-# 		self.pos = self.dest_pos
-# 		self.update_pos()
-
-
 class tile(entity):
 	vertex_list = []
 	max_value = 4
-	# for i in range(6):
-	# 	vertex_list.append(math.sin(i/6.0*2*M_PI))
-	# 	vertex_list.append(math.cos(i/6.0*2*M_PI))
 
 	def __init__(self, pos):
 		"""
@@ -177,9 +145,6 @@ class tile(entity):
 		self.occupied = False
 		self.animation = False
 		self.value = 0
-		# vertex_list = batch.add(2, pyglet.gl.GL_POLYGON, None,
-		# 			('v2i', vertex_list),
-		# 			('c3B', (0, 0, 255) * 6))
 
 	def update(self, dt):
 		if self.active:
@@ -353,9 +318,6 @@ class player_entity(entity):
 			(self.direction * percent) +
 			(self.old_direction * (1-percent))) * 60
 		
-		# if DEBUG:
-		# 	print "Turn", self.direction, " ", self.sprite.rotation
-			
 	def turn_right(self):
 		self.turn(1)
 
@@ -474,18 +436,11 @@ class player_entity(entity):
 			pos.y=0
 
 		if not world.get_tile(pos).occupied:
-			#if DEBUG:
-			#	print pos.x, pos.y, self.pos.x, self.pos.y
 			if do_it:
 				self.change_position(pos, wrap)
 			return True, pos
 		else:
 			return False, pos
-
-		# if DEBUG:
-		# 	print self.player_id, "Move ", direction, world.get_tile(self.pos).pos.z
-
-
 
 class aljWorld(object):
 	"""
@@ -532,7 +487,10 @@ def update_code(addr, tags, data, client_addr):
 		print "got update: ", data
 	key = data[0]
 	if key in world.controllers:
-		world.players[world.controllers[key]].code = data[1:]
+		if len(data[1:]) == len(world.players[world.controllers[key]].code):
+			world.players[world.controllers[key]].code = data[1:]
+		else:
+			print "something went wrong: code is too short"
 
 def ping_players(addr, tags, data, client_addr):
 	if DEBUG:

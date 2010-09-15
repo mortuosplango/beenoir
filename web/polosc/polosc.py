@@ -54,9 +54,9 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(
                     self.server.mappings["/start.html"]%(
-                        ['maroon', 'red','green', 'lime', 'olive', 
-                         'yellow', 'navy', 'blue', 'purple', 'fuchsia'
-                         ][players[self.path[3:]]]))
+                        [ 'ffffff', 'ff0000', 'ff00ff', '0000ff', '00ffff',
+                          '00ff00', 'ffff00', '7f0000', '7f007f', '00007f',
+                          '007f7f', '007f00,' '827f00'][players[self.path[3:]]]))
                 for i in range(8):
                     self.wfile.write(
                         self.server.mappings["/field.html"]%(
@@ -94,7 +94,7 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                         msg.setAddress(osc_address)
                         for i in osc_data:
                             msg.append(i)
-                            client.sendto(msg, (n.host, n.port)) 
+                        client.sendto(msg, (n.host, n.port)) 
                 else:
                     logging.error("did not send message. string address and list message expected, got %s %s."%(type(osc_address), type(osc_data)))
         else:
