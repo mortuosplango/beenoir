@@ -175,6 +175,7 @@ class tile(entity):
 		entity.__init__(self,pos,self.image_file)
 		self.active = False
 		self.occupied = False
+		self.animation = False
 		self.value = 0
 		# vertex_list = batch.add(2, pyglet.gl.GL_POLYGON, None,
 		# 			('v2i', vertex_list),
@@ -218,6 +219,7 @@ class player_entity(entity):
 	""" Player Avatar
 	"""
 	#image = 'graphics/player.png'
+	opcodes = pyglet.resource.image('graphics/opcodes.png')
 	def __init__(self, pos, controller_id, color, player_id=0):
 		self.image_file = 'graphics/player_' + str(player_id) + '.png'
 		entity.__init__(self,pos,self.image_file, group=foreground)
@@ -226,6 +228,8 @@ class player_entity(entity):
 		self.image.anchor_y = self.image.height // 2
 		self.moving = False
 		self.rotating = False
+
+
 
 		self.update_pos()
 
@@ -248,15 +252,28 @@ class player_entity(entity):
 		self.controller = controller_id
 		self.player_id = player_id
 		self.granulation = 2
-		self.label = pyglet.text.Label("",
-					       font_name='Terminus',
-					       font_size=14,
-					       x=20, 
-					       y= WIN_HEIGHT - (self.player_id * 20) - 20,
-					       anchor_x='left', 
-					       color=self.color,
-					       anchor_y='center',
-					       batch=batch)
+		self.labels = []
+		self.opcodes_grid = pyglet.image.TextureGrid(pyglet.image.ImageGrid(self.opcodes, 2, 10))
+		for i in range(len(self.code)):
+			self.labels.append(
+				pyglet.sprite.Sprite(
+					self.opcodes_grid[0],
+					batch=batch, 
+					group=background,
+					x= 37 * (i + 1), 
+					y= WIN_HEIGHT - (self.player_id * 60) - 60))
+			self.labels[-1].scale = 32.0/self.labels[-1].width
+		self.label = pyglet.text.Label(
+			"Spieler " + str(self.player_id),
+			font_name='Tahoma',
+			font_size=12,
+			x= 37, 
+			y= WIN_HEIGHT - (self.player_id * 60) - 15,
+			anchor_x='left', 
+			color=self.color,
+			anchor_y='center',
+			batch=batch)
+
 		self.update_label()
 		if DEBUG:
 			print "player id ", self.player_id, " created"
@@ -293,14 +310,14 @@ class player_entity(entity):
 					self.turn_left()
 				elif action == (5 or 'jump'):
 					self.jump()
-				elif action == (6 or 'action'):
-					self.action()
-				elif action == (7 or 'increase'):
+				elif action == (6 or 'increase'):
 					world.get_tile(self.pos).increase()
-				elif action == (8 or 'decrease'):
+				elif action == (7 or 'decrease'):
 					world.get_tile(self.pos).decrease()
-				elif action == (9 or 'time'):
+				elif action == (8 or 'time'):
 					self.change_time()
+				elif action == (9 or 'action'):
+					self.action()
 			self.update_label()			
 			self.index = (self.index + 1) % len(self.code)
 		self.time_index = (self.time_index + 1) % 24
@@ -309,17 +326,17 @@ class player_entity(entity):
 		self.granulation = [2,3,4,6,8][world.get_tile(self.pos).value]
 
 	def update_label(self):
-		text = ""
+		text = "Spieler " + str(self.player_id) + " "
 		if not self.controller:
-			text += "(inactive)"
-		text += ": "
+			text += "(frei):" 
+		else:
+			text += ":"
+		self.label.text = text
 		for index,i in enumerate(self.code):
 			if self.index == index:
-				text += '>'
+				self.labels[index].image = self.opcodes_grid[i+10]
 			else:
-				text += ' '
-			text += str(['_','F','B','R','L','J','A','I','D','T'][i])
-		self.label.document.text = text
+				self.labels[index].image = self.opcodes_grid[i]
 
 	def turn(self, direction=0, percent=0):
 		if percent == 0:
@@ -482,9 +499,7 @@ class aljWorld(object):
 		self.objs = []
 		self.players = []
 		self.controllers = dict()
-		for i, color in enumerate(['maroon', 'red','green', 'lime', 'olive', 
-					   'yellow', 'navy', 'blue', 'purple', 
-					   'fuchsia']):
+		for i, color in enumerate(colors[:5]):
 			self.players.append(player_entity(vec3(i,5,1),
 							  False, color, i))
 
