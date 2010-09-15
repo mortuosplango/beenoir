@@ -364,10 +364,12 @@ class player_entity(entity):
 		"""
 		slightly different positioning for smaller graphics (hacky)
 		"""
-		if (pos.x%2) == 1: # odd
-			y = pos.y + 0.5
-		else:
+		if 0 < (pos.x%2) <= 1: # odd
+			y = pos.y + (0.5 * (pos.x%2))
+		elif (pos.x%2) == 0:
 			y = pos.y
+		else:
+			y = pos.y + (0.5 - (0.5 * ((pos.x%2) - 1)))
 		return vec3(
 			WIN_WIDTH*0.4  + 50*pos.x + 25 + self.sprite.width/2,
 			WIN_HEIGHT*0.8 - self.tile_height*y + self.tile_height/2,
