@@ -23,6 +23,8 @@ PLAYERS=10
 DEBUG=True
 VERBOSE=False
 
+FPS=24.0
+
 # Webserver-OSC->alj
 NET_ADDR=('127.0.0.1', 57140)
 # alj->Webserver-OSC:
@@ -420,7 +422,7 @@ class player_entity(entity):
 			  self.pos.x/float(world.width), 
 			  self.pos.y/float(world.height), 
 			  tile.value /float(tile.max_value),
-			  self.granulation]:
+			  (1.0/self.granulation) * (24/FPS)]:
 			msg.append(i)
 		client.sendto(msg, SC_ADDR) 
 		if DEBUG:
@@ -564,5 +566,5 @@ if __name__ == '__main__':
 	oscServerThread = threading.Thread( target = oscServer.serve_forever )
 	oscServerThread.start()
 
-	pyglet.clock.schedule_interval(world.update, 1/24.0)
+	pyglet.clock.schedule_interval(world.update, 1/FPS)
 	pyglet.app.run()

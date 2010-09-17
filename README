@@ -24,7 +24,7 @@ You can receive actions with OSC in e. g. SuperCollider:
 		x-position (float), 
 		y-position (float), 
 		tile-value (float),
-		quantisation (int)
+		length of the event in seconds (float)
 
 To control a player go to http://127.0.0.1:8000/
 
