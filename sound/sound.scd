@@ -12,11 +12,12 @@ u = OSCresponder(a, '/alj/action', { |t, r, msg|
 }).add;
 
 SynthDef(\ping) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
-	var snd, env;
+	var snd, env, len;
 	snd = SinOsc.ar(ypos.linexp(0,1,400,800) * [1, 1.01]);
 	env = EnvGen.ar(Env.perc(0.01, dur));
-	snd = CombN.ar(snd * env, 0.2, 0.1, value.linlin(0,1,2,10)) ;
-	DetectSilence.ar(snd, doneAction:2);
+	len = value.linlin(0,1,2,10);
+	snd = CombN.ar(snd * env, 0.1, 0.1, len) ;
+	Line.kr(0,1,len+1,doneAction:2);
 	Out.ar(0, Pan2.ar(snd.sum * env * amp,xpos.linlin(0,1,-1,1)));
 }.add;
 
@@ -30,7 +31,7 @@ SynthDef(\pong) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2|
 
 SynthDef(\pang) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	var snd, env;
-	snd = Saw.ar(ypos.linexp(0,1,50,500) * IRand(1,5!10)).sum/10;
+	snd = Saw.ar(ypos.linexp(0,1,50,500) * IRand(1,3!10)).sum/10;
 	snd = MoogFF.ar(snd, 5000, value.linlin(0,1,3,3.8));
 	env = EnvGen.ar(Env.linen(0.1, dur,0.5), doneAction:2);
 	Out.ar(0, Pan2.ar(snd * env * amp,xpos.linlin(0,1,-1,1)));
