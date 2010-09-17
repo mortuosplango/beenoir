@@ -14,7 +14,7 @@ from pyglet.gl import *
 WIN_WIDTH=1200
 WIN_HEIGHT=800
 
-WORLD_WIDTH=15
+WORLD_WIDTH=16
 WORLD_HEIGHT=12
 
 PLAYERS=10
@@ -251,6 +251,7 @@ class player_entity(entity):
 				self.controller = False
 			else:
 				self.timeout -= dt
+
 		percent = (self.time_index % (24 / self.granulation)) / ((24.0 / self.granulation) - 1)
 		if self.moving:
 			self.change_position(percent=percent)
@@ -333,7 +334,7 @@ class player_entity(entity):
 			world.get_tile(self.pos).occupied = True
 			if wrap:
 				self.moving = False
-				self.old_pos = self.pos
+				percent = 1
 		elif percent == 1:
 			self.moving = False
 		new_pos = vec3(
@@ -375,10 +376,9 @@ class player_entity(entity):
 		wrap = False
 		if ((pos.x < 0) or (pos.x >= world.width) 
 		    or (pos.y < 0) or (pos.y >= world.height)):
+			pos.x = pos.x%world.width
+			pos.y = pos.y%world.height
 			wrap = True
-
-		pos.x= pos.x%world.width
-		pos.y= pos.y%world.height
 
 		if not world.get_tile(pos).occupied:
 			if do_it:
@@ -392,7 +392,7 @@ class player_entity(entity):
 								 random.randint(0, world.height),
 								 0))
 					
-				self.change_position(pos, wrap)
+				self.change_position(pos, wrap=wrap)
 			return True, pos
 		else:
 			return False, pos

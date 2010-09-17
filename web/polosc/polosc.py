@@ -58,7 +58,9 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                           '007f7f', '007f00,' '827f00'][players[self.path[3:]]]))
                 for i in range(8):
                     self.wfile.write(
-                        self.server.mappings["/field.html"]%(str(i)) * 10)
+                        self.server.mappings["/field.html"]%(
+                            str(i), str(i), str(i), str(i), str(i), 
+                            str(i), str(i), str(i), str(i), str(i)))
                 self.wfile.write(self.server.mappings["/end.html"])
             else:
                 self.wfile.write(
