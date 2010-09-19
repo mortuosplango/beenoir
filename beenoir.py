@@ -76,7 +76,7 @@ class vec3(object):
                     self.z * (1 - t) + other.z)
 
 
-class entity(object):
+class Entity(object):
     """
     """
     
@@ -95,7 +95,7 @@ class entity(object):
         self.image = pyglet.resource.image(image_filename)
         self.sprite.image = self.image
 
-    def pos2screenpos(self,pos):
+    def _pos2screenpos(self,pos):
         """
         2d grid -> hexagonal positioning
         """
@@ -109,22 +109,21 @@ class entity(object):
             0)
 
     def update_pos(self):
-        realpos = self.pos2screenpos(self.pos)
+        realpos = self._pos2screenpos(self.pos)
         self.sprite.x = realpos.x
         self.sprite.y = realpos.y 
         
-    def update(self,frame,world):
+    def update(self,dt):
         pass
 
-class tile(entity):
-    vertex_list = []
+class Tile(Entity):
     max_value = 4
 
     def __init__(self, pos):
         """
         """
         self.image_file = 'graphics/tile_0.png'
-        entity.__init__(self,pos,self.image_file)
+        Entity.__init__(self,pos,self.image_file)
         self.active = False
         self.occupied = False
         self.animation = False
@@ -139,25 +138,25 @@ class tile(entity):
         #self.activate()
         if self.value < self.max_value:
             self.value += 1
-            self.update_bitmap()
+            self._update_bitmap()
 
     def decrease(self):
         #self.activate()
         if self.value > 0:
             self.value -= 1
-            self.update_bitmap()
+            self._update_bitmap()
 
-    def update_bitmap(self):
+    def _update_bitmap(self):
         self.image_file = 'graphics/tile_' + str(self.value) + '.png'
         self.change_bitmap(self.image_file)
 
     def activate(self):
-        self.change_state(True)
+        self._change_state(True)
 
     def deactivate(self):
-        self.change_state(False)
+        self._change_state(False)
         
-    def change_state(self, state):
+    def _change_state(self, state):
         self.active = state
         if state:
             self.change_bitmap('graphics/tile_active.png')
@@ -165,14 +164,14 @@ class tile(entity):
             self.change_bitmap(self.image_file)
 
         
-class player_entity(entity):
+class Player(Entity):
     """ Player Avatar
     """
     #image = 'graphics/player.png'
     opcodes = pyglet.resource.image('graphics/opcodes.png')
     def __init__(self, pos, controller_id, color, player_id=0):
         self.image_file = 'graphics/player_' + str(player_id) + '.png'
-        entity.__init__(self,pos,self.image_file, group=foreground)
+        Entity.__init__(self,pos,self.image_file, group=foreground)
         # center image anchor for rotation
         self.image.anchor_x = self.image.width // 2 
         self.image.anchor_y = self.image.height // 2
@@ -230,7 +229,7 @@ class player_entity(entity):
             anchor_y='center',
             batch=batch)
 
-        self.update_label()
+        self._update_label()
         if DEBUG:
             print "player id ", self.player_id, " created"
 
@@ -238,7 +237,7 @@ class player_entity(entity):
     def resetTimeout(self):
         self.timeout = 5
 
-    def change_time(self):
+    def _change_time(self):
         self.granulation = [2,3,4,6,8][world.get_tile(self.pos).value]
 
     def active(self):
@@ -255,35 +254,35 @@ class player_entity(entity):
         percent = ((self.time_index % (24 / self.granulation)) /
                    ((24.0 / self.granulation) - 1))
         if self.moving:
-            self.change_position(percent=percent)
+            self._change_position(percent=percent)
         if self.rotating:
-            self.turn(percent=percent)
+            self._turn(percent=percent)
         if (self.time_index % (24 / self.granulation)) == 0:
             action = self.code[self.index]
             if 0 < action <= 9:
                 if action == (1 or 'forward'):
-                    self.move(forward=True)
+                    self._move(forward=True)
                 elif action == (2 or 'back'):
-                    self.move(forward=False)
+                    self._move(forward=False)
                 elif action == (3 or 'turnLeft'):
-                    self.turn(-1)
+                    self._turn(-1)
                 elif action == (4 or 'turnRight'):
-                    self.turn(1)
+                    self._turn(1)
                 elif action == (5 or 'jump'):
-                    self.jump()
+                    self._jump()
                 elif action == (6 or 'increase'):
                     world.get_tile(self.pos).increase()
                 elif action == (7 or 'decrease'):
                     world.get_tile(self.pos).decrease()
                 elif action == (8 or 'time'):
-                    self.change_time()
+                    self._change_time()
                 elif action == (9 or 'action'):
-                    self.action()
-            self.update_label()         
+                    self._action()
+            self._update_label()         
             self.index = (self.index + 1) % len(self.code)
         self.time_index = (self.time_index + 1) % 24
 
-    def update_label(self):
+    def _update_label(self):
         text = "Spieler " + str(self.player_id) + " "
         if not self.controller:
             text += "(frei):" 
@@ -296,7 +295,7 @@ class player_entity(entity):
             else:
                 self.labels[index].image = self.opcodes_grid[i]
 
-    def turn(self, direction=0, percent=0):
+    def _turn(self, direction=0, percent=0):
         if percent == 0:
             self.rotating = True
             self.old_direction = self.direction
@@ -311,7 +310,7 @@ class player_entity(entity):
             (self.direction * percent) +
             (self.old_direction * (1-percent))) * 60
 
-    def pos2screenpos(self,pos):
+    def _pos2screenpos(self,pos):
         """
         slightly different positioning for smaller graphics (hacky)
         """
@@ -326,7 +325,7 @@ class player_entity(entity):
             WIN_HEIGHT*0.9 - self.tile_height*y + self.tile_height/2,
             0)
     
-    def change_position(self, pos=False, percent=0, wrap=False): 
+    def _change_position(self, pos=False, percent=0, wrap=False): 
         if percent == 0:
             self.moving = True
             self.old_pos = self.pos
@@ -342,17 +341,11 @@ class player_entity(entity):
             (self.pos.x * percent) + (self.old_pos.x * (1-percent)), 
             (self.pos.y * percent) + (self.old_pos.y * (1-percent)), 
             self.pos.z)
-        realpos = self.pos2screenpos(new_pos)
+        realpos = self._pos2screenpos(new_pos)
         self.sprite.x = realpos.x
         self.sprite.y = realpos.y 
 
-    def move(self, forward=True, do_it=True, pos=False):
-        """ 
-        movement in hexagonal fields 
-        """
-
-        if not pos:
-            pos = vec3(self.pos.x,self.pos.y,self.pos.z)
+    def _get_target_pos(self, pos, forward=True):
         if forward:
             direction = self.direction
         else:
@@ -380,41 +373,49 @@ class player_entity(entity):
             pos.x = pos.x%world.width
             pos.y = pos.y%world.height
             wrap = True
+        return pos, wrap
 
+    def _move(self, forward=True, do_it=True, pos=False):
+        """         
+        movement in hexagonal fields 
+        """
+        if not pos:
+                pos = vec3(self.pos.x,self.pos.y,self.pos.z)
+        pos, wrap = self._get_target_pos(pos, forward)
         if not world.get_tile(pos).occupied:
             if do_it:
                 if world.get_tile(pos).teleport:
                     print "teleport!"
                     target = False
                     while not target:
-                        target, pos = self.move(
+                        target, pos = self._move(
                             do_it=False,
                             pos=vec3(random.randint(0, world.width),
                                  random.randint(0, world.height),
                                  0))
                     
-                self.change_position(pos, wrap=wrap)
+                self._change_position(pos, wrap=wrap)
             return True, pos
         else:
             return False, pos
 
-    def jump(self):
+    def _jump(self):
         amount = world.get_tile(self.pos).value
         if amount != 0:
             if amount == 1:
-                self.move()
+                self._move()
             else:
                 new_pos = vec3(self.pos.x,self.pos.y,self.pos.z)
                 target = False
                 for i in range(amount):
-                    result = self.move(do_it=False,pos=new_pos)
+                    result = self._move(do_it=False,pos=new_pos)
                     new_pos = result[1]
                     if result[0]:
                         target = new_pos
                 if target:
-                    self.change_position(target, wrap=True)
+                    self._change_position(target, wrap=True)
                 
-    def action(self):
+    def _action(self):
         tile = world.get_tile(self.pos)
         tile.activate()
         msg = osc.OSCMessage()
@@ -430,7 +431,7 @@ class player_entity(entity):
             print "actione!"
 
 
-class aljWorld(object):
+class BeeNoirWorld(object):
     """
     """
     
@@ -443,15 +444,15 @@ class aljWorld(object):
         self.players = []
         self.controllers = dict()
         for i, color in enumerate(colors[:5]):
-            self.players.append(player_entity(vec3(i,5,1),
+            self.players.append(Player(vec3(i,5,1),
                               False, color, i))
 
         for y in range(h):
             for x in range(w):
-                self.objs.append(tile(vec3()))
+                self.objs.append(Tile(vec3()))
 
         # make teleport fields
-        middle = (w / 2 * w + h / 2)
+        middle = (w / 2 * w) + (h / 2)
         fields = [middle, middle - w]
         if (w / 2) % 2 == 0:
             fields.append(middle + 1)
@@ -475,7 +476,7 @@ class aljWorld(object):
             print "upd ", self.players, len(self.players)
         for t in self.objs:
             t.update(dt)
-        if len(self.players) > 0:
+        if self.players:
             for p in self.players:
                 p.update(dt)
 
@@ -525,7 +526,7 @@ def ping_players(addr, tags, data, client_addr):
 if __name__ == '__main__':
     window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='bee noir')
 
-    world = aljWorld(WORLD_WIDTH,WORLD_HEIGHT)
+    world = BeeNoirWorld(WORLD_WIDTH,WORLD_HEIGHT)
 
     @window.event
     def on_key_press(symbol, modifiers):
