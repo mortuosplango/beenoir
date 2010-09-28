@@ -363,15 +363,14 @@ class Player(Entity):
             self.moving = False
             self.wrap_pos = False
         if self.wrap_pos != False:
-            if percent < 0.25:
+            if percent < 0.5:
                 percent *= 1.5
             else:
                 self.old_pos = vec3(self.wrap_pos.x%world.width,
                                      self.wrap_pos.y%world.height,
                                      self.wrap_pos.z)
                 self.dest_pos = self.pos
-                percent = (percent - 0.25) * 2
-            print percent
+                percent = (percent - 0.5) * 2
         new_pos = vec3(
             (self.dest_pos.x * percent) + (self.old_pos.x * (1-percent)), 
             (self.dest_pos.y * percent) + (self.old_pos.y * (1-percent)), 
