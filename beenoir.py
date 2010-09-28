@@ -578,32 +578,11 @@ def ping_players(addr, tags, data, client_addr):
         print "no free player!"
 
 
-if __name__ == '__main__':
-    window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='bee noir')
-
+def startup():
     world = BeeNoirWorld(WORLD_WIDTH,WORLD_HEIGHT)
-
-    @window.event
-    def on_key_press(symbol, modifiers):
-        if symbol == key.ESCAPE:
-            print "shutting down..."
-
-            print "\nClosing OSCServer."
-            oscServer.close()
-            print "Waiting for Server-thread to finish"
-            oscServerThread.join()
-            pyglet.app.exit()
-        return pyglet.event.EVENT_HANDLED
-
-
     @window.event
     def on_mouse_press(x, y, button, modifiers):
         world.mouse_pressed(x, y, button)
-
-    @window.event
-    def on_draw():
-        window.clear()
-        batch.draw()
 
     ## start communication and send specs
     client = osc.OSCClient()
@@ -629,4 +608,33 @@ if __name__ == '__main__':
     oscServerThread.start()
 
     pyglet.clock.schedule_interval(world.update, 1/FPS)
+    
+
+
+if __name__ == '__main__':
+    window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='bee noir')
+
+    running = False
+
+    @window.event
+    def on_key_press(symbol, modifiers):
+        if symbol == key.ESCAPE:
+            print "shutting down..."
+
+            print "\nClosing OSCServer."
+            oscServer.close()
+            print "Waiting for Server-thread to finish"
+            oscServerThread.join()
+            pyglet.app.exit()
+        elif not running:
+            startup()
+        return pyglet.event.EVENT_HANDLED
+
+
+
+    @window.event
+    def on_draw():
+        window.clear()
+        batch.draw()
+
     pyglet.app.run()
