@@ -127,10 +127,13 @@ class Tile(Entity):
         self.animation = False
         self.teleport = False
         self.value = 0
+        self._activedt = 0
 
     def update(self, dt):
         if self.active:
-            self.deactivate()
+            self._activedt -= dt
+            if self._activedt <= 0:
+                self.deactivate()
 
     def increase(self):
         #self.activate()
@@ -150,6 +153,7 @@ class Tile(Entity):
 
     def activate(self):
         self._change_state(True)
+        self._activedt = 0.5
 
     def deactivate(self):
         self._change_state(False)
@@ -395,7 +399,7 @@ class Player(Entity):
                     print "teleport!"
                     target = False
                     while not target:
-                        target, pos = self._move(
+                        target, pos, wrapping = self._move(
                             do_it=False,
                             pos=vec3(random.randint(0, world.width),
                                  random.randint(0, world.height),
@@ -416,10 +420,9 @@ class Player(Entity):
                 target = False
                 wrap = []
                 for i in range(amount):
-                    result = self._move(do_it=False,pos=new_pos)
-                    new_pos = result[1]
-                    wrap.append(result[2])
-                    if result[0]:
+                    is_result, new_pos, is_wrapping = self._move(do_it=False,pos=new_pos)
+                    wrap.append(is_wrapping)
+                    if is_result:
                         target_index = i
                         target = new_pos
                 if target:
