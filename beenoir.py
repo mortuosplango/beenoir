@@ -115,7 +115,33 @@ class Entity(object):
     def update(self,dt):
         pass
 
-class Tile(Entity):
+class Hole(Entity):
+    def __init__(self, pos):
+        """
+        """
+        Entity.__init__(self,pos,'graphics/tile_hole.png')
+        self.teleport = True
+        self.occupied = False
+
+    def update(self, dt):
+        pass
+
+    def update_pos(self):
+        Entity.update_pos(self)
+
+    def increase(self):
+        print "shouldn't happen"
+
+    def decrease(self):
+        print "shouldn't happen"
+
+    def activate(self):
+        print "shouldn't happen"
+
+    def deactivate(self):
+        print "shouldn't happen"
+
+class Field(Entity):
     max_value = 4
 
     tiles = []
@@ -131,9 +157,9 @@ class Tile(Entity):
                                                   batch=batch, group=foreground)
         Entity.__init__(self,pos,self.tiles[0])
         self._active = True
+        self.teleport = False
         self.occupied = False
         self.animation = False
-        self.teleport = False
         self.value = 0
         self._activedt = 0.2
 
@@ -171,7 +197,7 @@ class Tile(Entity):
     def deactivate(self):
         self._active = False
                 
-        
+
 class Player(Entity):
     """ Player Avatar
     """
@@ -356,7 +382,6 @@ class Player(Entity):
             self.dest_pos = pos
             world.get_tile(self.pos).occupied = True
             if wrap_pos:
-                print "wrapping", self.wrap_pos, wrap_pos
                 self.wrap_pos = wrap_pos
                 self.dest_pos = self.wrap_pos
         elif percent == 1:
@@ -490,7 +515,7 @@ class BeeNoirWorld(object):
 
         for y in range(h):
             for x in range(w):
-                self.objs.append(Tile(vec3()))
+                self.objs.append(Field(vec3()))
 
         # make teleport fields
         middle = (w / 2 * w) + (h / 2)
@@ -502,8 +527,7 @@ class BeeNoirWorld(object):
             fields.append(middle + 1 - w)
             fields.append(middle - 1 - w)
         for i in fields:
-            self.objs[i].teleport = True
-            self.objs[i].change_bitmap('graphics/tile_hole.png')
+            self.objs[i] = Hole(vec3())
 
         for i in range(len(self.objs)):
             pos = vec3(i % self.width,
