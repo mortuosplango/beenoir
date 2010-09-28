@@ -34,6 +34,7 @@ SC_ADDR = ('127.0.0.1', 57120)
 batch = pyglet.graphics.Batch()
 background = pyglet.graphics.OrderedGroup(0)
 foreground = pyglet.graphics.OrderedGroup(1)
+players = pyglet.graphics.OrderedGroup(2)
 
 colors = [ 'ffffff', 'ff0000', 'ff00ff', '0000ff', '00ffff',
            '00ff00', 'ffff00', '7f0000', '7f007f', '00007f',
@@ -117,54 +118,59 @@ class Entity(object):
 class Tile(Entity):
     max_value = 4
 
+    tiles = []
+    for i in range(5):
+        tiles.append(
+            'graphics/tile_' + str(i) + '.png')
+    active_img = pyglet.resource.image('graphics/tile_active.png')
+
     def __init__(self, pos):
         """
         """
-        self.image_file = 'graphics/tile_0.png'
-        Entity.__init__(self,pos,self.image_file)
-        self.active = False
+        self.active_sprite = pyglet.sprite.Sprite(self.active_img, 
+                                                  batch=batch, group=foreground)
+        Entity.__init__(self,pos,self.tiles[0])
+        self._active = True
         self.occupied = False
         self.animation = False
         self.teleport = False
         self.value = 0
-        self._activedt = 0
+        self._activedt = 0.2
 
     def update(self, dt):
-        if self.active:
+        if self._active:
             self._activedt -= dt
             if self._activedt <= 0:
                 self.deactivate()
+                self.active_sprite.opacity = 0
+            else:
+                self.active_sprite.opacity = self._activedt * 510
+
+    def update_pos(self):
+        Entity.update_pos(self)
+        self.active_sprite.x = self.sprite.x
+        self.active_sprite.y = self.sprite.y 
 
     def increase(self):
-        #self.activate()
         if self.value < self.max_value:
             self.value += 1
             self._update_bitmap()
 
     def decrease(self):
-        #self.activate()
         if self.value > 0:
             self.value -= 1
             self._update_bitmap()
 
     def _update_bitmap(self):
-        self.image_file = 'graphics/tile_' + str(self.value) + '.png'
-        self.change_bitmap(self.image_file)
+        self.change_bitmap(self.tiles[self.value])
 
     def activate(self):
-        self._change_state(True)
+        self._active = True
         self._activedt = 0.5
 
     def deactivate(self):
-        self._change_state(False)
-        
-    def _change_state(self, state):
-        self.active = state
-        if state:
-            self.change_bitmap('graphics/tile_active.png')
-        else:
-            self.change_bitmap(self.image_file)
-
+        self._active = False
+                
         
 class Player(Entity):
     """ Player Avatar
@@ -177,7 +183,7 @@ class Player(Entity):
 
     def __init__(self, pos, controller_id, color, player_id=0):
         self.image_file = 'graphics/player_' + str(player_id) + '.png'
-        Entity.__init__(self,pos,self.image_file, group=foreground)
+        Entity.__init__(self,pos,self.image_file, group=players)
         # center image anchor for rotation
         self.image.anchor_x = self.image.width // 2 
         self.image.anchor_y = self.image.height // 2
