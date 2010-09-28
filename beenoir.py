@@ -356,7 +356,6 @@ class Player(Entity):
             self.dest_pos = pos
             world.get_tile(self.pos).occupied = True
             if wrap_pos:
-                print "wrapping", self.wrap_pos, wrap_pos
                 self.wrap_pos = wrap_pos
                 self.dest_pos = self.wrap_pos
         elif percent == 1:
