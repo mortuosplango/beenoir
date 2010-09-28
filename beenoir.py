@@ -176,7 +176,7 @@ class Player(Entity):
     """ Player Avatar
     """
     opcodes_grid = []
-    for i in range(20):
+    for i in range(10):
         opcodes_grid.append(
             pyglet.resource.image(
                 'web/opcodes_' + str(i) + '.png'))
@@ -192,6 +192,8 @@ class Player(Entity):
         self.moving = False
         self.update_pos()
         self.old_pos = vec3(self.pos.x, self.pos.y, self.pos.z)
+        self.wrap_pos = False
+        self.dest_pos = vec3(self.pos.x, self.pos.y, self.pos.z)
         
         ## direction
         self.rotating = False
@@ -295,11 +297,11 @@ class Player(Entity):
                     self._change_time()
                 elif action == (9 or 'action'):
                     self._action()
-            self._update_label()         
             self.index = (self.index + 1) % len(self.code)
+        self._update_label(percent)
         self.time_index = (self.time_index + 1) % 24
 
-    def _update_label(self):
+    def _update_label(self, percent = 0):
         text = "Spieler " + str(self.player_id) + " "
         if not self.controller:
             text += "(frei):" 
@@ -307,10 +309,13 @@ class Player(Entity):
             text += ":"
         self.label.text = text
         for index,i in enumerate(self.code):
+            self.labels[index].image = self.opcodes_grid[i]
             if self.index == index:
-                self.labels[index].image = self.opcodes_grid[i]
+                self.labels[index].opacity = 192 + (63 * (percent))
+            elif self.index == ((index + 1) % len(self.code)):
+                self.labels[index].opacity = 64 + (64 * (1 - percent))
             else:
-                self.labels[index].image = self.opcodes_grid[i+10]
+                self.labels[index].opacity = 64
 
     def _turn(self, direction=0, percent=0):
         if percent == 0:
@@ -342,21 +347,34 @@ class Player(Entity):
             WIN_HEIGHT*0.9 - self.tile_height*y + self.tile_height/2,
             0)
     
-    def _change_position(self, pos=False, percent=0, wrap=False): 
+    def _change_position(self, pos=False, percent=0, wrap_pos=False): 
         if percent == 0:
             self.moving = True
             self.old_pos = self.pos
             world.get_tile(self.pos).occupied = False
             self.pos = pos
+            self.dest_pos = pos
             world.get_tile(self.pos).occupied = True
-            if wrap:
-                self.moving = False
-                percent = 1
+            if wrap_pos:
+                print "wrapping", self.wrap_pos, wrap_pos
+                self.wrap_pos = wrap_pos
+                self.dest_pos = self.wrap_pos
         elif percent == 1:
             self.moving = False
+            self.wrap_pos = False
+        if self.wrap_pos != False:
+            if percent < 0.25:
+                percent *= 1.5
+            else:
+                self.old_pos = vec3(self.wrap_pos.x%world.width,
+                                     self.wrap_pos.y%world.height,
+                                     self.wrap_pos.z)
+                self.dest_pos = self.pos
+                percent = (percent - 0.25) * 2
+            print percent
         new_pos = vec3(
-            (self.pos.x * percent) + (self.old_pos.x * (1-percent)), 
-            (self.pos.y * percent) + (self.old_pos.y * (1-percent)), 
+            (self.dest_pos.x * percent) + (self.old_pos.x * (1-percent)), 
+            (self.dest_pos.y * percent) + (self.old_pos.y * (1-percent)), 
             self.pos.z)
         realpos = self._pos2screenpos(new_pos)
         self.sprite.x = realpos.x
@@ -384,13 +402,13 @@ class Player(Entity):
             if (direction == 1) or (direction == 5):
                 pos.y -= 1
 
-        wrap = False
+        wrap_pos = False
         if ((pos.x < 0) or (pos.x >= world.width) 
             or (pos.y < 0) or (pos.y >= world.height)):
+            wrap_pos = vec3(pos.x,pos.y,pos.z)
             pos.x = pos.x%world.width
             pos.y = pos.y%world.height
-            wrap = True
-        return pos, wrap
+        return pos, wrap_pos
 
     def _move(self, forward=True, do_it=True, pos=False):
         """         
@@ -398,23 +416,23 @@ class Player(Entity):
         """
         if not pos:
                 pos = vec3(self.pos.x,self.pos.y,self.pos.z)
-        pos, wrap = self._get_target_pos(pos, forward)
+        pos, wrap_pos = self._get_target_pos(pos, forward)
         if not world.get_tile(pos).occupied:
             if do_it:
                 if world.get_tile(pos).teleport:
                     print "teleport!"
                     target = False
                     while not target:
-                        target, pos, wrapping = self._move(
+                        target, pos, wrap_pos = self._move(
                             do_it=False,
                             pos=vec3(random.randint(0, world.width),
                                  random.randint(0, world.height),
                                  0))
                     
-                self._change_position(pos, wrap=wrap)
-            return True, pos, wrap
+                self._change_position(pos, wrap_pos=wrap_pos)
+            return True, pos, wrap_pos
         else:
-            return False, pos, wrap
+            return False, pos, wrap_pos
 
     def _jump(self):
         amount = world.get_tile(self.pos).value
@@ -426,17 +444,18 @@ class Player(Entity):
                 target = False
                 wrap = []
                 for i in range(amount):
-                    is_result, new_pos, is_wrapping = self._move(do_it=False,pos=new_pos)
-                    wrap.append(is_wrapping)
+                    is_result, new_pos, wrap_pos = self._move(
+                        do_it=False,pos=new_pos)
+                    wrap.append(wrap_pos)
                     if is_result:
                         target_index = i
                         target = new_pos
                 if target:
-                    is_wrapping = False
+                    wrap_pos = False
                     for i in range(target_index+1):
                         if wrap[i]:
-                            is_wrapping = True
-                    self._change_position(target, wrap=is_wrapping)
+                            wrap_pos = wrap[i]
+                    self._change_position(target, wrap_pos=wrap_pos)
                 
     def _action(self):
         tile = world.get_tile(self.pos)
