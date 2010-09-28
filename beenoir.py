@@ -8,8 +8,6 @@ import OSC as osc
 import pyglet.window
 import pyglet.clock
 from pyglet.window import key
-from pyglet.gl import *
-
 
 WIN_WIDTH = 1200
 WIN_HEIGHT = 800
@@ -167,8 +165,12 @@ class Tile(Entity):
 class Player(Entity):
     """ Player Avatar
     """
-    #image = 'graphics/player.png'
-    opcodes = pyglet.resource.image('graphics/opcodes.png')
+    opcodes_grid = []
+    for i in range(20):
+        opcodes_grid.append(
+            pyglet.resource.image(
+                'web/opcodes_' + str(i) + '.png'))
+
     def __init__(self, pos, controller_id, color, player_id=0):
         self.image_file = 'graphics/player_' + str(player_id) + '.png'
         Entity.__init__(self,pos,self.image_file, group=foreground)
@@ -207,8 +209,7 @@ class Player(Entity):
 
         ## label
         self.labels = []
-        self.opcodes_grid = pyglet.image.TextureGrid(
-            pyglet.image.ImageGrid(self.opcodes, 2, 10))
+
         for i in range(len(self.code)):
             self.labels.append(
                 pyglet.sprite.Sprite(
@@ -298,9 +299,9 @@ class Player(Entity):
         self.label.text = text
         for index,i in enumerate(self.code):
             if self.index == index:
-                self.labels[index].image = self.opcodes_grid[i+10]
-            else:
                 self.labels[index].image = self.opcodes_grid[i]
+            else:
+                self.labels[index].image = self.opcodes_grid[i+10]
 
     def _turn(self, direction=0, percent=0):
         if percent == 0:
