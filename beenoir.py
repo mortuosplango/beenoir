@@ -209,7 +209,6 @@ class Player(Entity):
 
         ## label
         self.labels = []
-
         for i in range(len(self.code)):
             self.labels.append(
                 pyglet.sprite.Sprite(
@@ -403,9 +402,9 @@ class Player(Entity):
                                  0))
                     
                 self._change_position(pos, wrap=wrap)
-            return True, pos
+            return True, pos, wrap
         else:
-            return False, pos
+            return False, pos, wrap
 
     def _jump(self):
         amount = world.get_tile(self.pos).value
@@ -415,13 +414,20 @@ class Player(Entity):
             else:
                 new_pos = vec3(self.pos.x,self.pos.y,self.pos.z)
                 target = False
+                wrap = []
                 for i in range(amount):
                     result = self._move(do_it=False,pos=new_pos)
                     new_pos = result[1]
+                    wrap.append(result[2])
                     if result[0]:
+                        target_index = i
                         target = new_pos
                 if target:
-                    self._change_position(target, wrap=True)
+                    is_wrapping = False
+                    for i in range(target_index+1):
+                        if wrap[i]:
+                            is_wrapping = True
+                    self._change_position(target, wrap=is_wrapping)
                 
     def _action(self):
         tile = world.get_tile(self.pos)
