@@ -129,17 +129,6 @@ class Hole(Entity):
     def update_pos(self):
         Entity.update_pos(self)
 
-    def increase(self):
-        print "shouldn't happen"
-
-    def decrease(self):
-        print "shouldn't happen"
-
-    def activate(self):
-        print "shouldn't happen"
-
-    def deactivate(self):
-        print "shouldn't happen"
 
 class Field(Entity):
     max_value = 4
