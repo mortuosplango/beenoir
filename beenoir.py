@@ -485,12 +485,12 @@ class BeeNoirWorld(object):
         if WIN_HEIGHT > y > WIN_HEIGHT - (len(self.players) * 60):
             if 37 < x < (len(self.players[-1].code) + 2) * 37:
                 playerno = (WIN_HEIGHT - y) / 60
-                if (WIN_HEIGHT - (playerno * 60) - 37) > y > (WIN_HEIGHT - (playerno * 60)) - 67:
-                    index = (x - 37) / 37
+                if (WIN_HEIGHT - (playerno * 60) - 37) > y > (WIN_HEIGHT - 
+                                                              (playerno * 60)) - 67:
                     change = False
                     if button == 1: change = 1
                     elif button == 4: change = -1
-                    self.players[playerno].change_code(index, change)
+                    self.players[playerno].change_code((x - 37) / 37, change)
         
 
     def update(self,dt):
@@ -544,9 +544,6 @@ def ping_players(addr, tags, data, client_addr):
             client.sendto(msg, NET_SEND_ADDR)
         print "no free player!"
 
-
-
-        
 
 if __name__ == '__main__':
     window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='bee noir')

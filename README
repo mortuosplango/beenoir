@@ -28,6 +28,11 @@ You can receive actions with OSC in e. g. SuperCollider:
 
 To control a player go to http://127.0.0.1:8000/
 
+For debugging purposes, you can also change the code of a player
+by clicking on the code in the game - it will cycle through the 
+possibilities forward (left-click), backward (right-click) 
+or reset it to 'wait' (middle-click).
+
 
 [1] http://pawfal.org/index.php?page=AlJazari
 [2] http://www.pillowsopher.com/blog/?p=107
