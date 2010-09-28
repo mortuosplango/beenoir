@@ -243,6 +243,13 @@ class Player(Entity):
     def active(self):
         return self.controller
 
+    def change_code(self, index, change = False):
+        if change:
+            self.code[index] = (self.code[index] + change) % 10
+        else:
+            self.code[index] = 0
+        self._update_label()
+
     def update(self,dt):
         if self.controller:
             if self.timeout < 0:
@@ -471,6 +478,21 @@ class BeeNoirWorld(object):
             self.objs[i].pos = pos
             self.objs[i].update_pos()
 
+    def mouse_pressed(self, x, y, button):
+        """ 
+        change a specific player's code on press 
+        """
+        if WIN_HEIGHT > y > WIN_HEIGHT - (len(self.players) * 60):
+            if 37 < x < (len(self.players[-1].code) + 2) * 37:
+                playerno = (WIN_HEIGHT - y) / 60
+                if (WIN_HEIGHT - (playerno * 60) - 37) > y > (WIN_HEIGHT - (playerno * 60)) - 67:
+                    index = (x - 37) / 37
+                    change = False
+                    if button == 1: change = 1
+                    elif button == 4: change = -1
+                    self.players[playerno].change_code(index, change)
+        
+
     def update(self,dt):
         if VERBOSE:
             print "upd ", self.players, len(self.players)
@@ -521,6 +543,9 @@ def ping_players(addr, tags, data, client_addr):
             msg.append(i)
             client.sendto(msg, NET_SEND_ADDR)
         print "no free player!"
+
+
+
         
 
 if __name__ == '__main__':
@@ -539,6 +564,11 @@ if __name__ == '__main__':
             oscServerThread.join()
             pyglet.app.exit()
         return pyglet.event.EVENT_HANDLED
+
+
+    @window.event
+    def on_mouse_press(x, y, button, modifiers):
+        world.mouse_pressed(x, y, button)
 
     @window.event
     def on_draw():
