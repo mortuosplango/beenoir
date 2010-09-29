@@ -69,7 +69,7 @@ function getID () {
 }
 
 function pingServer() {
-    sendMsg("/alj/ping", [ID, playerID], "si");
+    sendMsg("/alj/ping", [ID, playerNo], "si");
     window.setTimeout("pingServer()", 1500);
 }
 

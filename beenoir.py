@@ -568,34 +568,20 @@ def ping_players(addr, tags, data, client_addr):
     key = data[0]
     if key in world.controllers:
         world.players[world.controllers[key]].resetTimeout()
-    elif len(world.controllers) < PLAYERS:
-        for i, p in enumerate(world.players):
-            if not p.active():
-                world.controllers[key] = i
-                p.resetTimeout()
-                p.controller = key
-                msg = osc.OSCMessage()
-                msg.setAddress("/alj/dict")
-                for i in [key, i] + p.code:
-                    msg.append(i)
-                client.sendto(msg, NET_SEND_ADDR) 
-                break
-            else:
-                print "something went wrong: there should be free players!"
     else:
-        msg = osc.OSCMessage()
-        msg.setAddress("/alj/dict")
-        for i in [key, -1]:
-            msg.append(i)
-            client.sendto(msg, NET_SEND_ADDR)
-        print "no free player!"
+        print "no such controller"
 
 def get_player(addr, tags, data, client_addr):
     if DEBUG:
         print "got ping: ", data
     key = data[0]
     if key in world.controllers:
-        world.players[world.controllers[key]].resetTimeout()
+        p = world.players[world.controllers[key]]
+        p.resetTimeout()
+        msg = osc.OSCMessage()
+        msg.setAddress("/alj/dict")
+        for i in [key, p.player_id] + p.code:
+            msg.append(i)
     elif len(world.controllers) < PLAYERS:
         for i, p in enumerate(world.players):
             if not p.active():
