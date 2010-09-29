@@ -1,14 +1,14 @@
-Bee Noir is alJazari[1] in python plus hexagons in 2D
+Bee Noir is a livecoding game heavily inspired by alJazari[1]
 
-the webserver code is based on polosc[2]
+The webserver code is based on polosc[2]
 
-dependencies:
+Dependencies:
  - python   v2.6 or newer   http://www.python.org/
  - pyglet   v1.4 or newer   http://pyglet.org/
- - pyOSC                https://trac.v2.nl/wiki/pyOSC
- - SuperCollider        http://supercollider.sf.net/
+ - pyOSC                    https://trac.v2.nl/wiki/pyOSC
+ - SuperCollider            http://supercollider.sf.net/
 
-to start:
+How to use it:
  1) start the webserver:
     ./runWeb
  2) start SuperCollider or something else listening on port 57120
@@ -16,7 +16,7 @@ to start:
     ./run
 
 
-You can receive actions with OSC in e. g. SuperCollider:
+You can receive messages with OSC in e. g. SuperCollider:
     port: 57120
 
 Messages (normalized = between 0 and 1):
