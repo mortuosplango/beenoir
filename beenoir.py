@@ -429,6 +429,14 @@ class Player(Entity):
             if do_it:
                 if world.get_tile(pos).teleport:
                     print "teleport!"
+                    msg = osc.OSCMessage()
+                    msg.setAddress("/alj/teleport")
+                    for i in [self.player_id, 
+                              self.pos.x / float(world.width), 
+                              self.pos.y / float(world.height), 
+                              (1.0 / self.granulation) * (24 / FPS)]:
+                        msg.append(i)
+                    client.sendto(msg, SC_ADDR) 
                     target = False
                     while not target:
                         target, pos, wrap_pos = self._move(
@@ -569,11 +577,11 @@ def ping_players(addr, tags, data, client_addr):
     if key in world.controllers:
         world.players[world.controllers[key]].resetTimeout()
     else:
-        print "no such controller"
+        print "no such controller: ", data
 
 def get_player(addr, tags, data, client_addr):
     if DEBUG:
-        print "got ping: ", data
+        print "got player request: ", data
     key = data[0]
     if key in world.controllers:
         p = world.players[world.controllers[key]]
