@@ -63,17 +63,14 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                             str(i), str(i), str(i), str(i), str(i)))
                 self.wfile.write(self.server.mappings["/end.html"])
             else:
-                self.wfile.write(
-                    "<html><body><h1>Error</h1>: all seats taken, %s</body></html>"%(
-                        self.path[3:]))
+                self.wfile.write(self.shortHTMLPage("<h1>Fehler!</h1><p>Alle Pl&auml;tze bereits besetzt!</p>"))
+
         else:
             logging.debug("path '%s' is not mapped"%(self.path))
             self.send_response(404)
             self.send_header("Content-type", "text/html")
             self.end_headers()
-            self.wfile.write(
-                "<html><body><h1>404 Error</h1>invalid path: '%s'</body></html>"%(
-                    self.path))
+            self.wfile.write(self.shortHTMLPage("<h1>Fehler 404</h1><p>Ung&uuml;ltiger Pfad: '%s'</p>"%(self.path)))
 
     def mimeTypeForPath(self, path):
         suffix = path.split(".")[-1].lower()
@@ -81,10 +78,15 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         mimeTypes = {
             "png": "image/png",
             "html": "text/html",
-            "js": "application/javascript"
+            "js": "application/javascript",
+            "css": "text/css"
         }
         
         return mimeTypes.get(suffix, "text/html")
+    
+    def shortHTMLPage(self, string):
+        return "<html><head><link rel=\"stylesheet\" href=\"style.css\" type=\"text/css\" media=\"screen\" /></head><body>%s</body></html>"%(string)
+
     
     def send_notifications(self, osc_address, osc_data):
         if self.server.notifications.has_key(self.path):
