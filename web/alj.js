@@ -34,15 +34,17 @@ function sendNewCode (ID, image, send) {
 
     code[Math.floor(image/10)] = image%10;
     
-    if(sendCodes)
+    if(send == true)
+    {
 		sendCodes();
+	}
 }
 
 function resetCodes()
 {
-	codes = [0,0,0,0,0,0,0,0];
+	code = [0,0,0,0,0,0,0,0];
 
-	for(var i = 0; i < 10; i++){
+	for(var i = 0; i < 8; i++){
 	    sendNewCode(null, i*10, false);
 	}
 	
