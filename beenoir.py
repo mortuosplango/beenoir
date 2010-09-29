@@ -225,7 +225,7 @@ class Player(Entity):
         self.code = []
         self.index = 0
         for i in range(CODESIZE):
-            self.code.append(random.randint(0,9))
+            self.code.append(0)
         self.controller = controller_id
         self.player_id = player_id
 
