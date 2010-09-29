@@ -3,35 +3,35 @@ Bee Noir is alJazari[1] in python plus hexagons in 2D
 the webserver code is based on polosc[2]
 
 dependencies:
- - python	v2.6 or newer	http://www.python.org/
- - pyglet 	v1.4 or newer	http://pyglet.org/
- - pyOSC  	     		https://trac.v2.nl/wiki/pyOSC
- - SuperCollider		http://supercollider.sf.net/
+ - python   v2.6 or newer   http://www.python.org/
+ - pyglet   v1.4 or newer   http://pyglet.org/
+ - pyOSC                https://trac.v2.nl/wiki/pyOSC
+ - SuperCollider        http://supercollider.sf.net/
 
 to start:
  1) start the webserver:
     ./runWeb
  2) start SuperCollider or something else listening on port 57120
  3) start the game:
-	./run
+    ./run
 
 
 You can receive actions with OSC in e. g. SuperCollider:
-	port: 57120
+    port: 57120
 
 Messages (normalized = between 0 and 1):
-	address: /alj/action 
-	format: player_id (int), 
-		x-position (normalized) (float), 
-		y-position (normalized) (float), 
-		tile-value (normalized) (float),
-		length of the event in seconds (float)
+    address: /alj/action 
+    format: player_id (int), 
+        x-position (normalized) (float), 
+        y-position (normalized) (float), 
+        tile-value (normalized) (float),
+        length of the event in seconds (float)
 
-	address: /alj/teleport
-	format: player_id (int), 
-		x-position (normalized) (float), 
-		y-position (normalized) (float), 
-		length of the event in seconds (float)
+    address: /alj/teleport
+    format: player_id (int), 
+        x-position (normalized) (float), 
+        y-position (normalized) (float), 
+        length of the event in seconds (float)
 
 To control a player go to http://127.0.0.1:8000/
 
