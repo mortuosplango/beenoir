@@ -19,7 +19,10 @@ function sendMsg (address, data, types) {
 }
 
 
-function sendNewCode (ID, image) {
+function sendNewCode (ID, image, send) {
+
+  	send = typeof(send) != 'undefined' ? send : true;
+
     var column = Math.floor(image/10) * 11;
     var opcode = image%10;
     for (var i = 0; i < 10; i++) {
@@ -29,11 +32,31 @@ function sendNewCode (ID, image) {
     // first line:
     window.document.images[column].src = "opcodes_" + opcode + ".png";
 
-    code[Math.floor(image/10)] = image%10
+    code[Math.floor(image/10)] = image%10;
+    
+    if(send == true)
+    {
+		sendCodes();
+	}
+}
+
+function resetCodes()
+{
+	code = [0,0,0,0,0,0,0,0];
+
+	for(var i = 0; i < 8; i++){
+	    sendNewCode(null, i*10, false);
+	}
+	
+	sendCodes();
+}
+
+function sendCodes()
+{
     sendMsg("/alj/code", 
-	    [ID, code[0], code[1], code[2], code[3], code[4], 
-	     code[5], code[6], code[7]], 
-	    "siiiiiiii");
+	        [ID, playerNo, code[0], code[1], code[2], code[3], code[4], 
+	         code[5], code[6], code[7]], 
+	        "siiiiiiiii");
 }
 
 function getValue () {
@@ -69,8 +92,12 @@ function getID () {
 }
 
 function pingServer() {
-    sendMsg("/alj/ping", [ID], "s");
+    sendMsg("/alj/ping", [ID, playerNo], "si");
     window.setTimeout("pingServer()", 1500);
+}
+
+function getPlayer() {
+    sendMsg("/alj/getplayer", [ID], "s");
 }
 
 function changeName (ID) {

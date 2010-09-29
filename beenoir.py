@@ -16,7 +16,7 @@ WORLD_WIDTH = 16
 WORLD_HEIGHT = 12
 
 PLAYERS = 10
-
+CODESIZE = 8
 # (verbose) debugging output
 DEBUG = True
 VERBOSE = False
@@ -212,7 +212,7 @@ class Player(Entity):
 
         ## time
         self.time_index = 0
-        self.timeout = 0
+        self.timeout = 5
         self.granulation = 2
 
         ## color
@@ -224,10 +224,16 @@ class Player(Entity):
         ## code
         self.code = []
         self.index = 0
-        for i in range(8):
-            self.code.append(random.randint(0,9))
+        for i in range(CODESIZE):
+            self.code.append(0)
         self.controller = controller_id
         self.player_id = player_id
+
+        msg = osc.OSCMessage()
+        msg.setAddress("/alj/dict")
+        for i in [controller_id, player_id] + self.code:
+            msg.append(i)
+        client.sendto(msg, NET_SEND_ADDR)
 
         ## label
         self.labels = []
@@ -273,13 +279,6 @@ class Player(Entity):
         self._update_label()
 
     def update(self,dt):
-        if self.controller:
-            if self.timeout < 0:
-                world.controllers.pop(self.controller)
-                self.controller = False
-            else:
-                self.timeout -= dt
-
         percent = ((self.time_index % (24 / self.granulation)) /
                    ((24.0 / self.granulation) - 1))
         if self.moving:
@@ -310,6 +309,17 @@ class Player(Entity):
             self.index = (self.index + 1) % len(self.code)
         self._update_label(percent)
         self.time_index = (self.time_index + 1) % 24
+
+        if self.timeout < -5:
+            for i in [self.label, self.sprite] + self.labels:
+                i.delete()
+            world.players[self.player_id] = False
+            if DEBUG:
+                print "deleted player ", self.player_id
+        elif (self.timeout < 0) and self.controller:
+            world.controllers.pop(self.controller)
+            self.controller = False          
+        self.timeout -= dt
 
     def _update_label(self, percent = 0):
         text = "Spieler " + str(self.player_id) + " "
@@ -429,6 +439,14 @@ class Player(Entity):
             if do_it:
                 if world.get_tile(pos).teleport:
                     print "teleport!"
+                    msg = osc.OSCMessage()
+                    msg.setAddress("/alj/teleport")
+                    for i in [self.player_id, 
+                              self.pos.x / float(world.width), 
+                              self.pos.y / float(world.height), 
+                              (1.0 / self.granulation) * (24 / FPS)]:
+                        msg.append(i)
+                    client.sendto(msg, SC_ADDR) 
                     target = False
                     while not target:
                         target, pos, wrap_pos = self._move(
@@ -495,10 +513,10 @@ class BeeNoirWorld(object):
         self.height=h
         self.objs = []
         self.players = []
+        self.players_waiting = []
         self.controllers = dict()
-        for i, color in enumerate(colors[:5]):
-            self.players.append(Player(vec3(i,5,1),
-                              False, color, i))
+        for i in range(PLAYERS):
+            self.players.append(False)
 
         for y in range(h):
             for x in range(w):
@@ -528,15 +546,30 @@ class BeeNoirWorld(object):
         change a specific player's code on press 
         """
         if WIN_HEIGHT > y > WIN_HEIGHT - (len(self.players) * 60):
-            if 37 < x < (len(self.players[-1].code) + 2) * 37:
+            if 37 < x < (CODESIZE + 2) * 37:
                 playerno = (WIN_HEIGHT - y) / 60
                 if (WIN_HEIGHT - (playerno * 60) - 37) > y > (WIN_HEIGHT - 
                                                               (playerno * 60)) - 67:
                     change = False
                     if button == 1: change = 1
                     elif button == 4: change = -1
-                    self.players[playerno].change_code((x - 37) / 37, change)
+                    if self.players[playerno]:
+                        self.players[playerno].change_code((x - 37) / 37, change)
         
+
+    def create_waiting_players(self):
+        if len(self.players_waiting) > 0:
+            for i in self.players_waiting:
+                self.create_player(i[0], i[1])
+            self.players_waiting = []
+
+    def create_player(self, playerID, controllerID=False):
+        if not self.players[playerID]:
+            self.controllers[controllerID] = playerID
+            self.players[playerID] = Player(vec3(playerID,5,1),
+                                            controllerID, colors[playerID], playerID)
+        else:
+            print "already there"
 
     def update(self,dt):
         if VERBOSE:
@@ -545,7 +578,8 @@ class BeeNoirWorld(object):
             t.update(dt)
         if self.players:
             for p in self.players:
-                p.update(dt)
+                if p:
+                    p.update(dt)
 
     def get_tile(self,pos):
         return self.objs[pos.x+pos.y*self.width]
@@ -555,9 +589,10 @@ def update_code(addr, tags, data, client_addr):
     if DEBUG:
         print "got update: ", data
     key = data[0]
+    playerID = data[1]
     if key in world.controllers:
-        if len(data[1:]) == len(world.players[world.controllers[key]].code):
-            world.players[world.controllers[key]].code = data[1:]
+        if len(data[2:]) == len(world.players[world.controllers[key]].code):
+            world.players[world.controllers[key]].code = data[2:]
         else:
             print "something went wrong: code is too short"
 
@@ -567,17 +602,35 @@ def ping_players(addr, tags, data, client_addr):
     key = data[0]
     if key in world.controllers:
         world.players[world.controllers[key]].resetTimeout()
+    else:
+        print "no such controller: ", data
+
+def get_player(addr, tags, data, client_addr):
+    if DEBUG:
+        print "got player request: ", data
+    key = data[0]
+    if key in world.controllers:
+        p = world.players[world.controllers[key]]
+        p.resetTimeout()
+        msg = osc.OSCMessage()
+        msg.setAddress("/alj/dict")
+        for i in [key, p.player_id] + p.code:
+            msg.append(i)
     elif len(world.controllers) < PLAYERS:
         for i, p in enumerate(world.players):
-            if not p.active():
+            if not p: 
+                world.players_waiting.append((i, key))
+                print "created player nr ", i
+                break
+            elif not p.active():
                 world.controllers[key] = i
                 p.resetTimeout()
                 p.controller = key
                 msg = osc.OSCMessage()
                 msg.setAddress("/alj/dict")
-                for i in [key, i]:
+                for i in [key, i] + p.code:
                     msg.append(i)
-                client.sendto(msg, NET_SEND_ADDR) 
+                client.sendto(msg, NET_SEND_ADDR)
                 break
             else:
                 print "something went wrong: there should be free players!"
@@ -588,7 +641,6 @@ def ping_players(addr, tags, data, client_addr):
             msg.append(i)
             client.sendto(msg, NET_SEND_ADDR)
         print "no free player!"
-
 
 if __name__ == '__main__':
     window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='bee noir')
@@ -614,6 +666,7 @@ if __name__ == '__main__':
 
     @window.event
     def on_draw():
+        world.create_waiting_players()
         window.clear()
         batch.draw()
 
@@ -634,6 +687,7 @@ if __name__ == '__main__':
 
     oscServer.addMsgHandler("/alj/code", update_code)
     oscServer.addMsgHandler("/alj/ping", ping_players)
+    oscServer.addMsgHandler("/alj/getplayer", get_player)
 
     # Start OSCServer
     print "\nStarting OSCServer. Use ctrl-C to quit."

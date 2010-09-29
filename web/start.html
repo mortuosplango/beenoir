@@ -1,31 +1,34 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=500, user-scalable=no" />
     <title></title>
     <script type = "text/javascript" src="jquery.js"></script>
     <script type = "text/javascript" src="json.js"></script>
     <script type = "text/javascript" src="alj.js"></script>
+    <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
     <style type ="text/css">
-      body {
+      div#main {
       background-color: #%s;
-      color:#000000;
-      font-family:Arial, Helvetica, sans-serif;
-      background-image:url(/public/blowup-images/body-bg.png);
       }
 
     </style>
   </head>
-  <body onLoad="pingServer();">
+  <body>
     <script type="text/javascript">
       var ID = getID();
-      var code = [0,0,0,0,0,0,0,0];
+      var playerNo = %i;
+      pingServer();
+      var code = [%i,%i,%i,%i,%i,%i,%i,%i];
       // preload images
       for (var i = 0; i < 10; i++) {
 		      image = new Image();
 		      image.src = "opcodes_" + i + ".png";
 		      }
     </script>
-
-    <table>
+	<div id="main">
+	<div id="field">
+	<p style="float:left;font-weight:bold;">Spieler <script>document.write(playerNo)</script></p>
+	<a style="float:right;position:relative;top:7px;" href="#" class="button" onclick="resetCodes();">Befehle L&ouml;schen</a>
+    <table style="margin-top: 7px; clear:both;">
       <tr>

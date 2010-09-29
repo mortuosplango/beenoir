@@ -1,6 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <html>
   <head>
+    <meta name="viewport" content="width=500, user-scalable=no" />
     <title></title>
     <script type = "text/javascript" src="jquery.js"></script>
     <script type = "text/javascript" src="json.js"></script>
@@ -8,11 +9,13 @@
     <script type="text/javascript">
       <!--
 	  var ID = getID();
-	  pingServer();
+	  getPlayer();
 	  setTimeout("self.location.href='/id" + ID + "'",2000);
 	  //-->
     </script>
+    <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
   </head>
-  <body>
-    <h1>in 2 Sekunden geht's weiter</h1>
+  <body><div id="main">
+    <h1>Einen kleinen Moment bitte &hellip;</h1>
+    </div>
 </body></html>

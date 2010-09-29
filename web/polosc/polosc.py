@@ -51,29 +51,31 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header("Content-type", "text/html")
                 self.end_headers()
+                code = players[self.path[3:]][1:]
                 self.wfile.write(
-                    self.server.mappings["/start.html"]%(
+                    self.server.mappings["/start.html"]%((
                         [ 'ffffff', 'ff0000', 'ff00ff', '0000ff', '00ffff',
                           '00ff00', 'ffff00', '7f0000', '7f007f', '00007f',
-                          '007f7f', '007f00,' '827f00'][players[self.path[3:]]]))
+                          '007f7f', '007f00,' '827f00'][players[self.path[3:]][0]],)
+                    + (players[self.path[3:]][0],) +  tuple(code)))
                 for i in range(8):
+                    array = [str(code[i])]
+                    for j in range(10):
+                        if j == code[i]: array.append('')
+                        else:            array.append('1')
+                        array.append(str(i))
                     self.wfile.write(
-                        self.server.mappings["/field.html"]%(
-                            str(i), str(i), str(i), str(i), str(i), 
-                            str(i), str(i), str(i), str(i), str(i)))
+                        self.server.mappings["/field.html"]%tuple(array))
                 self.wfile.write(self.server.mappings["/end.html"])
             else:
-                self.wfile.write(
-                    "<html><body><h1>Error</h1>: all seats taken, %s</body></html>"%(
-                        self.path[3:]))
+                self.wfile.write(self.shortErrorPage("Alle Pl&auml;tze bereits besetzt!"))
+
         else:
             logging.debug("path '%s' is not mapped"%(self.path))
             self.send_response(404)
             self.send_header("Content-type", "text/html")
             self.end_headers()
-            self.wfile.write(
-                "<html><body><h1>404 Error</h1>invalid path: '%s'</body></html>"%(
-                    self.path))
+            self.wfile.write(self.shortErrorPage("HTTP 404, Ung&uuml;ltiger Pfad: '%s'"%(self.path)))
 
     def mimeTypeForPath(self, path):
         suffix = path.split(".")[-1].lower()
@@ -81,10 +83,17 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         mimeTypes = {
             "png": "image/png",
             "html": "text/html",
-            "js": "application/javascript"
+            "js": "application/javascript",
+            "css": "text/css"
         }
         
         return mimeTypes.get(suffix, "text/html")
+    
+    def shortHTMLPage(self, string):
+        return "<html><head><meta name=\"viewport\" content=\"width=500, user-scalable=no\" /><link rel=\"stylesheet\" href=\"style.css\" type=\"text/css\" media=\"screen\" /></head><body><div id=\"main\">%s</div></body></html>"%(string)
+
+    def shortErrorPage(self, string):
+        return self.shortHTMLPage("<h1>Fehler!</h1><p>%s</p><p><a class=\"button\" href=\"/\">Zur&uuml;ck zum Start</a></p>"%(string))
     
     def send_notifications(self, osc_address, osc_data):
         if self.server.notifications.has_key(self.path):
@@ -260,7 +269,7 @@ class Notification (object):
 def update_dict(*msg):
     print "got message ", msg
     if msg[2][1] != -1:
-        players[msg[2][0]] = msg[2][1] # player nr
+        players[msg[2][0]] = msg[2][1:] # player nr + code
     else:
         logging.debug("got max players message")
 

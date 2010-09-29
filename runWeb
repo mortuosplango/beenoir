@@ -1,0 +1,3 @@
+#!/bin/sh
+cd web/
+python polosc/polosc.py 8000 cs.map cs.not
