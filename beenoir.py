@@ -510,6 +510,7 @@ class BeeNoirWorld(object):
         self.height=h
         self.objs = []
         self.players = []
+        self.players_waiting = []
         self.controllers = dict()
         for i in range(PLAYERS):
             self.players.append(False)
@@ -553,8 +554,15 @@ class BeeNoirWorld(object):
                         self.players[playerno].change_code((x - 37) / 37, change)
         
 
+    def create_waiting_players(self):
+        if len(self.players_waiting) > 0:
+            for i in self.players_waiting:
+                self.create_player(i[0], i[1])
+            self.players_waiting = []
+
     def create_player(self, playerID, controllerID=False):
         if not self.players[playerID]:
+            self.controllers[controllerID] = playerID
             self.players[playerID] = Player(vec3(playerID,5,1),
                                             controllerID, colors[playerID], playerID)
         else:
@@ -608,8 +616,7 @@ def get_player(addr, tags, data, client_addr):
     elif len(world.controllers) < PLAYERS:
         for i, p in enumerate(world.players):
             if not p: 
-                world.create_player(i, key)
-                world.controllers[key] = i
+                world.players_waiting.append((i, key))
                 print "created player nr ", i
                 break
             elif not p.active():
@@ -656,8 +663,9 @@ if __name__ == '__main__':
 
     @window.event
     def on_draw():
+        world.create_waiting_players()
         window.clear()
-        #batch.draw()
+        batch.draw()
 
     ## start communication and send specs
     client = osc.OSCClient()
