@@ -5,8 +5,8 @@ u = OSCresponder(a, '/alj/action', { |t, r, msg|
 	#addr, playerid, xpos, ypos, value, dur = msg;
 	msg.postln;
 	Synth(
-		[\ping, \pong, \pang, \pong, \pang, 
-			\pong, \ping, \ping, \ping, \ping][playerid], 
+		[\ping, \pong, \pang, \wow, \fm, 
+			\drummer, \ping, \ping, \ping, \ping][playerid], 
 		[\out, 0, \xpos, xpos, \ypos, ypos, \dur, dur, \value, value]
 	).play;
 }).add;
