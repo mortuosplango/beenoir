@@ -63,14 +63,14 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                             str(i), str(i), str(i), str(i), str(i)))
                 self.wfile.write(self.server.mappings["/end.html"])
             else:
-                self.wfile.write(self.shortHTMLPage("<h1>Fehler!</h1><p>Alle Pl&auml;tze bereits besetzt!</p>"))
+                self.wfile.write(self.shortErrorPage("Alle Pl&auml;tze bereits besetzt!"))
 
         else:
             logging.debug("path '%s' is not mapped"%(self.path))
             self.send_response(404)
             self.send_header("Content-type", "text/html")
             self.end_headers()
-            self.wfile.write(self.shortHTMLPage("<h1>Fehler 404</h1><p>Ung&uuml;ltiger Pfad: '%s'</p>"%(self.path)))
+            self.wfile.write(self.shortErrorPage("HTTP 404, Ung&uuml;ltiger Pfad: '%s'"%(self.path)))
 
     def mimeTypeForPath(self, path):
         suffix = path.split(".")[-1].lower()
@@ -87,6 +87,8 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     def shortHTMLPage(self, string):
         return "<html><head><link rel=\"stylesheet\" href=\"style.css\" type=\"text/css\" media=\"screen\" /></head><body>%s</body></html>"%(string)
 
+    def shortErrorPage(self, string):
+        return self.shortHTMLPage("<h1>Fehler!</h1><p>%s</p><p><a class=\"button\" href=\"/\">Zur&uuml;ck zum Start</a></p>"%(string))
     
     def send_notifications(self, osc_address, osc_data):
         if self.server.notifications.has_key(self.path):
