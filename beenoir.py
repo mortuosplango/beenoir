@@ -590,7 +590,7 @@ def ping_players(addr, tags, data, client_addr):
             client.sendto(msg, NET_SEND_ADDR)
         print "no free player!"
 
-def get_players(addr, tags, data, client_addr):
+def get_player(addr, tags, data, client_addr):
     if DEBUG:
         print "got ping: ", data
     key = data[0]
