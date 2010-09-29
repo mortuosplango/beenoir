@@ -51,16 +51,21 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header("Content-type", "text/html")
                 self.end_headers()
+                code = players[self.path[3:]][1:]
                 self.wfile.write(
-                    self.server.mappings["/start.html"]%(
+                    self.server.mappings["/start.html"]%((
                         [ 'ffffff', 'ff0000', 'ff00ff', '0000ff', '00ffff',
                           '00ff00', 'ffff00', '7f0000', '7f007f', '00007f',
-                          '007f7f', '007f00,' '827f00'][players[self.path[3:]]]))
+                          '007f7f', '007f00,' '827f00'][players[self.path[3:]][0]],)
+                    + (players[self.path[3:]][0],) +  tuple(code)))
                 for i in range(8):
+                    array = [str(code[i])]
+                    for j in range(10):
+                        if j == code[i]: array.append('')
+                        else:            array.append('1')
+                        array.append(str(i))
                     self.wfile.write(
-                        self.server.mappings["/field.html"]%(
-                            str(i), str(i), str(i), str(i), str(i), 
-                            str(i), str(i), str(i), str(i), str(i)))
+                        self.server.mappings["/field.html"]%tuple(array))
                 self.wfile.write(self.server.mappings["/end.html"])
             else:
                 self.wfile.write(self.shortErrorPage("Alle Pl&auml;tze bereits besetzt!"))
@@ -264,7 +269,7 @@ class Notification (object):
 def update_dict(*msg):
     print "got message ", msg
     if msg[2][1] != -1:
-        players[msg[2][0]] = msg[2][1] # player nr
+        players[msg[2][0]] = msg[2][1:] # player nr + code
     else:
         logging.debug("got max players message")
 

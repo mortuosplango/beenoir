@@ -575,7 +575,7 @@ def ping_players(addr, tags, data, client_addr):
                 p.controller = key
                 msg = osc.OSCMessage()
                 msg.setAddress("/alj/dict")
-                for i in [key, i]:
+                for i in [key, i] + p.code:
                     msg.append(i)
                 client.sendto(msg, NET_SEND_ADDR) 
                 break
