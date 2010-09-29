@@ -13,19 +13,19 @@ a:hover {
 }
 
 
-a.button {
+.button {
 	padding:8px;
 	border: 1px solid #AAAAAA;
 	background-color: #DDDDDD;
 	-webkit-border-radius: 5px;
 }
 
-a.button:hover {
+.button:hover {
 	background-color: #BBBBBB;
 	text-decoration: none;
 }
 
-a.button:active {
+.button:active {
 	color: #DDDDDD;
 	background-color: #444444;
 }
