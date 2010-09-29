@@ -279,14 +279,6 @@ class Player(Entity):
         self._update_label()
 
     def update(self,dt):
-        if self.controller:
-            if self.timeout < -5:
-                world.players[self.playerID] = False
-            elif self.timeout < 0:
-                world.controllers.pop(self.controller)
-                self.controller = False                
-        self.timeout -= dt
-
         percent = ((self.time_index % (24 / self.granulation)) /
                    ((24.0 / self.granulation) - 1))
         if self.moving:
@@ -317,6 +309,17 @@ class Player(Entity):
             self.index = (self.index + 1) % len(self.code)
         self._update_label(percent)
         self.time_index = (self.time_index + 1) % 24
+
+        if self.timeout < -5:
+            for i in [self.label, self.sprite] + self.labels:
+                i.delete()
+            world.players[self.player_id] = False
+            if DEBUG:
+                print "deleted player ", self.player_id
+        elif (self.timeout < 0) and self.controller:
+            world.controllers.pop(self.controller)
+            self.controller = False          
+        self.timeout -= dt
 
     def _update_label(self, percent = 0):
         text = "Spieler " + str(self.player_id) + " "
