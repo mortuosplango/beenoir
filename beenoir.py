@@ -354,7 +354,7 @@ class Player(Entity):
 
     def _pos2screenpos(self,pos):
         """
-        slightly different positioning for smaller graphics (hacky)
+        slightly different positioning for smaller graphics
         """
         if 0 < (pos.x%2) <= 1: # odd
             y = pos.y + (0.5 * (pos.x%2))
@@ -363,8 +363,11 @@ class Player(Entity):
         else:
             y = pos.y + (0.5 - (0.5 * ((pos.x%2) - 1)))
         return vec3(
-            WIN_WIDTH*0.3  + 50*pos.x + 25 + self.sprite.width/2,
-            WIN_HEIGHT*0.9 - self.tile_height*y + self.tile_height/2,
+            (WIN_WIDTH * 0.3  + 50 * pos.x 
+             + (self.tile_width - self.sprite.width) / 2.0 + self.sprite.width / 2),
+            (WIN_HEIGHT * 0.9 + 
+             (self.tile_height - self.sprite.height) / 2.0 
+             - self.tile_height * y + self.tile_height / 2),
             0)
     
     def _change_position(self, pos=False, percent=0, wrap_pos=False): 
