@@ -8,7 +8,7 @@
     <script type = "text/javascript" src="alj.js"></script>
     <link rel="stylesheet" href="style.css" type="text/css" media="screen" />
     <style type ="text/css">
-      div#main {
+      #player {
       background-color: #%s;
       }
 
@@ -28,7 +28,8 @@
     </script>
 	<div id="main">
 	<div id="field">
-	<p style="float:left;font-weight:bold;">Spieler <script>document.write(playerNo)</script></p>
-	<a style="float:right;position:relative;top:7px;" href="#" class="button" onclick="resetCodes();">Befehle L&ouml;schen</a>
-    <table style="margin-top: 7px; clear:both;">
+	<div id="player">Spieler <script>document.write(playerNo)</script></div>
+	<a style="float:right;" href="#" class="button" onclick="resetCodes();">Befehle L&ouml;schen</a>
+
+    <table style="clear:both;">
       <tr>
