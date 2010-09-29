@@ -36,7 +36,59 @@ SynthDef(\pang) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	env = EnvGen.ar(Env.linen(0.1, dur,0.5), doneAction:2);
 	Out.ar(0, Pan2.ar(snd * env * amp,xpos.linlin(0,1,-1,1)));
 }.add;
+
+SynthDef(\wow, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2|
+	var freq = ypos.linexp(0,1,40, 1200);
+	var formant = XLine.kr(xpos.linexp(0, 1, 1200, 1800), freq, dur);
+	var snd = Formant.ar(freq, formant, freq * Rand(2.0, 4.0))!2;
+	snd = Select.ar(value, [
+		snd,
+		snd.distort,
+		snd.softclip,
+		snd.distort.softclip,
+		BPF.ar(snd.wrap2(0.5) * 5, freq, 1.5)
+	]);
+	snd = snd * EnvGen.ar(Env.perc(0.1, dur), doneAction:2);
+	Out.ar(out, snd*amp);
+}).add;
+
+SynthDef(\fm, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2|
+	
+	// whats the reange o value? 0 .. 4 ? 0 .. 5 ?
+	var snd = SinOsc.ar(SinOsc.ar(value.linlin(0,4,0.1,40.0), 0, ypos * 100, xpos.linexp(0, 1, 400, 1800)))!2;
+	snd = Select.ar(value, [
+		snd,
+		snd.distort,
+		snd.softclip,
+		snd.distort.softclip,
+		snd.distort.softclip.distort.softclip,
+	]);
+	snd = snd * EnvGen.ar(Env.perc(0.01, dur), doneAction:2);
+	Out.ar(out, snd*amp);
+}).add;
+
+SynthDef(\drummer, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2|
+	var snd = Select.ar(value, [
+		// make 5 drum kind of sounds
+		// and use value for it
+		// ignore XY?
+		
+		// 0 - FM Bass Drum
+		SinOsc.ar(XLine.ar(Rand(400, 1000), 60, 0.1))!2 * Decay2.ar(Impulse.ar(0), 0.0001, dur),
+		
+		// 1 - Snare Drum (shitty, synth def pool? sample?)
+		BPF.ar(HPF.ar(WhiteNoise.ar(1), 200, 2), 900, 0.6, 3) * EnvGen.ar(Env.perc(0.01, dur/4));
+
+	]);
+	snd =  snd * EnvGen.ar(Env.linen(0, dur, 0), doneAction:2);
+	Out.ar(out, snd*amp);
+}).add;
+
+
 )
+
+Synth(\wow, [\xpos, rrand(0, 1.0), \ypos, rrand(0, 1.0), \value, 4])
+Synth(\drummer, [\xpos, rrand(0, 1.0), \ypos, rrand(0, 1.0), \value, [0,1].choose])
 
 NetAddr.langPort
 
