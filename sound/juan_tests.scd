@@ -1,3 +1,6 @@
+// RHYTHM
+
+
 SynthDef(\noise) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	var snd, env;
 	snd = WhiteNoise.ar() * 4;
@@ -17,26 +20,52 @@ SynthDef(\clicks) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	Out.ar(0, Pan2.ar( snd * amp, xpos.linlin(0,1,-1,1) ));
 }.add;
 
-SynthDef(\perc_dorian) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
+
+// MELODIC
+
+// TODO: distort the signal and control amplitude
+SynthDef(\pentaPerc) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	var snd, env;
 	snd = SinOsc.ar(
 		DegreeToKey.kr(
-			LocalBuf.newFrom(FloatArray[0, 2, 3.2, 5, 7, 9, 10]),
-			ypos.linlin(0,1,0,24).round, // how many y waben??
+			LocalBuf.newFrom(FloatArray[0,3,5,7,10]), // minorPenta
+			ypos.linlin(0,1,0,14), // how many y waben??
 			12,
 			1,
-			60-24	// c?
+			60-12	// c?
 		).midicps
 	);
 	env = EnvGen.ar(Env.perc(0,value.linlin(0,1,0.1,2)), doneAction:2);
 	Out.ar(0, Pan2.ar( snd * amp * env, xpos.linlin(0,1,-1,1) ));
 }.add;
 
+// need sound
+SynthDef(\pentaPulse) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
+	var snd, env, freq, len;
+	len = value.linlin(0,1,0.1,1);
+	freq = 	DegreeToKey.kr(
+		LocalBuf.newFrom(FloatArray[0,3,5,7,10]), // minorPenta
+		ypos.linlin(0,1,0,14), // how many y waben??
+		12,
+		1,
+		60-24	// c?
+	).midicps;
+	snd = Pulse.ar(freq);
+	snd = RLPF.ar(snd, XLine.kr(freq * value.linlin(0,1,1,5), freq, len));
+	env = EnvGen.ar(Env.perc(0.001,len));
+	snd = snd * env;
+	snd = snd + CombC.ar(snd, dur*2, dur/value.linlin(0,1,8,16), dur);
+	snd = snd * EnvGen.ar(Env([1,1], [dur]), doneAction:2);
+	Out.ar(0, Pan2.ar( snd * amp, xpos.linlin(0,1,-1,1) ));
+}.add;
+
+
+
 ///////////////////////////////////////////////////////////////////////
 
 /* Tester
 
-Synth(\minor, [\xpos, 0.5, \ypos, 0, \value, 5]);
+Synth(\pentaPulse, [\xpos, 0.5, \ypos, 0, \value, 1]);
 
 */
 
@@ -45,12 +74,12 @@ Synth(\minor, [\xpos, 0.5, \ypos, 0, \value, 5]);
 /* Multi tester
 
 (
-var name = \perc_dorian;
+var name = \pentaPulse;
 
 fork{
 	24.do{ |i|
-		Synth(name, [\xpos, i/16, \ypos, i/16, \value, 0.5]);
-		0.5.wait;
+		Synth(name, [\xpos, i%12/12, \ypos, i%12/12, \value, [0,0.25,0.5,1,0.75].choose]);
+		0.25.wait;
 	}
 }
 
