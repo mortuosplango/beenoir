@@ -16,7 +16,7 @@ WORLD_WIDTH = 16
 WORLD_HEIGHT = 12
 
 PLAYERS = 10
-
+CODESIZE = 8
 # (verbose) debugging output
 DEBUG = True
 VERBOSE = False
@@ -212,7 +212,7 @@ class Player(Entity):
 
         ## time
         self.time_index = 0
-        self.timeout = 0
+        self.timeout = 5
         self.granulation = 2
 
         ## color
@@ -224,10 +224,16 @@ class Player(Entity):
         ## code
         self.code = []
         self.index = 0
-        for i in range(8):
+        for i in range(CODESIZE):
             self.code.append(random.randint(0,9))
         self.controller = controller_id
         self.player_id = player_id
+
+        msg = osc.OSCMessage()
+        msg.setAddress("/alj/dict")
+        for i in [controller_id, player_id] + self.code:
+            msg.append(i)
+        client.sendto(msg, NET_SEND_ADDR)
 
         ## label
         self.labels = []
@@ -274,11 +280,12 @@ class Player(Entity):
 
     def update(self,dt):
         if self.controller:
-            if self.timeout < 0:
+            if self.timeout < -5:
+                world.players[self.playerID] = False
+            elif self.timeout < 0:
                 world.controllers.pop(self.controller)
-                self.controller = False
-            else:
-                self.timeout -= dt
+                self.controller = False                
+        self.timeout -= dt
 
         percent = ((self.time_index % (24 / self.granulation)) /
                    ((24.0 / self.granulation) - 1))
@@ -504,9 +511,8 @@ class BeeNoirWorld(object):
         self.objs = []
         self.players = []
         self.controllers = dict()
-        for i, color in enumerate(colors[:5]):
-            self.players.append(Player(vec3(i,5,1),
-                              False, color, i))
+        for i in range(PLAYERS):
+            self.players.append(False)
 
         for y in range(h):
             for x in range(w):
@@ -536,15 +542,23 @@ class BeeNoirWorld(object):
         change a specific player's code on press 
         """
         if WIN_HEIGHT > y > WIN_HEIGHT - (len(self.players) * 60):
-            if 37 < x < (len(self.players[-1].code) + 2) * 37:
+            if 37 < x < (CODESIZE + 2) * 37:
                 playerno = (WIN_HEIGHT - y) / 60
                 if (WIN_HEIGHT - (playerno * 60) - 37) > y > (WIN_HEIGHT - 
                                                               (playerno * 60)) - 67:
                     change = False
                     if button == 1: change = 1
                     elif button == 4: change = -1
-                    self.players[playerno].change_code((x - 37) / 37, change)
+                    if self.players[playerno]:
+                        self.players[playerno].change_code((x - 37) / 37, change)
         
+
+    def create_player(self, playerID, controllerID=False):
+        if not self.players[playerID]:
+            self.players[playerID] = Player(vec3(playerID,5,1),
+                                            controllerID, colors[playerID], playerID)
+        else:
+            print "already there"
 
     def update(self,dt):
         if VERBOSE:
@@ -553,7 +567,8 @@ class BeeNoirWorld(object):
             t.update(dt)
         if self.players:
             for p in self.players:
-                p.update(dt)
+                if p:
+                    p.update(dt)
 
     def get_tile(self,pos):
         return self.objs[pos.x+pos.y*self.width]
@@ -592,7 +607,12 @@ def get_player(addr, tags, data, client_addr):
             msg.append(i)
     elif len(world.controllers) < PLAYERS:
         for i, p in enumerate(world.players):
-            if not p.active():
+            if not p: 
+                world.create_player(i, key)
+                world.controllers[key] = i
+                print "created player nr ", i
+                break
+            elif not p.active():
                 world.controllers[key] = i
                 p.resetTimeout()
                 p.controller = key
@@ -600,7 +620,7 @@ def get_player(addr, tags, data, client_addr):
                 msg.setAddress("/alj/dict")
                 for i in [key, i] + p.code:
                     msg.append(i)
-                client.sendto(msg, NET_SEND_ADDR) 
+                client.sendto(msg, NET_SEND_ADDR)
                 break
             else:
                 print "something went wrong: there should be free players!"
@@ -637,7 +657,7 @@ if __name__ == '__main__':
     @window.event
     def on_draw():
         window.clear()
-        batch.draw()
+        #batch.draw()
 
     ## start communication and send specs
     client = osc.OSCClient()
