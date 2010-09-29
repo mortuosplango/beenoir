@@ -115,6 +115,7 @@ class Entity(object):
     def update(self,dt):
         pass
 
+
 class Hole(Entity):
     def __init__(self, pos):
         """
@@ -122,12 +123,6 @@ class Hole(Entity):
         Entity.__init__(self,pos,'graphics/tile_hole.png')
         self.teleport = True
         self.occupied = False
-
-    def update(self, dt):
-        pass
-
-    def update_pos(self):
-        Entity.update_pos(self)
 
 
 class Field(Entity):
@@ -428,7 +423,7 @@ class Player(Entity):
         movement in hexagonal fields 
         """
         if not pos:
-                pos = vec3(self.pos.x,self.pos.y,self.pos.z)
+            pos = vec3(self.pos.x,self.pos.y,self.pos.z)
         pos, wrap_pos = self._get_target_pos(pos, forward)
         if not world.get_tile(pos).occupied:
             if do_it:
@@ -464,11 +459,14 @@ class Player(Entity):
                         target_index = i
                         target = new_pos
                 if target:
-                    wrap_pos = False
-                    for i in range(target_index+1):
-                        if wrap[i]:
-                            wrap_pos = wrap[i]
-                    self._change_position(target, wrap_pos=wrap_pos)
+                    if world.get_tile(target).teleport:
+                        self._move(target, do_it=True)
+                    else:
+                        wrap_pos = False
+                        for i in range(target_index+1):
+                            if wrap[i]:
+                                wrap_pos = wrap[i]
+                        self._change_position(target, wrap_pos=wrap_pos)
                 
     def _action(self):
         tile = world.get_tile(self.pos)
