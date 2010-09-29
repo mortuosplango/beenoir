@@ -10,7 +10,7 @@ dependencies:
 
 to start:
  1) start the webserver:
-    ./runWeb.sh
+    ./runWeb
  2) start SuperCollider or something else listening on port 57120
  3) start the game:
 	./run
