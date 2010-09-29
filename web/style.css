@@ -16,9 +16,11 @@ div#main {
 	margin-left: auto;
 	margin-right: auto;
 	width: 500px;
-	height: 570px;
+	height: 610px;
 	border: 2px solid #000000;
 	padding: 20px;
+	padding-top: 5px;
+	padding-bottom: 5px;
 }
 
 div#field {
