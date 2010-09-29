@@ -85,7 +85,7 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         return mimeTypes.get(suffix, "text/html")
     
     def shortHTMLPage(self, string):
-        return "<html><head><link rel=\"stylesheet\" href=\"style.css\" type=\"text/css\" media=\"screen\" /></head><body>%s</body></html>"%(string)
+        return "<html><head><meta name=\"viewport\" content=\"width=500, user-scalable=no\" /><link rel=\"stylesheet\" href=\"style.css\" type=\"text/css\" media=\"screen\" /></head><body><div id=\"main\">%s</div></body></html>"%(string)
 
     def shortErrorPage(self, string):
         return self.shortHTMLPage("<h1>Fehler!</h1><p>%s</p><p><a class=\"button\" href=\"/\">Zur&uuml;ck zum Start</a></p>"%(string))
