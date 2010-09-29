@@ -3,6 +3,24 @@ html {
       font-family:Arial, Helvetica, sans-serif;
 }
 
+body {
+	margin:0px;
+	padding:0px;
+}
+
+h1 {
+	font-size: 24px;
+}
+
+div#main {
+	margin-left: auto;
+	margin-right: auto;
+	width: 500px;
+	height: 570px;
+	border: 2px solid #000000;
+	padding: 20px;
+}
+
 a {
 	color: black;
 	text-decoration: none;
