@@ -555,8 +555,9 @@ def update_code(addr, tags, data, client_addr):
     if DEBUG:
         print "got update: ", data
     key = data[0]
+    playerID = data[1]
     if key in world.controllers:
-        if len(data[1:]) == len(world.players[world.controllers[key]].code):
+        if len(data[2:]) == len(world.players[world.controllers[key]].code):
             world.players[world.controllers[key]].code = data[1:]
         else:
             print "something went wrong: code is too short"

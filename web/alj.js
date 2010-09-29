@@ -31,9 +31,9 @@ function sendNewCode (ID, image) {
 
     code[Math.floor(image/10)] = image%10
     sendMsg("/alj/code", 
-	    [ID, code[0], code[1], code[2], code[3], code[4], 
-	     code[5], code[6], code[7]], 
-	    "siiiiiiii");
+	        [ID, playerNo, code[0], code[1], code[2], code[3], code[4], 
+	         code[5], code[6], code[7]], 
+	        "siiiiiiiii");
 }
 
 function getValue () {
