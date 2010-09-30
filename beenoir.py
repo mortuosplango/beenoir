@@ -597,6 +597,7 @@ def send_osc(netaddr, addr, data):
         msg.append(i)
     client.sendto(msg, netaddr)    
 
+## osc receive functions
 def update_code(addr, tags, data, client_addr):
     if DEBUG:
         print "got update: ", data
