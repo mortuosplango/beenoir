@@ -54,8 +54,8 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                 code = players[self.path[3:]][1:]
                 self.wfile.write(
                     self.server.mappings["/start.html"]%((
-                        [ 'FF0000', 'FF7100', 'FF54FB', '006100', 'B4B4B4',
-                          '0D0A78', '6400A3', 'EDFF00', '7A94FF', '00FF3F',
+                        [ 'EDFF00', 'FF0000', '2600FF', '006100', '6400A3',
+                          'FF7100', 'B4B4B4', 'FF00FF', '00FF3F', '00FFFF',
                           'FFFFFF', 'FFFFFF,' 'FFFFFF'][players[self.path[3:]][0]],)
                     + (players[self.path[3:]][0],) +  tuple(code)))
                 for i in range(8):
