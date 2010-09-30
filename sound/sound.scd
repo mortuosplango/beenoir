@@ -23,6 +23,8 @@ trigger effects:
 
 (
 
+s.freeAll;
+
 a = NetAddr.new("127.0.0.1", nil);
 b = Buffer.alloc(s, 12);
 c = [
@@ -40,7 +42,12 @@ c = [
 b.setn(0, c[2]); // start with pent minor mirrored
 
 // need a responder to start the drones!
+
+Ndef.all.clear;
 Ndef(\bees).play;
+Ndef(\fifths).play;
+Ndef(\texture).play;
+
 
 u = OSCresponder(a, '/alj/action', { |t, r, msg| 
 	var addr, playerid, xpos, ypos, value, dur;
@@ -50,12 +57,14 @@ u = OSCresponder(a, '/alj/action', { |t, r, msg|
 		// DRONES!
 		Ndef(
 			// use just 0, 3 and 6
-			[\bees, nil, nil, \fifths, nil, nil, \bass, nil, nil, nil][playerid]
+			[\bees, nil, nil, \fifths, nil, nil, \texture, nil, nil, nil][playerid]
 		).set(
 			\xpos, xpos,
 			\ypos, ypos,
 			\dur, dur,
-			\value, value
+			\value, value,
+			\amp, 1,
+			\t_trig, 1
 		);
 	} {
 		// TRIGGER SYNTHS
@@ -85,37 +94,42 @@ t = OSCresponder(a, '/alj/teleport', { |t, r, msg|
 	b.setn(0, c.choose);
 	// make random effect
 	
-	
 }).add;
 
 
 ///////////////// DRONES //////////////////////////////////
 
-Ndef(\bees, { |xpos, ypos, value, gate=1|
+Ndef(\bees, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	var snd = Splay.ar(Gendy1.ar(minfreq:[60-24, 60, 60-12].midicps, maxfreq:[62-24, 62, 62-12].midicps) * 0.2);
 	snd = snd.lag(0.001);
-	snd = LPF.ar(snd, (ypos.linlin(0,1,70,100)).midicps * value.linexp(0,1,1,4).lag(0.5));
+	snd = LPF.ar(snd, (ypos.linlin(0,1,70,100)).midicps * value.linexp(0,1,1,4).lag(0.2));
 	snd = FreeVerb2.ar(snd[0], snd[1], 0.3, 1, 1);
-	snd = Balance2.ar(snd[0], snd[1], xpos.linlin(0,1,-0.8,0.8));
-	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2)
+	snd = Balance2.ar(snd[0], snd[1], xpos.linlin(0,1,-0.8,0.8).lag(0.2));
+	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1)
 });
 
-Ndef(\fifths, { |xpos, ypos, value, gate=1|
-	var snd = Blip.ar([60-24, 60-17].midicps + LFNoise2.ar(0.5).range(0, ypos.linlin(0,1,0,5)), value.linlin(0,1,1,8).lag(4));
+Ndef(\fifths, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
+	var snd = Blip.ar([61-24, 73-24].midicps + LFNoise2.ar([0.3, 0.2]).range(0, ypos.linlin(0,1,0,5)), ypos.linlin(0,1,1,16).lag(0.1));
 	snd = snd *	LFNoise2.ar([value.linlin(0,1,1,8), value.linlin(0,1,4,20)]).range(0.25, 1);
 	snd = snd * LFNoise2.ar(40).range(0.5, 1);
 	snd = FreeVerb2.ar(snd[0], snd[1], 1, 0.7, 1) * 0.25;
-	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2)
+	snd = Balance2.ar(snd[0], snd[1], xpos.linlin(0,1,-0.8,0.8).lag(0.2));
+	snd = snd * EnvGen.ar(Env.perc(0.001, 0.25), t_trig, 1, 1);
+	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1) * 4
 });
 
-Ndef(\bass, { |xpos, ypos, value, gate=1|
+Ndef(\texture, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	var snd = Splay.ar(
-		Ringz.ar(PinkNoise.ar(0.005), [60,63,65,71,72].midicps, 2).distort *
+		Ringz.ar(PinkNoise.ar(0.005 * ypos.linlin(0, 1, 1, 2)), [60,63,65,71,72].midicps *
+			Select.kr(ypos.linlin(0,1,0,11), [0.5,1,2,4,2,1].mirror),
+			2
+		).distort *
 		LFNoise2.ar({rrand(0.25, 2)}!5).range(0.1, 1)
 	);
 	snd = LPF.ar(Compander.ar(snd, snd, 0.01, 0.1, 1), 60.midicps * value.linlin(0,1,1,10).lag(1)) * 3;
 	snd = FreeVerb2.ar(snd[0], snd[1], 1, 0.5, 1);
-	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2)
+	snd = Balance2.ar(snd[0], snd[1], xpos.linlin(0,1,-0.8,0.8).lag(0.2));
+	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1)
 });
 
 ///////////////// SYNTHS //////////////////////////////////
@@ -124,11 +138,11 @@ Ndef(\bass, { |xpos, ypos, value, gate=1|
 
 SynthDef(\clicks) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	var snd, env;
-	snd = Crackle.ar() * 4;
-	snd = HPF.ar(snd, ypos.linlin(0,1,1000,4000)) * ypos.linlin(0,1,1,8);
+	snd = Crackle.ar() * 10;
+	snd = HPF.ar(snd, ypos.linlin(0,1,1000,8000)) * ypos.linlin(0,1,1,8);
 	env = EnvGen.ar(Env.linen(0,value.linlin(0,1,0.01,0.001),0));
 	snd = snd * env;
-	snd = snd + CombC.ar(snd, dur, dur/Select.kr((value*4).round, [1,2,3,4,5] * 10), dur/2);
+	snd = snd + CombC.ar(snd, dur, dur/Select.kr((value*4).round, [1,2,4,8] * 10), dur/2);
 	snd = snd * EnvGen.ar(Env([1,1], [dur]), doneAction:2); // for the combz
 	Out.ar(0, Pan2.ar( snd * amp, xpos.linlin(0,1,-1,1) ));
 }.add;
