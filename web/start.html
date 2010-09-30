@@ -21,11 +21,15 @@
       var playerNo = %i;
       pingServer();
       var code = [%i,%i,%i,%i,%i,%i,%i,%i];
-      // preload images
+
+      // preloading images
       for (var i = 0; i < 10; i++) {
 		      image = new Image();
 		      image.src = "opcodes_" + i + ".png";
-		      }
+	  }
+	  var opclickTempo = new Image();
+	  opclickTempo.src = "opclick.png";
+	  
     </script>
 	<div id="main">
 	<div id="field">
