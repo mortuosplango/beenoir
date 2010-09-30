@@ -151,11 +151,12 @@ SynthDef(\marimba, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 // WTF
 SynthDef(\wtf, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25|
 	var snd, env;
-	snd = SinOsc.ar(SinOsc.ar(Rand(1.0, 400.0), 0, Rand(0, 100), Rand(400, 4000)));
+	snd = Gendy1.ar(1, 0, Rand(0.1, 0.9),1.0, 50,1000, 1,0.005, 12, 12, 0.2);
+//	snd = SinOsc.ar(SinOsc.ar(Rand(1.0, 400.0), 0, Rand(0, 100), Rand(400, 4000)));
 	env = EnvGen.ar(Env.sine(dur), doneAction:2);
 	Out.ar(0, Pan2.ar( snd * amp * env, xpos.linlin(0,1,-0.5,0.5) ));
 }).add;
-)
+
 
 
 ///////////////////////////////////////////////////////////////////////
