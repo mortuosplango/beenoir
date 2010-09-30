@@ -254,7 +254,7 @@ SynthDef(\stageLimiter, { |wet=0.1, room=0.3|
 
 /* MASTER Ctrl
 
-~master.set(\wet, 0.01, \room, 1)
+~master.set(\wet, 1, \room, 1)
 
 */
 
