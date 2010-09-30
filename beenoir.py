@@ -354,7 +354,7 @@ class Player(Entity):
 
     def _pos2screenpos(self,pos):
         """
-        slightly different positioning for smaller graphics (hacky)
+        slightly different positioning for smaller graphics
         """
         if 0 < (pos.x%2) <= 1: # odd
             y = pos.y + (0.5 * (pos.x%2))
@@ -363,8 +363,11 @@ class Player(Entity):
         else:
             y = pos.y + (0.5 - (0.5 * ((pos.x%2) - 1)))
         return vec3(
-            WIN_WIDTH*0.3  + 50*pos.x + 25 + self.sprite.width/2,
-            WIN_HEIGHT*0.9 - self.tile_height*y + self.tile_height/2,
+            (WIN_WIDTH * 0.3  + 50 * pos.x 
+             + (self.tile_width - self.sprite.width) / 2.0 + self.sprite.width / 2),
+            (WIN_HEIGHT * 0.9 + 
+             (self.tile_height - self.sprite.height) / 2.0 
+             - self.tile_height * y + self.tile_height / 2),
             0)
     
     def _change_position(self, pos=False, percent=0, wrap_pos=False): 
@@ -439,22 +442,15 @@ class Player(Entity):
             if do_it:
                 if world.get_tile(pos).teleport:
                     print "teleport!"
+                    pos = world.random_pos()
                     msg = osc.OSCMessage()
                     msg.setAddress("/alj/teleport")
                     for i in [self.player_id, 
-                              self.pos.x / float(world.width), 
-                              self.pos.y / float(world.height), 
+                              pos.x / float(world.width), 
+                              pos.y / float(world.height), 
                               (1.0 / self.granulation) * (24 / FPS)]:
                         msg.append(i)
-                    client.sendto(msg, SC_ADDR) 
-                    target = False
-                    while not target:
-                        target, pos, wrap_pos = self._move(
-                            do_it=False,
-                            pos=vec3(random.randint(0, world.width),
-                                 random.randint(0, world.height),
-                                 0))
-                    
+                    client.sendto(msg, SC_ADDR)
                 self._change_position(pos, wrap_pos=wrap_pos)
             return True, pos, wrap_pos
         else:
@@ -566,7 +562,7 @@ class BeeNoirWorld(object):
     def create_player(self, playerID, controllerID=False):
         if not self.players[playerID]:
             self.controllers[controllerID] = playerID
-            self.players[playerID] = Player(vec3(playerID,5,1),
+            self.players[playerID] = Player(self.random_pos(),
                                             controllerID, colors[playerID], playerID)
         else:
             print "already there"
@@ -581,8 +577,17 @@ class BeeNoirWorld(object):
                 if p:
                     p.update(dt)
 
+    def random_pos(self):
+        occupied = True
+        while occupied:
+            pos = vec3(random.randint(0, self.width - 1),
+                       random.randint(0, self.height - 1), 
+                       0)
+            occupied = self.get_tile(pos).occupied
+        return pos
+
     def get_tile(self,pos):
-        return self.objs[pos.x+pos.y*self.width]
+        return self.objs[pos.x + pos.y * self.width]
 
 ## osc functions
 def update_code(addr, tags, data, client_addr):
