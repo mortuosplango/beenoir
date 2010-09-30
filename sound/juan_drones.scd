@@ -13,7 +13,7 @@ Ndef(\fifths, { |xpos, ypos, value, gate=1|
 
 )
 
-Ndef(\fifths).xset(\value, [0,0.5,1].choose, \ypos, [0,1].choose,  \xpos, [0,1].choose) // achtung mit fade times?
+Ndef(\fifths).set(\value, [0,0.5,1].choose, \ypos, [0,1].choose,  \xpos, [0,1].choose) // achtung mit fade times?
 
 
 // bass drone in C with modulation
