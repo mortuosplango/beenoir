@@ -1,3 +1,4 @@
 #!/bin/sh
+export VERSIONER_PYTHON_PREFER_32_BIT=yes
 cd web/
 python polosc/polosc.py 8000 cs.map cs.not
