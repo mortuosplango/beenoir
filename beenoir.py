@@ -567,11 +567,36 @@ class BeeNoirWorld(object):
             for p in self.players:
                 if p:
                     p.update(dt)
+    def random_pos(self):
+        occupied = True
+        while occupied:
+            pos = vec3(random.randint(0, self.width - 1),
+                       random.randint(0, self.height - 1), 
+                       0)
+            occupied = self.get_tile(pos).occupied
+        return pos
+
+    def get_tile(self,pos):
+        return self.objs[pos.x + pos.y * self.width]
 
     def get_tile(self,pos):
         return self.objs[pos.x+pos.y*self.width]
 
 ## osc functions
+def send_osc_to_server(addr, data):
+    send_osc(NET_SEND_ADDR, "/alj/" + addr, data)
+
+def send_osc_to_sc(addr, data):
+    send_osc(SC_ADDR, "/alj/" + addr, data)
+
+def send_osc(netaddr, addr, data):
+    msg = osc.OSCMessage()
+    msg.setAddress(addr)
+    for i in data:
+        msg.append(i)
+    client.sendto(msg, netaddr)    
+
+## osc receive functions
 def update_code(addr, tags, data, client_addr):
     if DEBUG:
         print "got update: ", data
