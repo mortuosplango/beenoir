@@ -229,7 +229,7 @@ class Player(Entity):
         self.controller = controller_id
         self.player_id = player_id
 
-        self.send_status('newplayer')
+
         send_osc_to_server('dict', [controller_id, player_id] + self.code)
 
         ## label
@@ -308,7 +308,6 @@ class Player(Entity):
         self.time_index = (self.time_index + 1) % 24
 
         if self.timeout < -5:
-            self.send_status("playerdeleted")
             for i in [self.label, self.sprite] + self.labels:
                 i.delete()
             world.players[self.player_id] = False
@@ -379,6 +378,7 @@ class Player(Entity):
         elif percent == 1:
             self.moving = False
             self.wrap_pos = False
+            self.send_status("move")
         if self.wrap_pos != False:
             if percent < 0.5:
                 percent *= 1.5
@@ -438,9 +438,11 @@ class Player(Entity):
                 if world.get_tile(pos).teleport:
                     print "teleport!"
                     pos = world.random_pos()
-                    self.send_status("teleport")
-                else: 
-                    self.send_status("move")
+                    send_osc_to_sc("teleport",
+                                   [self.player_id, 
+                                    pos.x / float(world.width), 
+                                    pos.y / float(world.height), 
+                                    (1.0 / self.granulation) * (24 / FPS)])
                 self._change_position(pos, wrap_pos=wrap_pos)
             return True, pos, wrap_pos
         else:
@@ -470,7 +472,6 @@ class Player(Entity):
                         for i in range(target_index+1):
                             if wrap[i]:
                                 wrap_pos = wrap[i]
-                        self.send_status("jump")
                         self._change_position(target, wrap_pos=wrap_pos)
                 
     def _action(self):
