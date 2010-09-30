@@ -36,10 +36,9 @@ background = pyglet.graphics.OrderedGroup(0)
 foreground = pyglet.graphics.OrderedGroup(1)
 players = pyglet.graphics.OrderedGroup(2)
 
-colors = [ 'ffffff', 'ff0000', 'ff00ff', '0000ff', '00ffff',
-           '00ff00', 'ffff00', '7f0000', '7f007f', '00007f',
-           '007f7f', '007f00,' '827f00']
-
+colors = [ 'FF0000', 'FF7100', 'FF54FB', '006100', 'B4B4B4',
+           '0D0A78', '6400A3', 'EDFF00', '7A94FF', '00FF3F',
+           'FFFFFF', 'FFFFFF,' 'FFFFFF']
 
 class vec3(object):
     """
@@ -268,6 +267,14 @@ class Player(Entity):
     def active(self):
         return self.controller
 
+    def send_status(self, addr):
+        tile = world.get_tile(self.pos)
+        send_osc_to_sc(addr,  [self.player_id, 
+                               self.pos.x / float(world.width), 
+                               self.pos.y / float(world.height), 
+                               tile.value / float(tile.max_value),
+                               (1.0 / self.granulation) * (24 / FPS)])
+
     def change_code(self, index, change = False):
         if change:
             self.code[index] = (self.code[index] + change) % 10
@@ -361,9 +368,13 @@ class Player(Entity):
         else:
             y = pos.y + (0.5 - (0.5 * ((pos.x%2) - 1)))
         return vec3(
-            WIN_WIDTH*0.3  + 50*pos.x + 25 + self.sprite.width/2,
-            WIN_HEIGHT*0.9 - self.tile_height*y + self.tile_height/2,
+            (WIN_WIDTH * 0.3  + 50 * pos.x 
+             + (self.tile_width - self.sprite.width) / 2.0 + self.sprite.width / 2),
+            (WIN_HEIGHT * 0.9 + 
+             (self.tile_height - self.sprite.height) / 2.0 
+             - self.tile_height * y + self.tile_height / 2),
             0)
+
     
     def _change_position(self, pos=False, percent=0, wrap_pos=False): 
         if percent == 0:
@@ -476,15 +487,7 @@ class Player(Entity):
     def _action(self):
         tile = world.get_tile(self.pos)
         tile.activate()
-        msg = osc.OSCMessage()
-        msg.setAddress("/alj/action")
-        for i in [self.player_id, 
-              self.pos.x / float(world.width), 
-              self.pos.y / float(world.height), 
-              tile.value / float(tile.max_value),
-              (1.0 / self.granulation) * (24 / FPS)]:
-            msg.append(i)
-        client.sendto(msg, SC_ADDR) 
+        self.send_status("action")
         if DEBUG:
             print "actione!"
 
