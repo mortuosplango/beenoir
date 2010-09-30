@@ -59,7 +59,6 @@ SynthDef(\pentaPerc) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25|
 	Out.ar(0, Pan2.ar( snd * amp * env, xpos.linlin(0,1,-0.5,0.5) ));
 }.add;
 
-// need sound
 SynthDef(\pentaPulse) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25|
 	var snd, env, freq, len;
 	len = value.linlin(0,1,0.1,1);
