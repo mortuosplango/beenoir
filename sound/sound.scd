@@ -72,7 +72,8 @@ SynthDef(\pentaPerc) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25|
 			12,
 			1,
 			61-12	// c#?
-		).midicps
+		).midicps +
+		SinOsc.kr(value.linlin(0,1,0,4) + Rand(0.0, 2.0), 0, value.linlin(0,1,0,10))
 	);
 	env = EnvGen.ar(Env.perc(0.001,value.linlin(0,1,0.25,4)), doneAction:2);
 	Out.ar(0, Pan2.ar( snd * amp * env, xpos.linlin(0,1,-0.5,0.5) ));
