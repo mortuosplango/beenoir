@@ -286,7 +286,6 @@ class Player(Entity):
     def update(self,dt):
         percent = ((self.time_index % (24 / self.granulation)) /
                    ((24.0 / self.granulation) - 1))
-        self._update_label(percent)
         if self.moving:
             self._change_position(percent=percent)
         if self.rotating:
@@ -313,6 +312,7 @@ class Player(Entity):
                 elif action == (9 or 'action'):
                     self._action()
             self.index = (self.index + 1) % len(self.code)
+        self._update_label(percent)
         self.time_index = (self.time_index + 1) % 24
 
         if self.timeout < -5:
