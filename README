@@ -20,18 +20,20 @@ You can receive messages with OSC in e. g. SuperCollider:
     port: 57120
 
 Messages (normalized = between 0 and 1):
-    address: /alj/action 
-    format: player_id (int), 
-        x-position (normalized) (float), 
-        y-position (normalized) (float), 
-        tile-value (normalized) (float),
-        length of the event in seconds (float)
+ 1) /alj/newplayer
+ 2) /alj/move
+ 3) /alj/jump
+ 4) /alj/teleport
+ 5) /alj/action
+    musical action
+ 6) /alj/playerdeleted
 
-    address: /alj/teleport
-    format: player_id (int), 
-        x-position (normalized) (float), 
-        y-position (normalized) (float), 
-        length of the event in seconds (float)
+Message Format: 
+     1) player_id (int)
+     2) x-position (normalized) (float)
+     3) y-position (normalized) (float) 
+     4) tile-value (normalized) (float)
+     5) length of the event in seconds (float)
 
 To control a player go to http://127.0.0.1:8000/
 
