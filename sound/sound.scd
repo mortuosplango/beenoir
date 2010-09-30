@@ -1,26 +1,3 @@
-/*
-
-instrument ditribution:
-
-- 3 drones (d)
-- 3 rhythmic (r)
-- 3 melodic (m)
-- 1 wtf? {last player} (w) : BEE NOIR!
-
-[ d r m d r m d r m WTF ]
-
-master effects:
-
-- compressor
-- limiter
-- reverb
-
-trigger effects:
-
-- black hole
-
-*/
-
 (
 
 s.freeAll;
@@ -90,10 +67,8 @@ t = OSCresponder(a, '/alj/teleport', { |t, r, msg|
 	var addr, playerid, xpos, ypos, value, dur;
 	#addr, playerid, xpos, ypos, value, dur = msg;
 	msg.postln;
-	// change scale
-	b.setn(0, c.choose);
-	// make random effect
-	
+	b.setn(0, c.choose); // change scale
+	Synth(\teleport)
 }).add;
 
 
@@ -249,75 +224,65 @@ SynthDef(\marimba, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 
 // WTF
 SynthDef(\wtf, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25|
-	var snd, env, freq;
-	freq = DegreeToKey.kr(
-		LocalBuf.newFrom(FloatArray[0,3,5,7,10]), // minorPenta
-		ypos.linlin(0,1,0,12), // how many y waben??
-		12,
-		1,
-		61-12	// c#?
-	).midicps;
-	snd = VarSaw.ar(
-		freq
-		+ SinOsc.kr(value.linlin(0,1,0,5) + Rand(0.0, 0.5), 0, value.linlin(0,1,0,3))
-	);
-	env = EnvGen.ar(Env.perc(0.01,value.linlin(0,1,0.25,4)), doneAction:2);
-	snd = RLPF.ar(snd, Rand(freq*2, freq*4), Rand(0.1, 1.0));
-	snd = DelayN.ar(snd, 0.1, [0, 0.001]);
+	var snd, env;
+	snd = Gendy1.ar(1, 0, ypos,1.0, 50, 1000, 1, 0.005, 12, 12, 0.2);
+	env = EnvGen.ar(Env.sine(dur), doneAction:2);
 	Out.ar(0, Pan2.ar( snd * amp * env, xpos.linlin(0,1,-0.5,0.5) ));
 }).add;
-)
 
-
-NetAddr.langPort
-
-u.remove;
-
-/*
-OLD CODE
-
-SynthDef(\ping) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
-	var snd, env, len;
-	snd = SinOsc.ar(ypos.linexp(0,1,400,800) * [1, 1.01]);
-	env = EnvGen.ar(Env.perc(0.01, dur));
-	len = value.linlin(0,1,2,10);
-	snd = CombN.ar(snd * env, 0.1, 0.1, len) ;
-	Line.kr(0,1,len+1,doneAction:2);
-	Out.ar(0, Pan2.ar(snd.sum * env * amp,xpos.linlin(0,1,-1,1)));
-}.add;
-
-SynthDef(\pong) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2|
+//////////////////// FX!!!!
+SynthDef(\teleport, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25|
 	var snd, env;
-	snd = WhiteNoise.ar + BrownNoise.ar;
-	snd = MoogFF.ar(snd, ypos.linexp(0,1,1400,1800), value.linlin(0,1,3,3.8));
-	env = EnvGen.ar(Env.linen(0.01, dur,0.1), doneAction:2);
-	Out.ar(0, Pan2.ar(snd * env * amp,xpos.linlin(0,1,-1,1)));
-}.add;
-
-SynthDef(\pang) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
-	var snd, env;
-	snd = Saw.ar(ypos.linexp(0,1,50,500) * IRand(1,3!10)).sum/10;
-	snd = MoogFF.ar(snd, 5000, value.linlin(0,1,3,3.8));
-	env = EnvGen.ar(Env.linen(0.1, dur,0.5), doneAction:2);
-	Out.ar(0, Pan2.ar(snd * env * amp,xpos.linlin(0,1,-1,1)));
-}.add;
-
-SynthDef(\drummer, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2|
-	var snd = Select.ar((value * 4), [
-		// make 5 drum kind of sounds
-		// and use value for it
-		// ignore XY?
-		
-		// 0 - FM Bass Drum
-		SinOsc.ar(XLine.ar(Rand(400, 1000), 60, 0.1))!2 * Decay2.ar(Impulse.ar(0), 0.0001, dur),
-		
-		// 1 - Snare Drum (shitty, synth def pool? sample?)
-		BPF.ar(HPF.ar(WhiteNoise.ar(1), 200, 2), 900, 0.6, 3) * EnvGen.ar(Env.perc(0.01, dur/4));
-
-	]);
-	snd =  snd * EnvGen.ar(Env.linen(0, dur, 0), doneAction:2);
-	Out.ar(out, snd*amp);
+	snd = SinOsc.ar(SinOsc.ar(Rand(1.0, 400.0), 0, Rand(0, 100), Rand(400, 4000)));
+	env = EnvGen.ar(Env.sine(dur), doneAction:2);
+	Out.ar(0, Pan2.ar( snd * amp * env, xpos.linlin(0,1,-0.5,0.5) ));
 }).add;
+
+// master FX
+SynthDef(\stageLimiter, { |wet=0.1, room=0.3|
+	var input = In.ar(0, 2);
+	input = Select.ar(CheckBadValues.ar(input, 0, 0), [input, DC.ar(0), DC.ar(0), input]);
+	input = FreeVerb2.ar(input[0], input[1], wet.lag, room.lag, 1);
+	ReplaceOut.ar(0, Limiter.ar(input)) ;
+}).add;
+
+{
+	~master = Synth(\stageLimiter,
+	target: RootNode(Server.default), 
+	addAction: \addToTail
+)}.defer(1);
+
+/* MASTER Ctrl
+
+~master.set(\wet, 0.01, \room, 1)
 
 */
 
+)
+
+
+// NetAddr.langPort
+// u.remove;
+
+/*
+
+instrument ditribution:
+
+x 3 drones (d)
+x 3 rhythmic (r)
+x 3 melodic (m)
+x 1 wtf? {last player} (w) : BEE NOIR!
+
+[ d r m d r m d r m WTF ]
+
+master effects:
+
+? compressor
+x limiter
+x reverb
+
+trigger effects:
+
+x black hole
+
+*/
