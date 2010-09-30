@@ -35,6 +35,7 @@ div#main {
 	background-color: #222222;
 	background-image: url('background.png');
 	background-repeat: repeat-x;
+	text-align:center;
 }
 
 div#field {
@@ -67,6 +68,8 @@ a:hover {
 
 .button {
 	background-color: #DDDDDD;
+	background-image: url('buttonShading.png');
+	background-repeat: repeat-x;
 }
 
 .button:hover {

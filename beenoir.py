@@ -265,14 +265,6 @@ class Player(Entity):
     def _change_time(self):
         self.granulation = [2,3,4,6,8][world.get_tile(self.pos).value]
 
-    def send_status(self, addr):
-        tile = world.get_tile(self.pos)
-        send_osc_to_sc(addr, [self.player_id, 
-                              self.pos.x / float(world.width), 
-                              self.pos.y / float(world.height), 
-                              tile.value / float(tile.max_value),
-                              (1.0 / self.granulation) * (24 / FPS)])
-    
     def active(self):
         return self.controller
 
@@ -336,9 +328,9 @@ class Player(Entity):
         self.label.text = text
         for index,i in enumerate(self.code):
             self.labels[index].image = self.opcodes_grid[i]
-            if self.index == ((index - 1) % len(self.code)):
+            if self.index == index:
                 self.labels[index].opacity = 192 + (63 * (percent))
-            elif self.index == index:
+            elif self.index == ((index + 1) % len(self.code)):
                 self.labels[index].opacity = 64 + (64 * (1 - percent))
             else:
                 self.labels[index].opacity = 64
@@ -360,7 +352,7 @@ class Player(Entity):
 
     def _pos2screenpos(self,pos):
         """
-        slightly different positioning for smaller graphics
+        slightly different positioning for smaller graphics (hacky)
         """
         if 0 < (pos.x%2) <= 1: # odd
             y = pos.y + (0.5 * (pos.x%2))
@@ -369,11 +361,8 @@ class Player(Entity):
         else:
             y = pos.y + (0.5 - (0.5 * ((pos.x%2) - 1)))
         return vec3(
-            (WIN_WIDTH * 0.3  + 50 * pos.x 
-             + (self.tile_width - self.sprite.width) / 2.0 + self.sprite.width / 2),
-            (WIN_HEIGHT * 0.9 + 
-             (self.tile_height - self.sprite.height) / 2.0 
-             - self.tile_height * y + self.tile_height / 2),
+            WIN_WIDTH*0.3  + 50*pos.x + 25 + self.sprite.width/2,
+            WIN_HEIGHT*0.9 - self.tile_height*y + self.tile_height/2,
             0)
     
     def _change_position(self, pos=False, percent=0, wrap_pos=False): 
@@ -487,7 +476,15 @@ class Player(Entity):
     def _action(self):
         tile = world.get_tile(self.pos)
         tile.activate()
-        self.send_status("action")
+        msg = osc.OSCMessage()
+        msg.setAddress("/alj/action")
+        for i in [self.player_id, 
+              self.pos.x / float(world.width), 
+              self.pos.y / float(world.height), 
+              tile.value / float(tile.max_value),
+              (1.0 / self.granulation) * (24 / FPS)]:
+            msg.append(i)
+        client.sendto(msg, SC_ADDR) 
         if DEBUG:
             print "actione!"
 
@@ -556,7 +553,7 @@ class BeeNoirWorld(object):
     def create_player(self, playerID, controllerID=False):
         if not self.players[playerID]:
             self.controllers[controllerID] = playerID
-            self.players[playerID] = Player(self.random_pos(),
+            self.players[playerID] = Player(vec3(playerID,5,1),
                                             controllerID, colors[playerID], playerID)
         else:
             print "already there"
@@ -571,32 +568,10 @@ class BeeNoirWorld(object):
                 if p:
                     p.update(dt)
 
-    def random_pos(self):
-        occupied = True
-        while occupied:
-            pos = vec3(random.randint(0, self.width - 1),
-                       random.randint(0, self.height - 1), 
-                       0)
-            occupied = self.get_tile(pos).occupied
-        return pos
-
     def get_tile(self,pos):
-        return self.objs[pos.x + pos.y * self.width]
+        return self.objs[pos.x+pos.y*self.width]
 
 ## osc functions
-def send_osc_to_server(addr, data):
-    send_osc(NET_SEND_ADDR, "/alj/" + addr, data)
-
-def send_osc_to_sc(addr, data):
-    send_osc(SC_ADDR, "/alj/" + addr, data)
-
-def send_osc(netaddr, addr, data):
-    msg = osc.OSCMessage()
-    msg.setAddress(addr)
-    for i in data:
-        msg.append(i)
-    client.sendto(msg, netaddr)    
-
 def update_code(addr, tags, data, client_addr):
     if DEBUG:
         print "got update: ", data
@@ -624,7 +599,10 @@ def get_player(addr, tags, data, client_addr):
     if key in world.controllers:
         p = world.players[world.controllers[key]]
         p.resetTimeout()
-        send_osc_to_server("dict", [key, p.player_id] + p.code)
+        msg = osc.OSCMessage()
+        msg.setAddress("/alj/dict")
+        for i in [key, p.player_id] + p.code:
+            msg.append(i)
     elif len(world.controllers) < PLAYERS:
         for i, p in enumerate(world.players):
             if not p: 
@@ -635,12 +613,20 @@ def get_player(addr, tags, data, client_addr):
                 world.controllers[key] = i
                 p.resetTimeout()
                 p.controller = key
-                send_osc_to_server("dict", [key, i] + p.code)
+                msg = osc.OSCMessage()
+                msg.setAddress("/alj/dict")
+                for i in [key, i] + p.code:
+                    msg.append(i)
+                client.sendto(msg, NET_SEND_ADDR)
                 break
             else:
                 print "something went wrong: there should be free players!"
     else:
-        send_osc_to_server("dict", [key, -1])
+        msg = osc.OSCMessage()
+        msg.setAddress("/alj/dict")
+        for i in [key, -1]:
+            msg.append(i)
+            client.sendto(msg, NET_SEND_ADDR)
         print "no free player!"
 
 if __name__ == '__main__':
@@ -680,7 +666,11 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         SC_ADDR = ('127.0.0.1', int(sys.argv[1]))
     
-    send_osc_to_sc("start", [world.width, world.height])
+    msg = osc.OSCMessage()
+    msg.setAddress("/alj/start")
+    for i in [world.width, world.height]:
+        msg.append(i)
+    client.sendto(msg, SC_ADDR) 
 
     oscServer.addMsgHandler("/alj/code", update_code)
     oscServer.addMsgHandler("/alj/ping", ping_players)

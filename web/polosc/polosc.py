@@ -54,9 +54,9 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                 code = players[self.path[3:]][1:]
                 self.wfile.write(
                     self.server.mappings["/start.html"]%((
-                        [ 'ffffff', 'ff0000', 'ff00ff', '0000ff', '00ffff',
-                          '00ff00', 'ffff00', '7f0000', '7f007f', '00007f',
-                          '007f7f', '007f00,' '827f00'][players[self.path[3:]][0]],)
+                        [ 'FF0000', 'FF7100', 'FF54FB', '006100', 'B4B4B4',
+                          '0D0A78', '6400A3', 'EDFF00', '7A94FF', '00FF3F',
+                          'FFFFFF', 'FFFFFF,' 'FFFFFF'][players[self.path[3:]][0]],)
                     + (players[self.path[3:]][0],) +  tuple(code)))
                 for i in range(8):
                     array = [str(code[i])]
@@ -82,6 +82,7 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         
         mimeTypes = {
             "png": "image/png",
+            "gif": "image/gif",
             "html": "text/html",
             "js": "application/javascript",
             "css": "text/css"
@@ -93,7 +94,7 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         return "<html><head><meta name=\"viewport\" content=\"width=500, user-scalable=no\" /><link rel=\"stylesheet\" href=\"style.css\" type=\"text/css\" media=\"screen\" /></head><body><div id=\"main\">%s</div></body></html>"%(string)
 
     def shortErrorPage(self, string):
-        return self.shortHTMLPage("<h1>Fehler!</h1><p>%s</p><p><a class=\"button\" href=\"/\">Zur&uuml;ck zum Start</a></p>"%(string))
+        return self.shortHTMLPage("<h1>Fehler!</h1><p>%s</p><p style=\"margin-top:190px;\"><a class=\"button\" href=\"/\">Zur&uuml;ck zum Start</a></p>"%(string))
     
     def send_notifications(self, osc_address, osc_data):
         if self.server.notifications.has_key(self.path):
