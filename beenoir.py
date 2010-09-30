@@ -36,9 +36,10 @@ background = pyglet.graphics.OrderedGroup(0)
 foreground = pyglet.graphics.OrderedGroup(1)
 players = pyglet.graphics.OrderedGroup(2)
 
-colors = [ 'FF0000', 'FF7100', 'FF54FB', '006100', 'B4B4B4',
-           '0D0A78', '6400A3', 'EDFF00', '7A94FF', '00FF3F',
-           'FFFFFF', 'FFFFFF,' 'FFFFFF']
+colors = [ 'EDFF00', 'FF0000', '2600FF', 
+           '006100', '6400A3', 'FF7100', 
+           'B4B4B4', 'FF00FF', '00FF3F', 
+           '00FFFF', 'FFFFFF', 'FFFFFF,' 'FFFFFF']
 
 class vec3(object):
     """
