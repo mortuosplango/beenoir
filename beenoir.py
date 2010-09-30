@@ -229,11 +229,8 @@ class Player(Entity):
         self.controller = controller_id
         self.player_id = player_id
 
-        msg = osc.OSCMessage()
-        msg.setAddress("/alj/dict")
-        for i in [controller_id, player_id] + self.code:
-            msg.append(i)
-        client.sendto(msg, NET_SEND_ADDR)
+
+        send_osc_to_server('dict', [controller_id, player_id] + self.code)
 
         ## label
         self.labels = []
@@ -268,6 +265,14 @@ class Player(Entity):
     def _change_time(self):
         self.granulation = [2,3,4,6,8][world.get_tile(self.pos).value]
 
+    def send_status(self, addr):
+        tile = world.get_tile(self.pos)
+        send_osc_to_sc(addr, [self.player_id, 
+                              self.pos.x / float(world.width), 
+                              self.pos.y / float(world.height), 
+                              tile.value / float(tile.max_value),
+                              (1.0 / self.granulation) * (24 / FPS)])
+    
     def active(self):
         return self.controller
 
@@ -384,6 +389,7 @@ class Player(Entity):
         elif percent == 1:
             self.moving = False
             self.wrap_pos = False
+            self.send_status("move")
         if self.wrap_pos != False:
             if percent < 0.5:
                 percent *= 1.5
@@ -443,14 +449,11 @@ class Player(Entity):
                 if world.get_tile(pos).teleport:
                     print "teleport!"
                     pos = world.random_pos()
-                    msg = osc.OSCMessage()
-                    msg.setAddress("/alj/teleport")
-                    for i in [self.player_id, 
-                              pos.x / float(world.width), 
-                              pos.y / float(world.height), 
-                              (1.0 / self.granulation) * (24 / FPS)]:
-                        msg.append(i)
-                    client.sendto(msg, SC_ADDR)
+                    send_osc_to_sc("teleport",
+                                   [self.player_id, 
+                                    pos.x / float(world.width), 
+                                    pos.y / float(world.height), 
+                                    (1.0 / self.granulation) * (24 / FPS)])
                 self._change_position(pos, wrap_pos=wrap_pos)
             return True, pos, wrap_pos
         else:
@@ -485,15 +488,7 @@ class Player(Entity):
     def _action(self):
         tile = world.get_tile(self.pos)
         tile.activate()
-        msg = osc.OSCMessage()
-        msg.setAddress("/alj/action")
-        for i in [self.player_id, 
-              self.pos.x / float(world.width), 
-              self.pos.y / float(world.height), 
-              tile.value / float(tile.max_value),
-              (1.0 / self.granulation) * (24 / FPS)]:
-            msg.append(i)
-        client.sendto(msg, SC_ADDR) 
+        self.send_status("action")
         if DEBUG:
             print "actione!"
 
@@ -590,6 +585,19 @@ class BeeNoirWorld(object):
         return self.objs[pos.x + pos.y * self.width]
 
 ## osc functions
+def send_osc_to_server(addr, data):
+    send_osc(NET_SEND_ADDR, "/alj/" + addr, data)
+
+def send_osc_to_sc(addr, data):
+    send_osc(SC_ADDR, "/alj/" + addr, data)
+
+def send_osc(netaddr, addr, data):
+    msg = osc.OSCMessage()
+    msg.setAddress(addr)
+    for i in data:
+        msg.append(i)
+    client.sendto(msg, netaddr)    
+
 def update_code(addr, tags, data, client_addr):
     if DEBUG:
         print "got update: ", data
@@ -617,10 +625,7 @@ def get_player(addr, tags, data, client_addr):
     if key in world.controllers:
         p = world.players[world.controllers[key]]
         p.resetTimeout()
-        msg = osc.OSCMessage()
-        msg.setAddress("/alj/dict")
-        for i in [key, p.player_id] + p.code:
-            msg.append(i)
+        send_osc_to_server("dict", [key, p.player_id] + p.code)
     elif len(world.controllers) < PLAYERS:
         for i, p in enumerate(world.players):
             if not p: 
@@ -631,20 +636,12 @@ def get_player(addr, tags, data, client_addr):
                 world.controllers[key] = i
                 p.resetTimeout()
                 p.controller = key
-                msg = osc.OSCMessage()
-                msg.setAddress("/alj/dict")
-                for i in [key, i] + p.code:
-                    msg.append(i)
-                client.sendto(msg, NET_SEND_ADDR)
+                send_osc_to_server("dict", [key, i] + p.code)
                 break
             else:
                 print "something went wrong: there should be free players!"
     else:
-        msg = osc.OSCMessage()
-        msg.setAddress("/alj/dict")
-        for i in [key, -1]:
-            msg.append(i)
-            client.sendto(msg, NET_SEND_ADDR)
+        send_osc_to_server("dict", [key, -1])
         print "no free player!"
 
 if __name__ == '__main__':
@@ -684,11 +681,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         SC_ADDR = ('127.0.0.1', int(sys.argv[1]))
     
-    msg = osc.OSCMessage()
-    msg.setAddress("/alj/start")
-    for i in [world.width, world.height]:
-        msg.append(i)
-    client.sendto(msg, SC_ADDR) 
+    send_osc_to_sc("start", [world.width, world.height])
 
     oscServer.addMsgHandler("/alj/code", update_code)
     oscServer.addMsgHandler("/alj/ping", ping_players)
