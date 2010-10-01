@@ -123,6 +123,20 @@ class Hole(Entity):
         Entity.__init__(self,pos,'graphics/tile_hole.png')
         self.teleport = True
         self.occupied = False
+        self._active = False
+        self._activedt = 0.2
+ 
+    def update(self, dt):
+        self._activedt -= dt
+        if self._activedt <= 0:
+            self._active = False
+            self.sprite.opacity = 255
+        else:
+            self.sprite.opacity = 255 - self._activedt * 510
+             
+    def activate(self):
+        self._active = True
+        self._activedt = 0.5
 
 
 class Field(Entity):
@@ -577,7 +591,10 @@ class BeeNoirWorld(object):
             pos = vec3(random.randint(0, self.width - 1),
                        random.randint(0, self.height - 1), 
                        0)
-            occupied = self.get_tile(pos).occupied
+            if not self.get_tile(pos).teleport:
+                occupied = self.get_tile(pos).occupied
+            else:
+                occupied = True
         return pos
 
     def get_tile(self,pos):
