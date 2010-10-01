@@ -21,7 +21,7 @@ CODESIZE = 8
 DEBUG = True
 VERBOSE = False
 
-FPS = 24.0
+FPS = 20.0
 
 # Webserver-OSC->alj
 NET_ADDR = ('127.0.0.1', 57140)
@@ -162,6 +162,11 @@ class Field(Entity):
         self._activedt = 0.2
 
     def update(self, dt):
+        if VERBOSE:
+            if self.occupied:
+                self.change_bitmap('graphics/tile.png')
+            else:
+                self._update_bitmap()
         if self._active:
             self._activedt -= dt
             if self._activedt <= 0:
@@ -227,7 +232,8 @@ class Player(Entity):
         ## time
         self.time_index = 0
         self.timeout = 5
-        self.granulation = 2
+        self.granulation = 16
+        self.new_granulation = False
 
         ## color
         self.color =  [] 
@@ -277,7 +283,10 @@ class Player(Entity):
         self.timeout = 5
 
     def _change_time(self):
-        self.granulation = [2,3,4,6,8][world.get_tile(self.pos).value]
+        self.new_granulation = [16, 12, 8, 6, 4][world.get_tile(self.pos).value]
+        # old timing: [12,8,6,4,3]
+        # [8, 6, 4, 3, 2]
+        # 1/2, 3/8, 1/4, 3/16, 1/8
 
     def active(self):
         return self.controller
@@ -288,7 +297,7 @@ class Player(Entity):
                                self.pos.x / float(world.width), 
                                self.pos.y / float(world.height), 
                                tile.value / float(tile.max_value),
-                               (1.0 / self.granulation) * (24 / FPS)])
+                               (self.granulation / FPS)])
 
     def change_code(self, index, change = False):
         if change:
@@ -298,13 +307,13 @@ class Player(Entity):
         self._update_label()
 
     def update(self,dt):
-        percent = ((self.time_index % (24 / self.granulation)) /
-                   ((24.0 / self.granulation) - 1))
+        percent = self.time_index / float(self.granulation - 1)
         if self.moving:
             self._change_position(percent=percent)
         if self.rotating:
             self._turn(percent=percent)
-        if (self.time_index % (24 / self.granulation)) == 0:
+
+        if self.time_index == 0:
             action = self.code[self.index]
             if 0 < action <= 9:
                 if action == (1 or 'forward'):
@@ -326,8 +335,13 @@ class Player(Entity):
                 elif action == (9 or 'action'):
                     self._action()
             self.index = (self.index + 1) % len(self.code)
+            if self.new_granulation:
+                self.granulation = self.new_granulation
+                self.new_granulation = False
+                self.time_index = 0
+
         self._update_label(percent)
-        self.time_index = (self.time_index + 1) % 24
+        self.time_index = (self.time_index + 1) % self.granulation
 
         if self.timeout < -5:
             self.send_status("playerdeleted")
@@ -350,9 +364,9 @@ class Player(Entity):
         self.label.text = text
         for index,i in enumerate(self.code):
             self.labels[index].image = self.opcodes_grid[i]
-            if self.index == index:
+            if self.index == ((index + 1) % len(self.code)):
                 self.labels[index].opacity = 192 + (63 * (percent))
-            elif self.index == ((index + 1) % len(self.code)):
+            elif self.index == ((index + 2) % len(self.code)):
                 self.labels[index].opacity = 64 + (64 * (1 - percent))
             else:
                 self.labels[index].opacity = 64
@@ -391,7 +405,7 @@ class Player(Entity):
             0)
 
     
-    def _change_position(self, pos=False, percent=0, wrap_pos=False): 
+    def _change_position(self, pos=vec3(), percent=0, wrap_pos=False): 
         if percent == 0:
             self.moving = True
             self.old_pos = self.pos
@@ -599,9 +613,6 @@ class BeeNoirWorld(object):
 
     def get_tile(self,pos):
         return self.objs[pos.x + pos.y * self.width]
-
-    def get_tile(self,pos):
-        return self.objs[pos.x+pos.y*self.width]
 
 ## osc functions
 def send_osc_to_server(addr, data):
