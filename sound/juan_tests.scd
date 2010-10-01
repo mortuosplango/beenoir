@@ -9,7 +9,7 @@
 Synth.grain(\wtf, [\xpos, rrand(0, 1.0), \ypos, rrand(0, 1.0), \value, rrand(0, 1.0)]);
 
 
-~master.set(\wet, 1, \room, 1)
+~master.set(\wet, 0.01, \room, 1)
 
 */
 
@@ -27,6 +27,7 @@ Tdef(\tester, {
 	inf.do{ |i|
 
 		0.05.coin.if { Synth.grain(\teleport, [\xpos, rrand(0, 1.0), \ypos, rrand(0, 1.0), \value, [0,0.25,0.5,1,0.75].choose]) };
+		0.2.coin.if { Synth.grain(\wtf, [\xpos, rrand(0, 1.0), \ypos, rrand(0, 1.0), \value, [0,0.25,0.5,1,0.75].choose]) };
 
 		0.3.coin.if { Synth.grain(\marimba, [\xpos, rrand(0, 1.0), \ypos, rrand(0, 1.0), \value, [0,0.25,0.5,1,0.75].choose]) };
 		0.3.coin.if { Synth.grain(\perc, [\xpos, rrand(0, 1.0), \ypos, rrand(0, 1.0), \value, [0,0.25,0.5,1,0.75].choose]) };
