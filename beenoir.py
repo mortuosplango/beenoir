@@ -267,6 +267,7 @@ class Player(Entity):
             "Spieler " + str(self.player_id),
             font_name='Tahoma',
             font_size=12,
+            bold=True,
             x= 37, 
             y= WIN_HEIGHT - (self.player_id * 60) - 15,
             anchor_x='left', 
@@ -356,9 +357,9 @@ class Player(Entity):
         self.timeout -= dt
 
     def _update_label(self, percent = 0):
-        text = "Spieler " + str(self.player_id) + " "
+        text = "Spieler " + str(self.player_id)
         if not self.controller:
-            text += "(frei):" 
+            text += " (frei):" 
         else:
             text += ":"
         self.label.text = text
