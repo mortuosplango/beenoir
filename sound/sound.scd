@@ -16,6 +16,7 @@ c = [
 	FloatArray[0,2,4,5,7,9,11,12,14,16,17,19],	// major ext
 	FloatArray[0,2,4,5,7,9,11,12,7,5,4,2],		// major pseudo mirror
 ];
+
 b.setn(0, c[2]); // start with pent minor mirrored
 
 // need a responder to start the drones!
@@ -85,7 +86,7 @@ Ndef(\bees, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 });
 
 Ndef(\fifths, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
-	var snd = Blip.ar([61-24, 73-24].midicps + LFNoise2.ar([0.3, 0.2]).range(0, ypos.linlin(0,1,0,5)), ypos.linlin(0,1,1,16).lag(0.1));
+	var snd = Blip.ar(([61-24, 73-24] + 26).midicps + LFNoise2.ar([0.3, 0.2]).range(0, ypos.linlin(0,1,0,5)), ypos.linlin(0,1,1,16).lag(0.1));
 	snd = snd *	LFNoise2.ar([value.linlin(0,1,1,8), value.linlin(0,1,4,20)]).range(0.25, 1);
 	snd = snd * LFNoise2.ar(40).range(0.5, 1);
 	snd = FreeVerb2.ar(snd[0], snd[1], 1, 0.3, 1) * 0.15;
@@ -96,7 +97,7 @@ Ndef(\fifths, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 
 Ndef(\texture, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	var snd = Splay.ar(
-		Ringz.ar(PinkNoise.ar(0.005 * ypos.linlin(0, 1, 1, 2)), ([60,67,71,72]+1).midicps *
+		Ringz.ar(PinkNoise.ar(0.005 * ypos.linlin(0, 1, 1, 2)), ([60,67,71,72]+1+24).midicps *
 			Select.kr(ypos.linlin(0,1,0,11), [0.5,1,2,4,2,1].mirror),
 			2
 		).distort
@@ -117,10 +118,10 @@ Ndef(\texture, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 SynthDef(\clicks) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	var snd, env;
 	snd = Crackle.ar() * 10;
-	snd = HPF.ar(snd, ypos.linlin(0,1,500,18000)) * ypos.linlin(0,1,1,8);
+	snd = BPF.ar(snd, ypos.linlin(0,1,500,14000), 0.25) * ypos.linlin(0,1,1,8);
 	env = EnvGen.ar(Env.linen(0,value.linlin(0,1,0.01,0.001),0));
 	snd = snd * env;
-	snd = snd + CombC.ar(snd, dur, dur/Select.kr((value*4).round, [4,6,8,12] * 10), dur);
+	snd = snd + CombC.ar(snd, dur, dur/Select.kr((value*4).round, [4,6,8,12] * 6), dur);
 	snd = snd * EnvGen.ar(Env([1,1], [dur]), doneAction:2); // for the combz
 	Out.ar(0, Pan2.ar( snd * amp, xpos.linlin(0,1,-1,1) ));
 }.add;
@@ -170,7 +171,7 @@ SynthDef(\perc, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2|
 	env = EnvGen.ar(Env.perc(0.01,value.linlin(0,1,0.25,4)), doneAction:2);
 	snd = RLPF.ar(snd, Rand(freq*2, freq*4), Rand(0.1, 1.0));
 	snd = DelayN.ar(snd, 0.1, [0, 0.001]);
-	Out.ar(0, Pan2.ar( snd * amp * 2 * env, xpos.linlin(0,1,-0.5,0.5) ));
+	Out.ar(0, Pan2.ar( snd * amp * 1.5 * env, xpos.linlin(0,1,-0.5,0.5) ));
 }).add;
 
 SynthDef(\bell, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
@@ -184,11 +185,11 @@ SynthDef(\bell, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 		61+24	// c#?
 	).midicps;
 	snd = Ringz.ar(
-		Decay2.ar(Impulse.ar(0), 0.005, 0.5),
-		freq * [1,1.501,2,3.6,6],
+		Decay2.ar(Impulse.ar(0), 0.003, 0.5),
+		freq * [1,2.05,2,4,4.01],
 		len,
 		[0.4, 0.4, 0.3, 0.25, 0.4]
-	) * SinOsc.kr(Rand(0.5, [1,2,3,4,5]), 0, 0.3, 0.7);
+	) * SinOsc.ar(Rand(0.5, [0.5, 0.7, 1.0, 1.5, 2.0]), 0.5pi, 0.3, 0.7);
 	env = EnvGen.ar(Env.perc(0.001,len));
 	snd = snd.sum * env;
 	snd = snd * EnvGen.ar(Env([1,1], [len]), doneAction:2) * amp * 3 * ypos.linexp(0,1,1,2);
@@ -259,7 +260,7 @@ SynthDef(\stageLimiter, { |wet=0.1, room=0.3|
 
 /* MASTER Ctrl
 
-~master.set(\wet, 0.1, \room, 1)
+~master.set(\wet, 1, \room, 1)
 
 */
 
