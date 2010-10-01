@@ -21,7 +21,7 @@ CODESIZE = 8
 DEBUG = True
 VERBOSE = False
 
-FPS = 20.0
+FPS = 24.0
 
 # Webserver-OSC->alj
 NET_ADDR = ('127.0.0.1', 57140)
@@ -283,7 +283,7 @@ class Player(Entity):
         self.timeout = 5
 
     def _change_time(self):
-        self.new_granulation = [16, 12, 8, 6, 4][world.get_tile(self.pos).value]
+        self.new_granulation = [32, 24, 16, 12, 8][world.get_tile(self.pos).value]
         # old timing: [12,8,6,4,3]
         # [8, 6, 4, 3, 2]
         # 1/2, 3/8, 1/4, 3/16, 1/8
