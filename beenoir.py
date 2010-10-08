@@ -17,8 +17,6 @@ WORLD_HEIGHT = 12
 
 PLAYERS = 10
 
-LABEL_HEIGHT = 1.0 * WIN_HEIGHT/PLAYERS
-
 CODESIZE = 8
 # (verbose) debugging output
 DEBUG = True
@@ -106,8 +104,8 @@ class Entity(object):
         else:
             y = pos.y + 0.5
         return vec3(
-            (WIN_WIDTH * 0.3)  + (50 * pos.x),
-            (WIN_HEIGHT * 0.9) - (self.tile_height * y),
+            (WIN_WIDTH * 0.3)  + (50 * pos.x) + PADDING[0],
+            (WIN_HEIGHT * 0.9) - (self.tile_height * y) + PADDING[1],
             0)
 
     def update_pos(self):
@@ -122,10 +120,9 @@ class Entity(object):
 class Tile(Entity):
     def __init__(self, pos, image):
         Entity.__init__(self,pos,image)
-        self.teleport = False
         self.occupied = False
         self._active = False
-        self._activedt = 0.2
+        self._activedt = 0.0
    
     def update(self, dt):
         if self._active:
@@ -144,8 +141,6 @@ class Tile(Entity):
 class Teleport(Tile):
     def __init__(self, pos):
         Tile.__init__(self,pos,'graphics/tile_hole.png')
-        self.teleport = True
-
 
 class Field(Tile):
     max_value = 4
@@ -158,12 +153,19 @@ class Field(Tile):
         """
         self.active_sprite = pyglet.sprite.Sprite(self.active_img, 
                                                   batch=batch, group=foreground)
+        self.active_sprite.opacity = 0
         Tile.__init__(self,pos,self.tiles[0])
         self.animation = False
         self.value = 0
 
     def update(self, dt):
-        Tile.update(self, dt)
+        if self._active:
+            self._activedt -= dt
+            if self._activedt <= 0:
+                self._active = False
+                self.active_sprite.opacity = 0
+            else:
+                self.active_sprite.opacity = self._activedt * (255 / 0.5)
         if VERBOSE:
             if self.occupied:
                 self.change_bitmap('graphics/tile.png')
@@ -239,7 +241,7 @@ class Player(Entity):
                     batch=batch, 
                     group=foreground,
                     x= 37 * (i + 1), 
-                    y= WIN_HEIGHT - (self.player_id * LABEL_HEIGHT) - 60))
+                    y= window.height - (self.player_id * LABEL_HEIGHT) - 60))
             self.labels[-1].scale = 32.0 / self.labels[-1].width
         self.label = pyglet.text.Label(
             title + " " + str(self.player_id),
@@ -247,7 +249,7 @@ class Player(Entity):
             font_size=12,
             bold=True,
             x= 37 + 10, 
-            y= WIN_HEIGHT - (self.player_id * LABEL_HEIGHT) - 15,
+            y= window.height - (self.player_id * LABEL_HEIGHT) - 15,
             anchor_x='left', 
             color=(222,) * 4 ,
             anchor_y='center',
@@ -257,7 +259,7 @@ class Player(Entity):
                                                batch=batch, 
                                                group=background, 
                                                x=30, 
-                                               y= WIN_HEIGHT - 
+                                               y= window.height - 
                                                (self.player_id * LABEL_HEIGHT) - 20)
         self.label_icon.scale = 1
         self.label_icon.rotation = 20 + random.randint(0,100)
@@ -373,10 +375,11 @@ class Player(Entity):
             y = pos.y + (0.5 - (0.5 * ((pos.x%2) - 1)))
         return vec3(
             (WIN_WIDTH * 0.3  + 50 * pos.x 
-             + (self.tile_width - self.sprite.width) / 2.0 + self.sprite.width / 2),
+             + (self.tile_width - self.sprite.width) / 2.0 
+             + self.sprite.width / 2) + PADDING[0],
             (WIN_HEIGHT * 0.9 + 
              (self.tile_height - self.sprite.height) / 2.0 
-             - self.tile_height * y + self.tile_height / 2),
+             - self.tile_height * y + self.tile_height / 2) + PADDING[1],
             0)
 
     def _change_position(self, pos=vec3(), percent=0, wrap_pos=False): 
@@ -449,7 +452,7 @@ class Player(Entity):
         pos, wrap_pos = self._get_target_pos(pos, forward)
         if not world.get_tile(pos).occupied:
             if do_it:
-                if world.get_tile(pos).teleport:
+                if type(world.get_tile(pos)) == Teleport:
                     print "teleport!"
                     world.get_tile(pos).activate()
                     pos = world.random_pos()
@@ -478,7 +481,7 @@ class Player(Entity):
                         target_index = i
                         target = new_pos
                 if target:
-                    if world.get_tile(target).teleport:
+                    if type(world.get_tile(target)) == Teleport:
                         self._move(target, do_it=True)
                     else:
                         wrap_pos = False
@@ -569,7 +572,7 @@ class BeeNoirWorld(object):
             font_name='Tahoma',
             font_size=22,
             bold=True,
-            x= WIN_WIDTH - 20, 
+            x= window.width - 20, 
             y= 10,
             anchor_x='right', 
             color=(40, 88, 89, 255),
@@ -581,12 +584,12 @@ class BeeNoirWorld(object):
         """ 
         change a specific player's code on press 
         """
-        if WIN_HEIGHT > y > WIN_HEIGHT - (len(self.players) * LABEL_HEIGHT):
+        if window.height > y > window.height - (len(self.players) * LABEL_HEIGHT):
             if 37 < x < (CODESIZE + 2) * 37:
-                playerno = int((WIN_HEIGHT - y) / LABEL_HEIGHT)
+                playerno = int((window.height - y) / LABEL_HEIGHT)
                 player = self.players[playerno]
-                if (WIN_HEIGHT - (playerno * LABEL_HEIGHT) - 37) > y > (WIN_HEIGHT - 
-                                                              (playerno * LABEL_HEIGHT)) - 67:
+                if ((window.height - (playerno * LABEL_HEIGHT) - 37) > 
+                    y > (window.height - (playerno * LABEL_HEIGHT)) - 67):
                     change = False
                     if button == pyglet.window.mouse.LEFT: change = 1
                     elif button == pyglet.window.mouse.RIGHT: change = -1
@@ -634,7 +637,7 @@ class BeeNoirWorld(object):
             pos = vec3(random.randint(0, self.width - 1),
                        random.randint(0, self.height - 1), 
                        0)
-            if not self.get_tile(pos).teleport:
+            if type(self.get_tile(pos)) != Teleport:
                 occupied = self.get_tile(pos).occupied
             else:
                 occupied = True
@@ -716,7 +719,13 @@ def get_player(addr, tags, data, client_addr):
         print "no free player!"
 
 if __name__ == '__main__':
-    window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='bee noir')
+    #window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='bee noir')
+    window = pyglet.window.Window(fullscreen=True, caption='bee noir')
+
+    PADDING = [int((window.width - WIN_WIDTH) / 2.0), 
+               int((window.height - WIN_HEIGHT) / 2.0)]
+    
+    LABEL_HEIGHT = 1.0 * window.height/PLAYERS
 
     world = BeeNoirWorld(WORLD_WIDTH,WORLD_HEIGHT)
     pyglet.gl.glClearColor(*[i/255.0 for i in [26,58,59,255]])
