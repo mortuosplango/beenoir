@@ -276,9 +276,14 @@ class Player(Entity):
         if DEBUG:
             print "player id ", self.player_id, " created"
 
-    
-    def resetTimeout(self):
-        self.timeout = 5
+
+    def delete(self):
+        self.send_status("playerdeleted")
+        for i in [self.label, self.sprite] + self.labels:
+            i.delete()
+        world.players[self.player_id] = False
+        if DEBUG:
+            print "deleted player ", self.player_id
 
     def _change_time(self):
         self.new_granulation = [32, 24, 16, 12, 8][world.get_tile(self.pos).value]
@@ -300,6 +305,9 @@ class Player(Entity):
         else:
             self.code[index] = 0
         self._update_label()
+
+    def active(self):
+        return True
 
     def update(self,dt):
         percent = self.time_index / float(self.granulation - 1)
@@ -498,6 +506,14 @@ class Player(Entity):
             print "actione!"
 
 
+class BotPlayer(Player):
+    
+    def __init__(self, pos, player_id=0):
+        Player.__init__(self, pos, player_id, "Bot")
+        for i in range(len(self.code)):
+            self.code[i] = random.randint(0,9)
+
+
 class WebPlayer(Player):
     
     def __init__(self, pos, controller_id, player_id=0):
@@ -510,12 +526,7 @@ class WebPlayer(Player):
     def update(self, dt):
         Player.update(self, dt)
         if self.timeout < -5:
-            self.send_status("playerdeleted")
-            for i in [self.label, self.sprite] + self.labels:
-                i.delete()
-            world.players[self.player_id] = False
-            if DEBUG:
-                print "deleted player ", self.player_id
+            self.delete()
         elif (self.timeout < 0) and self.controller:
             world.controllers.pop(self.controller)
             self.controller = False          
@@ -523,6 +534,9 @@ class WebPlayer(Player):
 
     def active(self):
         return self.controller
+
+    def resetTimeout(self):
+        self.timeout = 5
 
     def _update_label(self, percent = 0):
         Player._update_label(self, percent)
@@ -579,26 +593,40 @@ class BeeNoirWorld(object):
         if WIN_HEIGHT > y > WIN_HEIGHT - (len(self.players) * 60):
             if 37 < x < (CODESIZE + 2) * 37:
                 playerno = (WIN_HEIGHT - y) / 60
+                player = self.players[playerno]
                 if (WIN_HEIGHT - (playerno * 60) - 37) > y > (WIN_HEIGHT - 
                                                               (playerno * 60)) - 67:
                     change = False
                     if button == 1: change = 1
                     elif button == 4: change = -1
-                    if self.players[playerno]:
-                        self.players[playerno].change_code((x - 37) / 37, change)
-        
-
+                    if player:
+                        player.change_code((x - 37) / 37, change)
+                elif player and (button == 4):
+                    player.delete()
+                elif not player and (button == 1):
+                    self.players_waiting.append(('bot', playerno))
+                    
     def create_waiting_players(self):
         if len(self.players_waiting) > 0:
             for i in self.players_waiting:
-                self.create_player(i[0], i[1])
+                if i[0] == 'web':
+                    self.create_web_player(i[1], i[2])
+                elif i[0] == 'bot':
+                    self.create_bot_player(i[1])
             self.players_waiting = []
 
-    def create_player(self, playerID, controllerID=False):
+    def create_web_player(self, playerID, controllerID=False):
         if not self.players[playerID]:
             self.controllers[controllerID] = playerID
-            self.players[playerID] = WebPlayer(vec3(playerID,5,1),
+            self.players[playerID] = WebPlayer(self.random_pos(),
                                             controllerID, playerID)
+        else:
+            print "already there"
+
+    def create_bot_player(self, playerID):
+        if not self.players[playerID]:
+            self.players[playerID] = BotPlayer(self.random_pos(),
+                                            playerID)
         else:
             print "already there"
 
@@ -675,7 +703,7 @@ def get_player(addr, tags, data, client_addr):
     elif len(world.controllers) < PLAYERS:
         for i, p in enumerate(world.players):
             if not p: 
-                world.players_waiting.append((i, key))
+                world.players_waiting.append(('web', i, key))
                 print "created player nr ", i
                 break
             elif not p.active():
