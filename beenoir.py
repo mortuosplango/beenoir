@@ -256,7 +256,7 @@ class Player(Entity):
                 pyglet.sprite.Sprite(
                     self.opcodes_grid[0],
                     batch=batch, 
-                    group=background,
+                    group=foreground,
                     x= 37 * (i + 1), 
                     y= WIN_HEIGHT - (self.player_id * 60) - 60))
             self.labels[-1].scale = 32.0 / self.labels[-1].width
@@ -265,12 +265,21 @@ class Player(Entity):
             font_name='Tahoma',
             font_size=12,
             bold=True,
-            x= 37, 
+            x= 37 + 10, 
             y= WIN_HEIGHT - (self.player_id * 60) - 15,
             anchor_x='left', 
-            color=self.color,
+            color=(222,) * 4 ,
             anchor_y='center',
             batch=batch)
+
+        self.label_icon = pyglet.sprite.Sprite(self.image, 
+                                               batch=batch, 
+                                               group=background, 
+                                               x=30, 
+                                               y= WIN_HEIGHT - 
+                                               (self.player_id * 60) - 15)
+        self.label_icon.scale = 1
+        self.label_icon.rotation = 20 + random.randint(0,100)
 
         self._update_label()
         if DEBUG:
@@ -279,7 +288,7 @@ class Player(Entity):
 
     def delete(self):
         self.send_status("playerdeleted")
-        for i in [self.label, self.sprite] + self.labels:
+        for i in [self.label, self.sprite, self.label_icon] + self.labels:
             i.delete()
         world.players[self.player_id] = False
         if DEBUG:
@@ -542,9 +551,7 @@ class WebPlayer(Player):
         Player._update_label(self, percent)
         text = self.title + " " + str(self.player_id)
         if not self.controller:
-            text += " (frei):" 
-        else:
-            text += ":"
+            text += " (frei)" 
         self.label.text = text
 
 class BeeNoirWorld(object):
@@ -597,13 +604,13 @@ class BeeNoirWorld(object):
                 if (WIN_HEIGHT - (playerno * 60) - 37) > y > (WIN_HEIGHT - 
                                                               (playerno * 60)) - 67:
                     change = False
-                    if button == 1: change = 1
-                    elif button == 4: change = -1
+                    if button == pyglet.window.mouse.LEFT: change = 1
+                    elif button == pyglet.window.mouse.RIGHT: change = -1
                     if player:
                         player.change_code((x - 37) / 37, change)
-                elif player and (button == 4):
+                elif player and (button == pyglet.window.mouse.RIGHT):
                     player.delete()
-                elif not player and (button == 1):
+                elif not player and (button == pyglet.window.mouse.LEFT):
                     self.players_waiting.append(('bot', playerno))
                     
     def create_waiting_players(self):
@@ -639,6 +646,7 @@ class BeeNoirWorld(object):
             for p in self.players:
                 if p:
                     p.update(dt)
+
     def random_pos(self):
         occupied = True
         while occupied:
@@ -700,7 +708,7 @@ def get_player(addr, tags, data, client_addr):
         msg.setAddress("/alj/dict")
         for i in [key, p.player_id] + p.code:
             msg.append(i)
-    elif len(world.controllers) < PLAYERS:
+    elif len(filter(lambda x: x, world.players)) < PLAYERS:
         for i, p in enumerate(world.players):
             if not p: 
                 world.players_waiting.append(('web', i, key))
