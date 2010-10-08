@@ -119,30 +119,35 @@ class Entity(object):
         pass
 
 
-class Hole(Entity):
-    def __init__(self, pos):
-        """
-        """
-        Entity.__init__(self,pos,'graphics/tile_hole.png')
-        self.teleport = True
+class Tile(Entity):
+    def __init__(self, pos, image):
+        Entity.__init__(self,pos,image)
+        self.teleport = False
         self.occupied = False
         self._active = False
         self._activedt = 0.2
- 
+   
     def update(self, dt):
-        self._activedt -= dt
-        if self._activedt <= 0:
-            self._active = False
-            self.sprite.opacity = 255
-        else:
-            self.sprite.opacity = 255 - self._activedt * 510
+        if self._active:
+            self._activedt -= dt
+            if self._activedt <= 0:
+                self._active = False
+                self.sprite.opacity = 255
+            else:
+                self.sprite.opacity = 255 - self._activedt * 510
              
     def activate(self):
         self._active = True
         self._activedt = 0.5
 
 
-class Field(Entity):
+class Teleport(Tile):
+    def __init__(self, pos):
+        Tile.__init__(self,pos,'graphics/tile_hole.png')
+        self.teleport = True
+
+
+class Field(Tile):
     max_value = 4
 
     tiles = ['graphics/tile_' + str(i) + '.png' for i in range(5) ]
@@ -153,30 +158,20 @@ class Field(Entity):
         """
         self.active_sprite = pyglet.sprite.Sprite(self.active_img, 
                                                   batch=batch, group=foreground)
-        Entity.__init__(self,pos,self.tiles[0])
-        self._active = True
-        self.teleport = False
-        self.occupied = False
+        Tile.__init__(self,pos,self.tiles[0])
         self.animation = False
         self.value = 0
-        self._activedt = 0.2
 
     def update(self, dt):
+        Tile.update(self, dt)
         if VERBOSE:
             if self.occupied:
                 self.change_bitmap('graphics/tile.png')
             else:
                 self._update_bitmap()
-        if self._active:
-            self._activedt -= dt
-            if self._activedt <= 0:
-                self.deactivate()
-                self.active_sprite.opacity = 0
-            else:
-                self.active_sprite.opacity = self._activedt * 510
 
     def update_pos(self):
-        Entity.update_pos(self)
+        Tile.update_pos(self)
         self.active_sprite.x = self.sprite.x
         self.active_sprite.y = self.sprite.y 
 
@@ -193,13 +188,6 @@ class Field(Entity):
     def _update_bitmap(self):
         self.change_bitmap(self.tiles[self.value])
 
-    def activate(self):
-        self._active = True
-        self._activedt = 0.5
-
-    def deactivate(self):
-        self._active = False
-                
 
 class Player(Entity):
     """ Player Avatar
@@ -463,6 +451,7 @@ class Player(Entity):
             if do_it:
                 if world.get_tile(pos).teleport:
                     print "teleport!"
+                    world.get_tile(pos).activate()
                     pos = world.random_pos()
                     self.send_status("teleport")
                 else: 
@@ -566,7 +555,7 @@ class BeeNoirWorld(object):
             fields.append(middle + 1 - w)
             fields.append(middle - 1 - w)
         for i in fields:
-            self.objs[i] = Hole(vec3())
+            self.objs[i] = Teleport(vec3())
 
         for i in range(len(self.objs)):
             pos = vec3(i % self.width,
