@@ -210,7 +210,7 @@ class Player(Entity):
             pyglet.resource.image(
                 'web/opcodes_' + str(i) + '.png'))
 
-    def __init__(self, pos, controller_id, color, player_id=0):
+    def __init__(self, pos, player_id=0, title="GrundSpieler"):
         self.image_file = 'graphics/player_' + str(player_id) + '.png'
         Entity.__init__(self,pos,self.image_file, group=players)
         # center image anchor for rotation
@@ -231,7 +231,6 @@ class Player(Entity):
 
         ## time
         self.time_index = 0
-        self.timeout = 5
         self.granulation = 16
         self.new_granulation = False
 
@@ -246,11 +245,9 @@ class Player(Entity):
         self.index = 0
         for i in range(CODESIZE):
             self.code.append(0)
-        self.controller = controller_id
         self.player_id = player_id
 
         self.send_status('newplayer')
-        send_osc_to_server('dict', [controller_id, player_id] + self.code)
 
         ## label
         self.labels = []
@@ -264,7 +261,7 @@ class Player(Entity):
                     y= WIN_HEIGHT - (self.player_id * 60) - 60))
             self.labels[-1].scale = 32.0 / self.labels[-1].width
         self.label = pyglet.text.Label(
-            "Spieler " + str(self.player_id),
+            title + " " + str(self.player_id),
             font_name='Tahoma',
             font_size=12,
             bold=True,
@@ -288,9 +285,6 @@ class Player(Entity):
         # old timing: [12,8,6,4,3]
         # [8, 6, 4, 3, 2]
         # 1/2, 3/8, 1/4, 3/16, 1/8
-
-    def active(self):
-        return self.controller
 
     def send_status(self, addr):
         tile = world.get_tile(self.pos)
@@ -344,25 +338,7 @@ class Player(Entity):
         self._update_label(percent)
         self.time_index = (self.time_index + 1) % self.granulation
 
-        if self.timeout < -5:
-            self.send_status("playerdeleted")
-            for i in [self.label, self.sprite] + self.labels:
-                i.delete()
-            world.players[self.player_id] = False
-            if DEBUG:
-                print "deleted player ", self.player_id
-        elif (self.timeout < 0) and self.controller:
-            world.controllers.pop(self.controller)
-            self.controller = False          
-        self.timeout -= dt
-
     def _update_label(self, percent = 0):
-        text = "Spieler " + str(self.player_id)
-        if not self.controller:
-            text += " (frei):" 
-        else:
-            text += ":"
-        self.label.text = text
         for index,i in enumerate(self.code):
             self.labels[index].image = self.opcodes_grid[i]
             if self.index == ((index + 1) % len(self.code)):
@@ -522,6 +498,41 @@ class Player(Entity):
             print "actione!"
 
 
+class WebPlayer(Player):
+    
+    def __init__(self, pos, controller_id, player_id=0):
+        self.controller = controller_id
+        self.title = "Spieler"
+        Player.__init__(self, pos, player_id, self.title)
+        self.timeout = 5
+        send_osc_to_server('dict', [controller_id, player_id] + self.code)
+
+    def update(self, dt):
+        Player.update(self, dt)
+        if self.timeout < -5:
+            self.send_status("playerdeleted")
+            for i in [self.label, self.sprite] + self.labels:
+                i.delete()
+            world.players[self.player_id] = False
+            if DEBUG:
+                print "deleted player ", self.player_id
+        elif (self.timeout < 0) and self.controller:
+            world.controllers.pop(self.controller)
+            self.controller = False          
+        self.timeout -= dt
+
+    def active(self):
+        return self.controller
+
+    def _update_label(self, percent = 0):
+        Player._update_label(self, percent)
+        text = self.title + " " + str(self.player_id)
+        if not self.controller:
+            text += " (frei):" 
+        else:
+            text += ":"
+        self.label.text = text
+
 class BeeNoirWorld(object):
     """
     """
@@ -586,8 +597,8 @@ class BeeNoirWorld(object):
     def create_player(self, playerID, controllerID=False):
         if not self.players[playerID]:
             self.controllers[controllerID] = playerID
-            self.players[playerID] = Player(vec3(playerID,5,1),
-                                            controllerID, colors[playerID], playerID)
+            self.players[playerID] = WebPlayer(vec3(playerID,5,1),
+                                            controllerID, playerID)
         else:
             print "already there"
 
