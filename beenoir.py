@@ -575,6 +575,19 @@ class BeeNoirWorld(object):
             self.objs[i].pos = pos
             self.objs[i].update_pos()
 
+        self.label = pyglet.text.Label(
+            "Bee Noir",
+            font_name='Tahoma',
+            font_size=22,
+            bold=True,
+            x= WIN_WIDTH - 20, 
+            y= 10,
+            anchor_x='right', 
+            color=(40, 88, 89, 255),
+            anchor_y='bottom',
+            batch=batch)
+        
+
     def mouse_pressed(self, x, y, button):
         """ 
         change a specific player's code on press 
