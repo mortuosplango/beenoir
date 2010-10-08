@@ -16,6 +16,9 @@ WORLD_WIDTH = 16
 WORLD_HEIGHT = 12
 
 PLAYERS = 10
+
+LABEL_HEIGHT = 1.0 * WIN_HEIGHT/PLAYERS
+
 CODESIZE = 8
 # (verbose) debugging output
 DEBUG = True
@@ -248,7 +251,7 @@ class Player(Entity):
                     batch=batch, 
                     group=foreground,
                     x= 37 * (i + 1), 
-                    y= WIN_HEIGHT - (self.player_id * 60) - 60))
+                    y= WIN_HEIGHT - (self.player_id * LABEL_HEIGHT) - 60))
             self.labels[-1].scale = 32.0 / self.labels[-1].width
         self.label = pyglet.text.Label(
             title + " " + str(self.player_id),
@@ -256,7 +259,7 @@ class Player(Entity):
             font_size=12,
             bold=True,
             x= 37 + 10, 
-            y= WIN_HEIGHT - (self.player_id * 60) - 15,
+            y= WIN_HEIGHT - (self.player_id * LABEL_HEIGHT) - 15,
             anchor_x='left', 
             color=(222,) * 4 ,
             anchor_y='center',
@@ -267,7 +270,7 @@ class Player(Entity):
                                                group=background, 
                                                x=30, 
                                                y= WIN_HEIGHT - 
-                                               (self.player_id * 60) - 20)
+                                               (self.player_id * LABEL_HEIGHT) - 20)
         self.label_icon.scale = 1
         self.label_icon.rotation = 20 + random.randint(0,100)
 
@@ -576,12 +579,12 @@ class BeeNoirWorld(object):
         """ 
         change a specific player's code on press 
         """
-        if WIN_HEIGHT > y > WIN_HEIGHT - (len(self.players) * 60):
+        if WIN_HEIGHT > y > WIN_HEIGHT - (len(self.players) * LABEL_HEIGHT):
             if 37 < x < (CODESIZE + 2) * 37:
-                playerno = (WIN_HEIGHT - y) / 60
+                playerno = int((WIN_HEIGHT - y) / LABEL_HEIGHT)
                 player = self.players[playerno]
-                if (WIN_HEIGHT - (playerno * 60) - 37) > y > (WIN_HEIGHT - 
-                                                              (playerno * 60)) - 67:
+                if (WIN_HEIGHT - (playerno * LABEL_HEIGHT) - 37) > y > (WIN_HEIGHT - 
+                                                              (playerno * LABEL_HEIGHT)) - 67:
                     change = False
                     if button == pyglet.window.mouse.LEFT: change = 1
                     elif button == pyglet.window.mouse.RIGHT: change = -1
@@ -714,6 +717,7 @@ if __name__ == '__main__':
     window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='bee noir')
 
     world = BeeNoirWorld(WORLD_WIDTH,WORLD_HEIGHT)
+    pyglet.gl.glClearColor(*[i/255.0 for i in [26,58,59,255]])
 
     @window.event
     def on_key_press(symbol, modifiers):
