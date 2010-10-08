@@ -398,7 +398,6 @@ class Player(Entity):
              - self.tile_height * y + self.tile_height / 2),
             0)
 
-    
     def _change_position(self, pos=vec3(), percent=0, wrap_pos=False): 
         if percent == 0:
             self.moving = True
@@ -554,13 +553,10 @@ class WebPlayer(Player):
             text += " (frei)" 
         self.label.text = text
 
+
 class BeeNoirWorld(object):
-    """
-    """
     
     def __init__(self, w, h):
-        """
-        """
         self.width=w
         self.height=h
         self.objs = []
@@ -616,26 +612,23 @@ class BeeNoirWorld(object):
     def create_waiting_players(self):
         if len(self.players_waiting) > 0:
             for i in self.players_waiting:
-                if i[0] == 'web':
-                    self.create_web_player(i[1], i[2])
-                elif i[0] == 'bot':
-                    self.create_bot_player(i[1])
+                if not self.players[i[1]]:
+                    if i[0] == 'web':
+                        self.create_web_player(i[1], i[2])
+                    elif i[0] == 'bot':
+                        self.create_bot_player(i[1])
+                else:
+                    print "already there"            
             self.players_waiting = []
 
     def create_web_player(self, playerID, controllerID=False):
-        if not self.players[playerID]:
-            self.controllers[controllerID] = playerID
-            self.players[playerID] = WebPlayer(self.random_pos(),
-                                            controllerID, playerID)
-        else:
-            print "already there"
+        self.controllers[controllerID] = playerID
+        self.players[playerID] = WebPlayer(self.random_pos(),
+                                           controllerID, playerID)
 
     def create_bot_player(self, playerID):
-        if not self.players[playerID]:
-            self.players[playerID] = BotPlayer(self.random_pos(),
-                                            playerID)
-        else:
-            print "already there"
+        self.players[playerID] = BotPlayer(self.random_pos(),
+                                           playerID)
 
     def update(self,dt):
         if VERBOSE:
