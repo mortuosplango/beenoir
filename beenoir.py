@@ -142,10 +142,7 @@ class Hole(Entity):
 class Field(Entity):
     max_value = 4
 
-    tiles = []
-    for i in range(5):
-        tiles.append(
-            'graphics/tile_' + str(i) + '.png')
+    tiles = ['graphics/tile_' + str(i) + '.png' for i in range(5) ]
     active_img = pyglet.resource.image('graphics/tile_active.png')
 
     def __init__(self, pos):
@@ -204,11 +201,8 @@ class Field(Entity):
 class Player(Entity):
     """ Player Avatar
     """
-    opcodes_grid = []
-    for i in range(10):
-        opcodes_grid.append(
-            pyglet.resource.image(
-                'web/opcodes_' + str(i) + '.png'))
+    opcodes_grid = [ pyglet.resource.image('web/opcodes_' + str(i) + '.png') 
+                     for i in range(10)]
 
     def __init__(self, pos, player_id=0, title="GrundSpieler"):
         self.image_file = 'graphics/player_' + str(player_id) + '.png'
@@ -235,23 +229,19 @@ class Player(Entity):
         self.new_granulation = False
 
         ## color
-        self.color =  [] 
-        for i in range(3):
-            self.color.append(eval('0x' + colors[player_id][i*2:(i*2)+2]))
-        self.color.append(255)
+        self.color =  [eval('0x' + colors[player_id][i*2:(i*2)+2]) 
+                       for i in range(3)] + [255,]
 
         ## code
-        self.code = []
+        self.code = [0,] * CODESIZE
         self.index = 0
-        for i in range(CODESIZE):
-            self.code.append(0)
         self.player_id = player_id
 
         self.send_status('newplayer')
 
         ## label
         self.labels = []
-        for i in range(len(self.code)):
+        for i in range(CODESIZE):
             self.labels.append(
                 pyglet.sprite.Sprite(
                     self.opcodes_grid[0],
@@ -277,7 +267,7 @@ class Player(Entity):
                                                group=background, 
                                                x=30, 
                                                y= WIN_HEIGHT - 
-                                               (self.player_id * 60) - 15)
+                                               (self.player_id * 60) - 20)
         self.label_icon.scale = 1
         self.label_icon.rotation = 20 + random.randint(0,100)
 
@@ -346,7 +336,7 @@ class Player(Entity):
                     self._change_time()
                 elif action == (9 or 'action'):
                     self._action()
-            self.index = (self.index + 1) % len(self.code)
+            self.index = (self.index + 1) % CODESIZE
             if self.new_granulation:
                 self.granulation = self.new_granulation
                 self.new_granulation = False
@@ -358,9 +348,9 @@ class Player(Entity):
     def _update_label(self, percent = 0):
         for index,i in enumerate(self.code):
             self.labels[index].image = self.opcodes_grid[i]
-            if self.index == ((index + 1) % len(self.code)):
+            if self.index == ((index + 1) % CODESIZE):
                 self.labels[index].opacity = 192 + (63 * (percent))
-            elif self.index == ((index + 2) % len(self.code)):
+            elif self.index == ((index + 2) % CODESIZE):
                 self.labels[index].opacity = 64 + (64 * (1 - percent))
             else:
                 self.labels[index].opacity = 64
@@ -518,8 +508,7 @@ class BotPlayer(Player):
     
     def __init__(self, pos, player_id=0):
         Player.__init__(self, pos, player_id, "Bot")
-        for i in range(len(self.code)):
-            self.code[i] = random.randint(0,9)
+        self.code = [ random.randint(0,9) for i in range(CODESIZE) ]
 
 
 class WebPlayer(Player):
@@ -559,18 +548,12 @@ class BeeNoirWorld(object):
     def __init__(self, w, h):
         self.width=w
         self.height=h
-        self.objs = []
-        self.players = []
+        self.players = [False,] * PLAYERS
+        self.objs = [ Field(vec3()) for i in range(h*w) ]
         self.players_waiting = []
         self.controllers = dict()
-        for i in range(PLAYERS):
-            self.players.append(False)
 
-        for y in range(h):
-            for x in range(w):
-                self.objs.append(Field(vec3()))
-
-        # make teleport fields
+        ## make teleport fields
         middle = (w / 2 * w) + (h / 2)
         fields = [middle, middle - w]
         if (w / 2) % 2 == 0:
@@ -676,7 +659,7 @@ def update_code(addr, tags, data, client_addr):
     key = data[0]
     playerID = data[1]
     if key in world.controllers:
-        if len(data[2:]) == len(world.players[world.controllers[key]].code):
+        if len(data[2:]) == CODESIZE:
             world.players[world.controllers[key]].code = data[2:]
         else:
             print "something went wrong: code is too short"
