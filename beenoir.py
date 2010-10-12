@@ -678,6 +678,9 @@ class BeeNoirWorld(object):
 
     ## osc receive functions
     def update_code(self, addr, tags, data, client_addr):
+        """
+        Changes the code of a player to the one sent by its controller
+        """
         if DEBUG:
             print "got update: ", data
         key = data[0]
@@ -689,6 +692,9 @@ class BeeNoirWorld(object):
                 print "something went wrong: code is too short"
 
     def ping_players(self, addr, tags, data, client_addr):
+        """
+        Resets the timeout of a player when pinged from the controller
+        """
         if DEBUG:
             print "got ping: ", data
         key = data[0]
@@ -698,6 +704,9 @@ class BeeNoirWorld(object):
             print "no such controller: ", data
 
     def get_player(self, addr, tags, data, client_addr):
+        """
+        Returns the player to a specific controller or creates a new player
+        """
         if DEBUG:
             print "got player request: ", data
         key = data[0]
