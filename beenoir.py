@@ -676,6 +676,65 @@ class BeeNoirWorld(object):
     def get_tile(self,pos):
         return self.objs[pos.x + pos.y * self.width]
 
+    ## osc receive functions
+    def update_code(self, addr, tags, data, client_addr):
+        if DEBUG:
+            print "got update: ", data
+        key = data[0]
+        playerID = data[1]
+        if key in self.controllers:
+            if len(data[2:]) == CODESIZE:
+                self.players[self.controllers[key]].code = data[2:]
+            else:
+                print "something went wrong: code is too short"
+
+    def ping_players(self, addr, tags, data, client_addr):
+        if DEBUG:
+            print "got ping: ", data
+        key = data[0]
+        if key in self.controllers:
+            self.players[self.controllers[key]].resetTimeout()
+        else:
+            print "no such controller: ", data
+
+    def get_player(self, addr, tags, data, client_addr):
+        if DEBUG:
+            print "got player request: ", data
+        key = data[0]
+        if key in self.controllers:
+            p = self.players[self.controllers[key]]
+            p.resetTimeout()
+            msg = osc.OSCMessage()
+            msg.setAddress("/alj/dict")
+            for i in [key, p.player_id] + p.code:
+                msg.append(i)
+        elif len(filter(lambda x: x, self.players)) < PLAYERS:
+            for i, p in enumerate(self.players):
+                if not p: 
+                    self.players_waiting.append(('web', i, key))
+                    print "created player nr ", i
+                    break
+                elif not p.active():
+                    self.controllers[key] = i
+                    p.resetTimeout()
+                    p.controller = key
+                    msg = osc.OSCMessage()
+                    msg.setAddress("/alj/dict")
+                    for i in [key, i] + p.code:
+                        msg.append(i)
+                    client.sendto(msg, NET_SEND_ADDR)
+                    break
+                else:
+                    print "something went wrong: there should be free players!"
+        else:
+            msg = osc.OSCMessage()
+            msg.setAddress("/alj/dict")
+            for i in [key, -1]:
+                msg.append(i)
+                client.sendto(msg, NET_SEND_ADDR)
+            print "no free player!"
+
+
 ## osc functions
 def send_osc_to_server(addr, data):
     send_osc(NET_SEND_ADDR, "/alj/" + addr, data)
@@ -690,74 +749,27 @@ def send_osc(netaddr, addr, data):
         msg.append(i)
     client.sendto(msg, netaddr)    
 
-## osc receive functions
-def update_code(addr, tags, data, client_addr):
-    if DEBUG:
-        print "got update: ", data
-    key = data[0]
-    playerID = data[1]
-    if key in world.controllers:
-        if len(data[2:]) == CODESIZE:
-            world.players[world.controllers[key]].code = data[2:]
-        else:
-            print "something went wrong: code is too short"
-
-def ping_players(addr, tags, data, client_addr):
-    if DEBUG:
-        print "got ping: ", data
-    key = data[0]
-    if key in world.controllers:
-        world.players[world.controllers[key]].resetTimeout()
-    else:
-        print "no such controller: ", data
-
-def get_player(addr, tags, data, client_addr):
-    if DEBUG:
-        print "got player request: ", data
-    key = data[0]
-    if key in world.controllers:
-        p = world.players[world.controllers[key]]
-        p.resetTimeout()
-        msg = osc.OSCMessage()
-        msg.setAddress("/alj/dict")
-        for i in [key, p.player_id] + p.code:
-            msg.append(i)
-    elif len(filter(lambda x: x, world.players)) < PLAYERS:
-        for i, p in enumerate(world.players):
-            if not p: 
-                world.players_waiting.append(('web', i, key))
-                print "created player nr ", i
-                break
-            elif not p.active():
-                world.controllers[key] = i
-                p.resetTimeout()
-                p.controller = key
-                msg = osc.OSCMessage()
-                msg.setAddress("/alj/dict")
-                for i in [key, i] + p.code:
-                    msg.append(i)
-                client.sendto(msg, NET_SEND_ADDR)
-                break
-            else:
-                print "something went wrong: there should be free players!"
-    else:
-        msg = osc.OSCMessage()
-        msg.setAddress("/alj/dict")
-        for i in [key, -1]:
-            msg.append(i)
-            client.sendto(msg, NET_SEND_ADDR)
-        print "no free player!"
-
 if __name__ == '__main__':
-    #window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='bee noir')
-    window = pyglet.window.Window(fullscreen=True, caption='bee noir')
+
+    fullscreen = False
+    for i, arg in enumerate(sys.argv):
+        if arg == '-p':
+            SC_ADDR = ('127.0.0.1', int(sys.argv[i+1]))
+        elif arg == '-f':
+            fullscreen = True
+
+    if fullscreen:
+        window = pyglet.window.Window(fullscreen=True, caption='bee noir')
+    else:
+        window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='bee noir')
+
 
     PADDING = [int((window.width - WIN_WIDTH) / 2.0), 
                int((window.height - WIN_HEIGHT) / 2.0)]
     
     LABEL_HEIGHT = 1.0 * window.height/PLAYERS
 
-    world = BeeNoirWorld(WORLD_WIDTH,WORLD_HEIGHT)
+    beenoir = BeeNoirWorld(WORLD_WIDTH,WORLD_HEIGHT)
     pyglet.gl.glClearColor(*[i/255.0 for i in [26,58,59,255]])
 
     @window.event
@@ -772,40 +784,36 @@ if __name__ == '__main__':
             pyglet.app.exit()
         return pyglet.event.EVENT_HANDLED
 
-
     @window.event
     def on_mouse_press(x, y, button, modifiers):
-        world.mouse_pressed(x, y, button)
+        beenoir.mouse_pressed(x, y, button)
 
     @window.event
     def on_draw():
-        world.create_waiting_players()
+        beenoir.create_waiting_players()
         window.clear()
         batch.draw()
 
-    ## start communication and send specs
+    ## start communication
     client = osc.OSCClient()
 
     oscServer = osc.OSCServer(NET_ADDR)
     oscServer.addDefaultHandlers()
-
-    if len(sys.argv) > 1:
-        SC_ADDR = ('127.0.0.1', int(sys.argv[1]))
     
     msg = osc.OSCMessage()
     msg.setAddress("/alj/start")
-    for i in [world.width, world.height]:
+    for i in [beenoir.width, beenoir.height]:
         msg.append(i)
     client.sendto(msg, SC_ADDR) 
 
-    oscServer.addMsgHandler("/alj/code", update_code)
-    oscServer.addMsgHandler("/alj/ping", ping_players)
-    oscServer.addMsgHandler("/alj/getplayer", get_player)
+    oscServer.addMsgHandler("/alj/code", beenoir.update_code)
+    oscServer.addMsgHandler("/alj/ping", beenoir.ping_players)
+    oscServer.addMsgHandler("/alj/getplayer", beenoir.get_player)
 
     # Start OSCServer
     print "\nStarting OSCServer. Use ctrl-C to quit."
     oscServerThread = threading.Thread( target = oscServer.serve_forever )
     oscServerThread.start()
 
-    pyglet.clock.schedule_interval(world.update, 1/FPS)
+    pyglet.clock.schedule_interval(beenoir.update, 1/FPS)
     pyglet.app.run()
