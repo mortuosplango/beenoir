@@ -254,6 +254,7 @@ class Player(Entity):
                     x= 37 * (i + 1), 
                     y= window.height - (self.player_id * LABEL_HEIGHT) - 60))
             self.labels[-1].scale = 32.0 / self.labels[-1].width
+
         self.label = pyglet.text.Label(
             title + " " + str(self.player_id),
             font_name='Tahoma',
@@ -342,6 +343,7 @@ class Player(Entity):
                     self._change_time()
                 elif action == (9 or 'action'):
                     self._action()
+
             self.index = (self.index + 1) % CODESIZE
             if self.new_granulation:
                 self.granulation = self.new_granulation
@@ -375,6 +377,7 @@ class Player(Entity):
                 self.old_direction = 6
         elif percent == 1:
             self.rotating = False
+
         self.sprite.rotation = (
             (self.direction * percent) +
             (self.old_direction * (1-percent))) * 60
@@ -389,6 +392,7 @@ class Player(Entity):
             y = pos.y
         else:
             y = pos.y + (0.5 - (0.5 * ((pos.x%2) - 1)))
+
         return vec3(
             (WIN_WIDTH * 0.3  + 50 * pos.x 
              + (self.tile_width - self.sprite.width) / 2.0 
@@ -415,6 +419,7 @@ class Player(Entity):
         elif percent == 1:
             self.moving = False
             self.wrap_pos = False
+
         if self.wrap_pos != False:
             if percent < 0.5:
                 percent *= 1.5
@@ -424,10 +429,12 @@ class Player(Entity):
                                      self.wrap_pos.z)
                 self.dest_pos = self.pos
                 percent = (percent - 0.5) * 2
+
         new_pos = vec3(
             (self.dest_pos.x * percent) + (self.old_pos.x * (1-percent)), 
             (self.dest_pos.y * percent) + (self.old_pos.y * (1-percent)), 
             self.pos.z)
+
         realpos = self._pos2screenpos(new_pos)
         self.sprite.x = realpos.x
         self.sprite.y = realpos.y 
@@ -471,7 +478,9 @@ class Player(Entity):
         """
         if not pos:
             pos = vec3(self.pos.x,self.pos.y,self.pos.z)
+
         pos, wrap_pos = self._get_target_pos(pos, forward)
+
         if not self.world.get_tile(pos).occupied:
             if do_it:
                 if type(self.world.get_tile(pos)) == Teleport:
@@ -502,6 +511,7 @@ class Player(Entity):
                     if is_result:
                         target_index = i
                         target = new_pos
+
                 if target:
                     if type(self.world.get_tile(target)) == Teleport:
                         self._move(target, do_it=True)
