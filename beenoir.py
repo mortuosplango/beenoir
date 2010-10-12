@@ -209,12 +209,13 @@ class Player(Entity):
     opcodes_grid = [ pyglet.resource.image('web/opcodes_' + str(i) + '.png') 
                      for i in range(10)]
 
-    def __init__(self, pos, player_id=0, title="GrundSpieler"):
+    def __init__(self, world, pos, player_id=0, title="GrundSpieler"):
         self.image_file = 'graphics/player_' + str(player_id) + '.png'
         Entity.__init__(self,pos,self.image_file, group=players)
         # center image anchor for rotation
         self.image.anchor_x = self.image.width // 2 
         self.image.anchor_y = self.image.height // 2
+        self.world = world
 
         ## movement
         self.moving = False
@@ -241,8 +242,6 @@ class Player(Entity):
         self.code = [0,] * CODESIZE
         self.index = 0
         self.player_id = player_id
-
-        self.send_status('newplayer')
 
         ## label
         self.labels = []
@@ -277,6 +276,8 @@ class Player(Entity):
         self.label_icon.rotation = 20 + random.randint(0,100)
 
         self._update_label()
+
+        self.send_status('newplayer')
         if DEBUG:
             print "player id ", self.player_id, " created"
 
@@ -285,21 +286,21 @@ class Player(Entity):
         self.send_status("playerdeleted")
         for i in [self.label, self.sprite, self.label_icon] + self.labels:
             i.delete()
-        world.players[self.player_id] = False
+        self.world.players[self.player_id] = False
         if DEBUG:
             print "deleted player ", self.player_id
 
     def _change_time(self):
-        self.new_granulation = [32, 24, 16, 12, 8][world.get_tile(self.pos).value]
+        self.new_granulation = [32, 24, 16, 12, 8][self.world.get_tile(self.pos).value]
         # old timing: [12,8,6,4,3]
         # [8, 6, 4, 3, 2]
         # 1/2, 3/8, 1/4, 3/16, 1/8
 
     def send_status(self, addr):
-        tile = world.get_tile(self.pos)
+        tile = self.world.get_tile(self.pos)
         send_osc_to_sc(addr,  [self.player_id, 
-                               self.pos.x / float(world.width), 
-                               self.pos.y / float(world.height), 
+                               self.pos.x / float(self.world.width), 
+                               self.pos.y / float(self.world.height), 
                                tile.value / float(tile.max_value),
                                (self.granulation / FPS)])
 
@@ -334,9 +335,9 @@ class Player(Entity):
                 elif action == (5 or 'jump'):
                     self._jump()
                 elif action == (6 or 'increase'):
-                    world.get_tile(self.pos).increase()
+                    self.world.get_tile(self.pos).increase()
                 elif action == (7 or 'decrease'):
-                    world.get_tile(self.pos).decrease()
+                    self.world.get_tile(self.pos).decrease()
                 elif action == (8 or 'time'):
                     self._change_time()
                 elif action == (9 or 'action'):
@@ -361,6 +362,9 @@ class Player(Entity):
                 self.labels[index].opacity = 64
 
     def _turn(self, direction=0, percent=0):
+        """
+        Turns the sprite to a new direction over time
+        """
         if percent == 0:
             self.rotating = True
             self.old_direction = self.direction
@@ -396,15 +400,15 @@ class Player(Entity):
 
     def _change_position(self, pos=vec3(), percent=0, wrap_pos=False): 
         """
-        Actually change the position of the sprite
+        Actually changes the position of the sprite over time
         """
         if percent == 0:
             self.moving = True
             self.old_pos = self.pos
-            world.get_tile(self.pos).occupied = False
+            self.world.get_tile(self.pos).occupied = False
             self.pos = pos
             self.dest_pos = pos
-            world.get_tile(self.pos).occupied = True
+            self.world.get_tile(self.pos).occupied = True
             if wrap_pos:
                 self.wrap_pos = wrap_pos
                 self.dest_pos = self.wrap_pos
@@ -415,8 +419,8 @@ class Player(Entity):
             if percent < 0.5:
                 percent *= 1.5
             else:
-                self.old_pos = vec3(self.wrap_pos.x%world.width,
-                                     self.wrap_pos.y%world.height,
+                self.old_pos = vec3(self.wrap_pos.x%self.world.width,
+                                     self.wrap_pos.y%self.world.height,
                                      self.wrap_pos.z)
                 self.dest_pos = self.pos
                 percent = (percent - 0.5) * 2
@@ -430,7 +434,7 @@ class Player(Entity):
 
     def _get_target_pos(self, pos, forward=True):
         """
-        determine the next relative position in a hexagonal field
+        Determines the next relative position in a hexagonal field
         """
         if forward:
             direction = self.direction
@@ -454,26 +458,26 @@ class Player(Entity):
                 pos.y -= 1
 
         wrap_pos = False
-        if ((pos.x < 0) or (pos.x >= world.width) 
-            or (pos.y < 0) or (pos.y >= world.height)):
+        if ((pos.x < 0) or (pos.x >= self.world.width) 
+            or (pos.y < 0) or (pos.y >= self.world.height)):
             wrap_pos = vec3(pos.x,pos.y,pos.z)
-            pos.x = pos.x%world.width
-            pos.y = pos.y%world.height
+            pos.x = pos.x%self.world.width
+            pos.y = pos.y%self.world.height
         return pos, wrap_pos
 
     def _move(self, forward=True, do_it=True, pos=False):
         """         
-        moves the player to a new location
+        Moves the player to a new location
         """
         if not pos:
             pos = vec3(self.pos.x,self.pos.y,self.pos.z)
         pos, wrap_pos = self._get_target_pos(pos, forward)
-        if not world.get_tile(pos).occupied:
+        if not self.world.get_tile(pos).occupied:
             if do_it:
-                if type(world.get_tile(pos)) == Teleport:
+                if type(self.world.get_tile(pos)) == Teleport:
                     print "teleport!"
-                    world.get_tile(pos).activate()
-                    pos = world.random_pos()
+                    self.world.get_tile(pos).activate()
+                    pos = self.world.random_pos()
                     self.send_status("teleport")
                 else: 
                     self.send_status("move")
@@ -483,7 +487,7 @@ class Player(Entity):
             return False, pos, wrap_pos
 
     def _jump(self):
-        amount = world.get_tile(self.pos).value
+        amount = self.world.get_tile(self.pos).value
         if amount != 0:
             if amount == 1:
                 self._move()
@@ -499,7 +503,7 @@ class Player(Entity):
                         target_index = i
                         target = new_pos
                 if target:
-                    if type(world.get_tile(target)) == Teleport:
+                    if type(self.world.get_tile(target)) == Teleport:
                         self._move(target, do_it=True)
                     else:
                         wrap_pos = False
@@ -510,7 +514,7 @@ class Player(Entity):
                         self._change_position(target, wrap_pos=wrap_pos)
                 
     def _action(self):
-        tile = world.get_tile(self.pos)
+        tile = self.world.get_tile(self.pos)
         tile.activate()
         self.send_status("action")
         if DEBUG:
@@ -521,8 +525,8 @@ class BotPlayer(Player):
     """
     Player-Bot with randomly generated code
     """
-    def __init__(self, pos, player_id=0):
-        Player.__init__(self, pos, player_id, "Bot")
+    def __init__(self, world, pos, player_id=0):
+        Player.__init__(self, world, pos, player_id, "Bot")
         self.code = [ random.randint(0,9) for i in range(CODESIZE) ]
 
 
@@ -530,10 +534,10 @@ class WebPlayer(Player):
     """
     Player with specific controller and timeout
     """
-    def __init__(self, pos, controller_id, player_id=0):
+    def __init__(self, world, pos, controller_id, player_id=0):
         self.controller = controller_id
         self.title = "Spieler"
-        Player.__init__(self, pos, player_id, self.title)
+        Player.__init__(self, world, pos, player_id, self.title)
         self.timeout = 5
         send_osc_to_server('dict', [controller_id, player_id] + self.code)
 
@@ -542,7 +546,7 @@ class WebPlayer(Player):
         if self.timeout < -5:
             self.delete()
         elif (self.timeout < 0) and self.controller:
-            world.controllers.pop(self.controller)
+            self.world.controllers.pop(self.controller)
             self.controller = False          
         self.timeout -= dt
 
@@ -638,11 +642,13 @@ class BeeNoirWorld(object):
 
     def create_web_player(self, playerID, controllerID=False):
         self.controllers[controllerID] = playerID
-        self.players[playerID] = WebPlayer(self.random_pos(),
+        self.players[playerID] = WebPlayer(self, 
+                                           self.random_pos(),
                                            controllerID, playerID)
 
     def create_bot_player(self, playerID):
-        self.players[playerID] = BotPlayer(self.random_pos(),
+        self.players[playerID] = BotPlayer(self, 
+                                           self.random_pos(),
                                            playerID)
 
     def update(self,dt):
