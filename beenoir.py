@@ -629,6 +629,10 @@ class BeeNoirWorld(object):
                     self.players_waiting.append(('bot', playerno))
                     
     def create_waiting_players(self):
+        """
+        creates the waiting players all at once to avoid
+        confusion in the rendering engine
+        """
         if len(self.players_waiting) > 0:
             for i in self.players_waiting:
                 if not self.players[i[1]]:
@@ -676,7 +680,7 @@ class BeeNoirWorld(object):
     def get_tile(self,pos):
         return self.objs[pos.x + pos.y * self.width]
 
-    ## osc receive functions
+    ## osc handler functions
     def update_code(self, addr, tags, data, client_addr):
         """
         Changes the code of a player to the one sent by its controller
