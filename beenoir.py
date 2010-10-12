@@ -53,7 +53,7 @@ class vec3(object):
         self.y = y
         self.z = z
 
-    def add(self, other): 
+    def __add__(self, other): 
         return vec3(
             self.x + other.x,
             self.y + other.y, 
@@ -118,6 +118,10 @@ class Entity(object):
 
 
 class Tile(Entity):
+    """
+    A generic tile
+    """
+
     def __init__(self, pos, image):
         Entity.__init__(self,pos,image)
         self.occupied = False
@@ -139,10 +143,17 @@ class Tile(Entity):
 
 
 class Teleport(Tile):
+    """
+    A tile, that teleports the player to a random location when stepped on.
+    """
     def __init__(self, pos):
         Tile.__init__(self,pos,'graphics/tile_hole.png')
 
 class Field(Tile):
+    """
+    A tile, which has a value and can be activated
+    """
+
     max_value = 4
 
     tiles = ['graphics/tile_' + str(i) + '.png' for i in range(5) ]
@@ -192,7 +203,8 @@ class Field(Tile):
 
 
 class Player(Entity):
-    """ Player Avatar
+    """ 
+    Generic Player
     """
     opcodes_grid = [ pyglet.resource.image('web/opcodes_' + str(i) + '.png') 
                      for i in range(10)]
@@ -365,7 +377,7 @@ class Player(Entity):
 
     def _pos2screenpos(self,pos):
         """
-        slightly different positioning for smaller graphics (hacky)
+        translate the relative position to pixel coordinates
         """
         if 0 < (pos.x%2) <= 1: # odd
             y = pos.y + (0.5 * (pos.x%2))
@@ -383,6 +395,9 @@ class Player(Entity):
             0)
 
     def _change_position(self, pos=vec3(), percent=0, wrap_pos=False): 
+        """
+        Actually change the position of the sprite
+        """
         if percent == 0:
             self.moving = True
             self.old_pos = self.pos
@@ -414,6 +429,9 @@ class Player(Entity):
         self.sprite.y = realpos.y 
 
     def _get_target_pos(self, pos, forward=True):
+        """
+        determine the next relative position in a hexagonal field
+        """
         if forward:
             direction = self.direction
         else:
@@ -445,7 +463,7 @@ class Player(Entity):
 
     def _move(self, forward=True, do_it=True, pos=False):
         """         
-        movement in hexagonal fields 
+        moves the player to a new location
         """
         if not pos:
             pos = vec3(self.pos.x,self.pos.y,self.pos.z)
@@ -500,14 +518,18 @@ class Player(Entity):
 
 
 class BotPlayer(Player):
-    
+    """
+    Player-Bot with randomly generated code
+    """
     def __init__(self, pos, player_id=0):
         Player.__init__(self, pos, player_id, "Bot")
         self.code = [ random.randint(0,9) for i in range(CODESIZE) ]
 
 
 class WebPlayer(Player):
-    
+    """
+    Player with specific controller and timeout
+    """
     def __init__(self, pos, controller_id, player_id=0):
         self.controller = controller_id
         self.title = "Spieler"
@@ -539,7 +561,9 @@ class WebPlayer(Player):
 
 
 class BeeNoirWorld(object):
-    
+    """
+    Represents the game
+    """
     def __init__(self, w, h):
         self.width=w
         self.height=h
