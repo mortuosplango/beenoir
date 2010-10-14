@@ -220,10 +220,10 @@ class Player(Entity):
 
         ## movement
         self.moving = False
-        self.update_pos()
         self.old_pos = vec3(self.pos.x, self.pos.y, self.pos.z)
         self.wrap_pos = False
         self.dest_pos = vec3(self.pos.x, self.pos.y, self.pos.z)
+        self.update_pos()
         
         ## direction
         self.rotating = False
@@ -335,7 +335,7 @@ class Player(Entity):
                 elif action == (4 or 'turnRight'):
                     self._turn(1)
                 elif action == (5 or 'jump'):
-                    self._jump()
+                    self._move(jump=True)
                 elif action == (6 or 'increase'):
                     self.world.get_tile(self.pos).increase()
                 elif action == (7 or 'decrease'):
@@ -383,9 +383,10 @@ class Player(Entity):
             (self.direction * percent) +
             (self.old_direction * (1-percent))) * 60
 
+  
     def _pos2screenpos(self,pos):
         """
-        translate the relative position to pixel coordinates
+        Translates a relative position to pixel coordinates
         """
         if 0 < (pos.x%2) <= 1: # odd
             y = pos.y + (0.5 * (pos.x%2))
@@ -403,7 +404,7 @@ class Player(Entity):
              - self.tile_height * y + self.tile_height / 2) + PADDING[1],
             0)
 
-    def _change_position(self, pos=vec3(), percent=0, wrap_pos=False): 
+    def _change_position(self, pos=vec3(), percent=0): 
         """
         Actually changes the position of the sprite over time
         """
@@ -414,8 +415,7 @@ class Player(Entity):
             self.pos = pos
             self.dest_pos = pos
             self.world.get_tile(self.pos).occupied = True
-            if wrap_pos:
-                self.wrap_pos = wrap_pos
+            if self.wrap_pos:
                 self.dest_pos = self.wrap_pos
         elif percent == 1:
             self.moving = False
@@ -440,10 +440,14 @@ class Player(Entity):
         self.sprite.x = realpos.x
         self.sprite.y = realpos.y 
 
-    def _get_target_pos(self, pos, forward=True):
+    def _get_target_pos(self, pos=False, forward=True):
         """
         Determines the next relative position in a hexagonal field
         """
+
+        if not pos:
+            pos = vec3(self.pos.x,self.pos.y,self.pos.z)
+        
         if forward:
             direction = self.direction
         else:
@@ -471,58 +475,40 @@ class Player(Entity):
             wrap_pos = vec3(pos.x,pos.y,pos.z)
             pos.x = pos.x%self.world.width
             pos.y = pos.y%self.world.height
-        return pos, wrap_pos
 
-    def _move(self, forward=True, do_it=True, pos=False):
+        if not self.world.get_tile(pos).occupied:
+            if wrap_pos:
+                self.wrap_pos = wrap_pos
+            return pos
+        else:
+            return False
+
+        
+    def _move(self, forward=True, jump=False):
         """         
         Moves the player to a new location
         """
-        if not pos:
-            pos = vec3(self.pos.x,self.pos.y,self.pos.z)
-
-        pos, wrap_pos = self._get_target_pos(pos, forward)
-
-        if not self.world.get_tile(pos).occupied:
-            if do_it:
-                if type(self.world.get_tile(pos)) == Teleport:
-                    print "teleport!"
-                    self.world.get_tile(pos).activate()
-                    pos = self.world.random_pos()
-                    self.send_status("teleport")
-                else: 
-                    self.send_status("move")
-                self._change_position(pos, wrap_pos=wrap_pos)
-            return True, pos, wrap_pos
+        if jump:
+            new_pos = vec3(self.pos.x,self.pos.y,self.pos.z)
+            pos = False
+            for i in range(self.world.get_tile(self.pos).value):
+                new_pos = self._get_target_pos(pos=new_pos)
+                if new_pos:
+                    pos = new_pos
         else:
-            return False, pos, wrap_pos
+            pos = self._get_target_pos(forward=forward)
 
-    def _jump(self):
-        amount = self.world.get_tile(self.pos).value
-        if amount != 0:
-            if amount == 1:
-                self._move()
+        if pos:
+            if type(self.world.get_tile(pos)) == Teleport:
+                print "teleport!"
+                self.world.get_tile(pos).activate()
+                pos = self.world.random_pos()
+                self.send_status("teleport")
+            elif jump: 
+                self.send_status("jump")
             else:
-                new_pos = vec3(self.pos.x,self.pos.y,self.pos.z)
-                target = False
-                wrap = []
-                for i in range(amount):
-                    is_result, new_pos, wrap_pos = self._move(
-                        do_it=False,pos=new_pos)
-                    wrap.append(wrap_pos)
-                    if is_result:
-                        target_index = i
-                        target = new_pos
-
-                if target:
-                    if type(self.world.get_tile(target)) == Teleport:
-                        self._move(target, do_it=True)
-                    else:
-                        wrap_pos = False
-                        for i in range(target_index+1):
-                            if wrap[i]:
-                                wrap_pos = wrap[i]
-                        self.send_status("jump")
-                        self._change_position(target, wrap_pos=wrap_pos)
+                self.send_status("move")
+            self._change_position(pos)
                 
     def _action(self):
         tile = self.world.get_tile(self.pos)
