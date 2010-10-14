@@ -149,6 +149,7 @@ class Teleport(Tile):
     def __init__(self, pos):
         Tile.__init__(self,pos,'graphics/tile_hole.png')
 
+
 class Field(Tile):
     """
     A tile, which has a value and can be activated
