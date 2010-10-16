@@ -18,6 +18,7 @@ WORLD_HEIGHT = 12
 PLAYERS = 10
 
 CODESIZE = 8
+CODEPAD = 37
 # (verbose) debugging output
 DEBUG = True
 VERBOSE = False
@@ -245,15 +246,17 @@ class Player(Entity):
         self.player_id = player_id
 
         ## label
+        
         self.labels = []
+        ystart = self.player_id * LABEL_HEIGHT
         for i in range(CODESIZE):
             self.labels.append(
                 pyglet.sprite.Sprite(
                     self.opcodes_grid[0],
                     batch=batch, 
                     group=foreground,
-                    x= 37 * (i + 1), 
-                    y= window.height - (self.player_id * LABEL_HEIGHT) - 60))
+                    x= CODEPAD * (i + 1), 
+                    y= window.height - ystart - 60))
             self.labels[-1].scale = 32.0 / self.labels[-1].width
 
         self.label = pyglet.text.Label(
@@ -261,8 +264,8 @@ class Player(Entity):
             font_name='Tahoma',
             font_size=12,
             bold=True,
-            x= 37 + 10, 
-            y= window.height - (self.player_id * LABEL_HEIGHT) - 15,
+            x= CODEPAD + 10, 
+            y= window.height - ystart - 15,
             anchor_x='left', 
             color=(222,) * 4 ,
             anchor_y='center',
@@ -273,7 +276,7 @@ class Player(Entity):
                                                group=background, 
                                                x=30, 
                                                y= window.height - 
-                                               (self.player_id * LABEL_HEIGHT) - 20)
+                                               ystart - 20)
         self.label_icon.scale = 1
         self.label_icon.rotation = 20 + random.randint(0,100)
 
@@ -609,17 +612,18 @@ class BeeNoirWorld(object):
         """ 
         change a specific player's code on press 
         """
-        if window.height > y > window.height - (len(self.players) * LABEL_HEIGHT):
-            if 37 < x < (CODESIZE + 2) * 37:
+        if window.height > y > (window.height -
+                                PLAYERS * LABEL_HEIGHT):
+            if CODEPAD < x < (CODESIZE + 2) * CODEPAD:
                 playerno = int((window.height - y) / LABEL_HEIGHT)
                 player = self.players[playerno]
-                if ((window.height - (playerno * LABEL_HEIGHT) - 37) > 
-                    y > (window.height - (playerno * LABEL_HEIGHT)) - 67):
+                if player and (CODEPAD >
+                               y - ((window.height -
+                                     (playerno * LABEL_HEIGHT)) - 60) > 0):
                     change = False
                     if button == pyglet.window.mouse.LEFT: change = 1
                     elif button == pyglet.window.mouse.RIGHT: change = -1
-                    if player:
-                        player.change_code((x - 37) / 37, change)
+                    player.change_code((x - CODEPAD) / CODEPAD, change)
                 elif player and (button == pyglet.window.mouse.RIGHT):
                     player.delete()
                 elif not player and (button == pyglet.window.mouse.LEFT):
@@ -654,7 +658,7 @@ class BeeNoirWorld(object):
 
     def update(self,dt):
         if VERBOSE:
-            print "upd ", self.players, len(self.players)
+            print "upd ", self.players, PLAYERS
         for t in self.objs:
             t.update(dt)
         if self.players:
