@@ -17,7 +17,6 @@ c = [
 	FloatArray[0,2,4,5,7,9,11,12,7,5,4,2],		// major pseudo mirror
 ];
 
-
 // need a responder to start the drones!
 
 Ndef.all.clear;
@@ -58,7 +57,7 @@ u = OSCresponder(a, '/alj/action', { |t, r, msg|
 				\bell,		//  8
 				\wtf		//	9
 			][playerid], 
-			[\out, 0, \xpos, xpos, \ypos, ypos, \dur, dur, \value, value]
+			[\out, 0 , \xpos, xpos, \ypos, ypos, \dur, dur, \value, value]
 		);
 	};
 }).add;
@@ -103,13 +102,13 @@ Ndef(\texture, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 		).distort
 		* LFNoise2.ar({rrand(0.25, 2)}!5).range(0.1, 1)
 	);
-	snd = LPF.ar(Compander.ar(snd, snd, 0.001, 0.1, 1), 60.midicps * value.linlin(0,1,1,10).lag(1));
+	snd = BPF.ar(Compander.ar(snd, snd, 0.001, 0.1, 1), 56.midicps * value.linlin(0,1,1,10).lag(1));
 	snd = FreeVerb2.ar(snd[0], snd[1], 1, 0.5, 1) * 0.3;
 	snd = HPF.ar(snd, EnvGen.ar(Env.perc(0.07, 0.5, 1, -8), t_trig, 1000, 80));
 	snd = Balance2.ar(snd[0], snd[1], xpos.linlin(0,1,-0.8,0.8).lag(0.2));
 	snd = CombC.ar(snd, 1, value.linlin(0,1,1,0.1), 1);
 	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.1, 0.001), 1, value.linlin(0,1,2,4)), t_trig, 1, 1);
-	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * 4 * amp.lag(1)
+	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * 4 * amp.lag(1);
 });
 
 ///////////////// SYNTHS //////////////////////////////////
@@ -124,7 +123,7 @@ SynthDef(\clicks) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	snd = snd * env;
 	snd = snd + CombC.ar(snd, dur, dur/Select.kr((value*4).round, [4,6,8,12] * 6), dur);
 	snd = snd * EnvGen.ar(Env([1,1], [dur]), doneAction:2); // for the combz
-	Out.ar(0, Pan2.ar( snd * amp, xpos.linlin(0,1,-1,1) ));
+	Out.ar(out, Pan2.ar( snd * amp, xpos.linlin(0,1,-1,1) ));
 }.add;
 
 SynthDef(\noise) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.01|
@@ -132,7 +131,7 @@ SynthDef(\noise) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.01|
 	snd = GrayNoise.ar() * 4;
 	snd = RHPF.ar(snd, ypos.linlin(0,1,200,2000)) * ypos.linlin(0,1,1,8);
 	env = EnvGen.ar(Env.linen(0,value.linlin(0,1,0.005,0.1),0), doneAction:2);
-	Out.ar(0, Pan2.ar( snd * env * amp, xpos.linlin(0,1,-1,1) ));
+	Out.ar(out, Pan2.ar( snd * env * amp, xpos.linlin(0,1,-1,1) ));
 }.add;
 
 SynthDef(\kick, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.5|
@@ -140,7 +139,7 @@ SynthDef(\kick, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.5|
 	var env0, env1, env1m, son;
 	
 	env0 =  EnvGen.ar(Env.new([0.5, 1, 0.5, 0], [0.005, 0.06, 0.26], [-4, -2, -4]), doneAction:2);
-	env1 = EnvGen.ar(Env.new([110, 59, 29], [0.005, 0.29], [-4, -5]));
+	env1 = EnvGen.ar(Env.new([110, 59, 29], [0.005, 0.29], [-4, -5]), timeScale:4);
 	env1m = env1.midicps * ypos.linlin(0,1,0.5,3);
 	
 	son = LFPulse.ar(env1m, 0, 0.5, 1, -0.5);
@@ -172,7 +171,7 @@ SynthDef(\perc, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2|
 	env = EnvGen.ar(Env.perc(0.01,value.linlin(0,1,0.25,4)), doneAction:2);
 	snd = RLPF.ar(snd, Rand(freq*2, freq*4), Rand(0.1, 1.0));
 	snd = DelayN.ar(snd, 0.1, [0, 0.001]);
-	Out.ar(0, Pan2.ar( snd * amp * 1.5 * env, xpos.linlin(0,1,-0.5,0.5) ));
+	Out.ar(out, Pan2.ar( snd * amp * 1.5 * env, xpos.linlin(0,1,-0.5,0.5) ));
 }).add;
 
 SynthDef(\bell, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
@@ -195,7 +194,7 @@ SynthDef(\bell, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	snd = snd.sum * env;
 	snd = snd * EnvGen.ar(Env([1,1], [len]), doneAction:2) * amp * 4 * ypos.linexp(0,1,1,2);
 	snd = DelayN.ar(snd, 0.1, [0, 0.001]);
-	Out.ar(0, Pan2.ar(snd, xpos.linlin(0,1,-0.5,0.5) ));
+	Out.ar(out, Pan2.ar(snd, xpos.linlin(0,1,-0.5,0.5) ));
 }).add;
 
 SynthDef(\marimba, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
@@ -232,7 +231,7 @@ SynthDef(\wtf, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25|
 	var snd, env;
 	snd = Gendy1.ar(1, 0, ypos, 1.0, 50, 1000, 1, 0.005, 12, 12, 1).distort;
 	env = EnvGen.ar(Env.sine(dur), doneAction:2);
-	Out.ar(0, Pan2.ar( snd * amp * env, Line.kr(0 - value, xpos, dur) ));
+	Out.ar(out, Pan2.ar( snd * amp * env, Line.kr(0 - value, xpos, dur) ));
 }).add;
 
 //////////////////// FX!!!!
@@ -242,7 +241,7 @@ SynthDef(\teleport, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25|
 		SinOsc.ar(Rand(8.0, 400.0), 0, Rand(40, 800), Rand(1000, 10000))
 	).distort;
 	env = EnvGen.ar(Env.sine(dur), doneAction:2);
-	Out.ar(0, Pan2.ar( snd * amp * 2 * env, Rand(-0.5, 0.5) ));
+	Out.ar(out, Pan2.ar( snd * amp * 2 * env, Rand(-0.5, 0.5) ));
 }).add;
 
 // master FX
