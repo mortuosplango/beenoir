@@ -29,11 +29,11 @@ u = OSCresponder(a, '/alj/action', { |t, r, msg|
 	var addr, playerid, xpos, ypos, value, dur;
 	#addr, playerid, xpos, ypos, value, dur = msg;
 	msg.postln;
-	if ( [0,3,6].includes(playerid) ) {
+	if ( [0,1,2].includes(playerid) ) {
 		// DRONES!
 		Ndef(
 			// use just 0, 3 and 6
-			[\bees, nil, nil, \fifths, nil, nil, \texture, nil, nil, nil][playerid]
+			[\bees, \fifths, \texture][playerid]
 		).set(
 			\xpos, xpos,
 			\ypos, ypos,
@@ -46,17 +46,14 @@ u = OSCresponder(a, '/alj/action', { |t, r, msg|
 		// TRIGGER SYNTHS
 		Synth.grain(
 			[
-				nil,		//  0 DRONE
-				\clicks,	//  1
-				\perc,		//  2
-				nil,		//  3 DRONE
-				\noise,		//  4
-				\marimba,	//  5
-				nil,		//  6 DRONE
-				\kick,		//  7
-				\bell,		//  8
-				\wtf		//	9
-			][playerid], 
+				\clicks,
+				\perc,
+				\noise,
+				\marimba,
+				\kick,
+				\bell,
+				\wtf
+			][playerid - 3], 
 			[\out, 0 , \xpos, xpos, \ypos, ypos, \dur, dur, \value, value]
 		);
 	};
