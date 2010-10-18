@@ -503,7 +503,7 @@ class Player(Entity):
 
         if pos:
             if type(self.world.get_tile(pos)) == Teleport:
-                print "teleport!"
+                self._teleport()
                 self.world.get_tile(pos).activate()
                 pos = self.world.random_pos()
                 self.send_status("teleport")
@@ -512,7 +512,10 @@ class Player(Entity):
             else:
                 self.send_status("move")
             self._change_position(pos)
-                
+    
+    def _teleport(self):
+        print "teleport!"
+
     def _action(self):
         tile = self.world.get_tile(self.pos)
         tile.activate()
@@ -527,7 +530,13 @@ class BotPlayer(Player):
     """
     def __init__(self, world, pos, player_id=0):
         Player.__init__(self, world, pos, player_id, "Bot")
-        self.code = [ random.randint(0,9) for i in range(CODESIZE) ]
+        self.code = ([ random.randint(0,9) for i in range(CODESIZE - 4) ] + 
+                     [ random.choice([1,2,3,4,6,9]) for i in range(3) ] + [ 9 ])
+        random.shuffle(self.code)
+
+    def _teleport(self):
+        print "teleport and scramble!"
+        random.shuffle(self.code)
 
 
 class WebPlayer(Player):
