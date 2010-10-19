@@ -485,7 +485,6 @@ class Player(Entity):
             return pos
         else:
             return False
-
         
     def _move(self, forward=True, jump=False):
         """         
@@ -498,6 +497,8 @@ class Player(Entity):
                 new_pos = self._get_target_pos(pos=new_pos)
                 if new_pos:
                     pos = new_pos
+                else:
+                    break
         else:
             pos = self._get_target_pos(forward=forward)
 
@@ -770,7 +771,11 @@ def send_osc(netaddr, addr, data):
     msg.setAddress(addr)
     for i in data:
         msg.append(i)
-    client.sendto(msg, netaddr)    
+    try:
+        client.sendto(msg, netaddr)
+    except:
+        print "Could not send OSC. Is SuperCollider running?"
+        
 
 if __name__ == '__main__':
 
