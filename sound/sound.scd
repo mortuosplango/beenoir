@@ -2,6 +2,8 @@
 
 s.freeAll;
 
+s.waitForBoot {
+
 a = NetAddr.new("127.0.0.1", nil);
 b = Buffer.alloc(s, 12);
 c = [
@@ -28,11 +30,10 @@ Ndef(\texture).play;
 u = OSCresponder(a, '/alj/action', { |t, r, msg| 
 	var addr, playerid, xpos, ypos, value, dur;
 	#addr, playerid, xpos, ypos, value, dur = msg;
-	msg.postln;
+	// msg.postln;
 	if ( [0,1,2].includes(playerid) ) {
 		// DRONES!
 		Ndef(
-			// use just 0, 3 and 6
 			[\bees, \fifths, \texture][playerid]
 		).set(
 			\xpos, xpos,
@@ -59,42 +60,68 @@ u = OSCresponder(a, '/alj/action', { |t, r, msg|
 	};
 }).add;
 
-t = OSCresponder(a, '/alj/teleport', { |t, r, msg| 
+["move", "jump", "teleport"].do {|cmd|
+OSCresponder(a, "/alj/" ++ cmd, {|t, r, msg|
 	var addr, playerid, xpos, ypos, value, dur;
 	#addr, playerid, xpos, ypos, value, dur = msg;
 	msg.postln;
-	b.setn(0, c.choose); // change scale
-	Synth(\teleport)
+	// only for drone sounds
+	[0,1,2].includes(playerid).if {
+		Ndef([\bees, \fifths, \texture][playerid]
+		).set(
+			\xpos, xpos,
+			\ypos, ypos,
+			\dur, dur
+		);
+	};
+	
+	(msg[0] == '/alj/teleport').if {
+		b.setn(0, c.choose); // change scale
+		Synth(\teleport);
+		"TELEPORT!".postln;
+	};
+	
 }).add;
+};
 
+
+/* set all NDefs the same value for testing
+(
+[\bees, \fifths, \texture].do {|item|
+	Ndef(item).set(\xpos, 0.51, \ypos, 0.5, \value, 0);
+	
+};
+)
+*/
 
 ///////////////// DRONES //////////////////////////////////
 
 Ndef(\bees, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	var snd = Splay.ar(Gendy1.ar(minfreq:[60-24, 60, 60-12].midicps, maxfreq:[62-24, 62, 62-12].midicps) * 0.4);
 	snd = snd.lag(0.001);
-	snd = LPF.ar(snd, (ypos.linlin(0,1,50,100)).midicps * value.linexp(0,1,1,8).lag(0.1));
+	snd = LPF.ar(snd, (ypos.linlin(0,1,30,100)).midicps * value.linexp(0,1,1,8).lag(0.1));
 	snd = FreeVerb2.ar(snd[0], snd[1], 0.3, 1, 1) * 0.6;
 	snd = Balance2.ar(snd[0], snd[1], xpos.linlin(0,1,-0.8,0.8).lag(0.2));
-	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.2,0.005), 1, 5), t_trig, 1, 1);
-	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1)
+	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.2,0.005) + 0.01, 1, 5), t_trig, 1, 1);
+	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1) * 0.7 * xpos.linlin(0,1,0.7,1).lag(1);
 });
 
 Ndef(\fifths, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	var snd = Blip.ar(([61-24, 73-24] + 24).midicps + LFNoise2.ar([0.3, 0.2]).range(0, ypos.linlin(0,1,0,5)), ypos.linexp(0,1,1,8).lag(0.1));
+		
 	snd = snd *	LFNoise2.ar([value.linlin(0,1,1,8), value.linlin(0,1,4,20)]).range(0.25, 1);
-	snd = snd + SinOsc.ar((61 - [24,24.1]).midicps, 0, 0.35);
+	snd = snd + SinOsc.ar((61 - [24,24.6]).midicps, 0, 0.35);
 	snd = snd * LFNoise2.ar(40).range(0.5, 1);
 	snd = FreeVerb2.ar(snd[0], snd[1], 1, 0.3, 1) * 0.15;
 	snd = Balance2.ar(snd[0], snd[1], xpos.linlin(0,1,-0.8,0.8).lag(0.2));
-	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.2,0.001), 0.5, value.linlin(0,1,4,14)), t_trig, 1, 1);
-	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1) * 2
+	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.2,0.001) + 0.01, 0.5, value.linlin(0,1,4,14)), t_trig, 1, 1);
+	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1) * 2 * xpos.linlin(0,1,0.7,1).lag(1);
 });
 
 Ndef(\texture, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	var snd = Splay.ar(
 		Ringz.ar(ClipNoise.ar(0.005 * ypos.linlin(0, 1, 1, 2)), ([60,67,72,79]+1+24).midicps *
-			Select.kr(ypos.linlin(0,1,0,11), [0.75,1,2,0.5,2,1.5].mirror),
+			Select.kr(ypos.linlin(0,1,0,11), [0.75,1,2,0.5,2,1.5].mirror).lag(0.001),
 			0.5
 		).distort
 		* LFNoise2.ar({rrand(0.25, 2)}!5).range(0.1, 1)
@@ -104,8 +131,8 @@ Ndef(\texture, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	snd = HPF.ar(snd, EnvGen.ar(Env.perc(0.07, 0.5, 1, -8), t_trig, 1000, 80));
 	snd = Balance2.ar(snd[0], snd[1], xpos.linlin(0,1,-0.8,0.8).lag(0.2));
 	snd = CombC.ar(snd, 1, value.linlin(0,1,1,0.1), 1);
-	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.1, 0.001), 1, value.linlin(0,1,2,4)), t_trig, 1, 1);
-	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * 4 * amp.lag(1);
+	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.1, 0.001) + 0.01, 1, value.linlin(0,1,2,4)), t_trig, 1, 1);
+	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * 4.2 * amp.lag(1) * xpos.linlin(0,1,0.7,1).lag(1);
 });
 
 ///////////////// SYNTHS //////////////////////////////////
@@ -257,6 +284,7 @@ SynthDef(\stageLimiter, { |wet=0.1, room=0.3|
 b.setn(0, c[2]); // start with pent minor mirrored
 
 }.defer(1);
+}
 
 /* MASTER Ctrl
 
