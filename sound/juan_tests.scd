@@ -24,7 +24,7 @@ Ndef(\texture).play
 /*
  CHANGE GRUNDTON HERE!!!!
 
-d = 0
+d = e.next
 
 */
 

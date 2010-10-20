@@ -19,6 +19,18 @@ c = [
 	FloatArray[0,2,4,5,7,9,11,12,7,5,4,2],		// major pseudo mirror
 ];
 d = 0; // global grundton
+e = Pfsm([
+	#[0],
+	0, #[0,0,1,1,1,1,2,2,2,3,6,7,8],	// 0
+	5, #[0,0,0,0,2,2,2,2,3,1],		// 1
+	7, #[0,0,0,0,0,0,1,1,3,3],		// 2
+	12, #[0,0,1,1,2,4,4],			// 3
+	-11, #[4,4,5,5,5,5],				// 4
+	-9, #[0,0,0,0,3,3,3,4,5],		// 5
+	3, #[6,6,6,0,0,0,0],				// 6
+	4, #[7,7,7,0,0,0,0,0,0]			// 7
+	-3, #[6,6,6,0,0,0,0],			// 6
+], inf).asStream;
 
 // need a responder to start the drones!
 
@@ -287,6 +299,14 @@ SynthDef(\stageLimiter, { |wet=0.1, room=0.3|
 b.setn(0, c[2]); // start with pent minor mirrored
 
 }.defer(1);
+
+Tdef(\root, {
+	loop {
+		d = e.next.postln;
+		[4,8,12,16].choose.wait;
+	}
+}).play
+
 }
 
 /* MASTER Ctrl
