@@ -18,6 +18,7 @@ c = [
 	FloatArray[0,2,4,5,7,9,11,12,14,16,17,19],	// major ext
 	FloatArray[0,2,4,5,7,9,11,12,7,5,4,2],		// major pseudo mirror
 ];
+d = 0; // global grundton
 
 // need a responder to start the drones!
 
@@ -41,7 +42,8 @@ u = OSCresponder(a, '/alj/action', { |t, r, msg|
 			\dur, dur,
 			\value, value,
 			\amp, 1,
-			\t_trig, 1
+			\t_trig, 1,
+			\grundTon, d 
 		);
 	} {
 		// TRIGGER SYNTHS
@@ -55,7 +57,7 @@ u = OSCresponder(a, '/alj/action', { |t, r, msg|
 				\bell,
 				\wtf
 			][playerid - 3], 
-			[\out, 0 , \xpos, xpos, \ypos, ypos, \dur, dur, \value, value]
+			[\out, 0 , \xpos, xpos, \ypos, ypos, \dur, dur, \value, value, \grundTon, d]
 		);
 	};
 }).add;
@@ -71,7 +73,8 @@ OSCresponder(a, "/alj/" ++ cmd, {|t, r, msg|
 		).set(
 			\xpos, xpos,
 			\ypos, ypos,
-			\dur, dur
+			\dur, dur,
+			\grundTon, d
 		);
 	};
 	
@@ -96,8 +99,8 @@ OSCresponder(a, "/alj/" ++ cmd, {|t, r, msg|
 
 ///////////////// DRONES //////////////////////////////////
 
-Ndef(\bees, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
-	var snd = Splay.ar(Gendy1.ar(minfreq:[60-24, 60, 60-12].midicps, maxfreq:[62-24, 62, 62-12].midicps) * 0.4);
+Ndef(\bees, { |xpos, ypos, value, gate=1, amp=0, t_trig=1, grundTon|
+	var snd = Splay.ar(Gendy1.ar(minfreq:([60-24, 60, 60-12]+grundTon).midicps, maxfreq:([62-24, 62, 62-12]+grundTon).midicps) * 0.4);
 	snd = snd.lag(0.001);
 	snd = LPF.ar(snd, (ypos.linlin(0,1,30,100)).midicps * value.linexp(0,1,1,8).lag(0.1));
 	snd = FreeVerb2.ar(snd[0], snd[1], 0.3, 1, 1) * 0.6;
@@ -106,8 +109,8 @@ Ndef(\bees, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1) * 0.7 * xpos.linlin(0,1,0.7,1).lag(1);
 });
 
-Ndef(\fifths, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
-	var snd = Blip.ar(([61-24, 73-24] + 24).midicps + LFNoise2.ar([0.3, 0.2]).range(0, ypos.linlin(0,1,0,5)), ypos.linexp(0,1,1,8).lag(0.1));
+Ndef(\fifths, { |xpos, ypos, value, gate=1, amp=0, t_trig=1, grundTon|
+	var snd = Blip.ar(([61-24, 73-24] + 24 + grundTon).midicps + LFNoise2.ar([0.3, 0.2]).range(0, ypos.linlin(0,1,0,5)), ypos.linexp(0,1,1,8).lag(0.1));
 		
 	snd = snd *	LFNoise2.ar([value.linlin(0,1,1,8), value.linlin(0,1,4,20)]).range(0.25, 1);
 	snd = snd + SinOsc.ar((61 - [24,24.6]).midicps, 0, 0.35);
@@ -118,9 +121,9 @@ Ndef(\fifths, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1) * 2 * xpos.linlin(0,1,0.7,1).lag(1);
 });
 
-Ndef(\texture, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
+Ndef(\texture, { |xpos, ypos, value, gate=1, amp=0, t_trig=1, grundTon|
 	var snd = Splay.ar(
-		Ringz.ar(ClipNoise.ar(0.005 * ypos.linlin(0, 1, 1, 2)), ([60,67,72,79]+1+24).midicps *
+		Ringz.ar(ClipNoise.ar(0.005 * ypos.linlin(0, 1, 1, 2)), ([60,67,72,79]+1+24+grundTon).midicps *
 			Select.kr(ypos.linlin(0,1,0,11), [0.75,1,2,0.5,2,1.5].mirror).lag(0.001),
 			0.5
 		).distort
@@ -139,7 +142,7 @@ Ndef(\texture, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 
 // RYTHMIC
 
-SynthDef(\clicks) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
+SynthDef(\clicks) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1, grundTon|
 	var snd, env;
 	snd = Crackle.ar() * 10;
 	snd = BPF.ar(snd, ypos.linlin(0,1,500,14000), 0.25) * ypos.linlin(0,1,1,8);
@@ -150,7 +153,7 @@ SynthDef(\clicks) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	Out.ar(out, Pan2.ar( snd * amp, xpos.linlin(0,1,-1,1) ));
 }.add;
 
-SynthDef(\noise) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.01|
+SynthDef(\noise) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.01, grundTon|
 	var snd, env;
 	snd = GrayNoise.ar() * 4;
 	snd = RHPF.ar(snd, ypos.linlin(0,1,200,2000)) * ypos.linlin(0,1,1,8);
@@ -158,7 +161,7 @@ SynthDef(\noise) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.01|
 	Out.ar(out, Pan2.ar( snd * env * amp, xpos.linlin(0,1,-1,1) ));
 }.add;
 
-SynthDef(\kick, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.5|
+SynthDef(\kick, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.5, grundTon|
 	// kick by otophilia @ synth def pool
 	var env0, env1, env1m, son;
 	
@@ -179,14 +182,14 @@ SynthDef(\kick, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.5|
 
 // MELODIC
 
-SynthDef(\perc, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2|
+SynthDef(\perc, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2, grundTon|
 	var snd, env, freq;
 	freq = DegreeToKey.kr(
 		b.bufnum, // minorPenta
 		ypos.linlin(0,1,0,12), // how many y waben??
 		12,
 		1,
-		61	// c#?
+		61 + grundTon	// c#?
 	).midicps;
 	snd = VarSaw.ar(
 		freq
@@ -198,7 +201,7 @@ SynthDef(\perc, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2|
 	Out.ar(out, Pan2.ar( snd * amp * 1.5 * env, xpos.linlin(0,1,-0.5,0.5) ));
 }).add;
 
-SynthDef(\bell, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
+SynthDef(\bell, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1, grundTon|
 	var snd, env, freq, len;
 	len = value.linlin(0,1,0.2,6);
 	freq = DegreeToKey.kr(
@@ -206,7 +209,7 @@ SynthDef(\bell, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 		ypos.linlin(0,1,0,12), // how many y waben??
 		12,
 		1,
-		61+24	// c#?
+		61+24+grundTon	// c#?
 	).midicps;
 	snd = Ringz.ar(
 		Decay2.ar(Impulse.ar(0), 0.003, 0.5),
@@ -221,14 +224,14 @@ SynthDef(\bell, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	Out.ar(out, Pan2.ar(snd, xpos.linlin(0,1,-0.5,0.5) ));
 }).add;
 
-SynthDef(\marimba, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
+SynthDef(\marimba, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1, grundTon|
 	// inspired by an akadinda by adc
 	var freq = DegreeToKey.kr(
 		b.bufnum, // minorPenta
 		ypos.linlin(0,1,0,12), // how many y waben??
 		12,
 		1,
-		61-12	// c#?
+		61-12+grundTon	// c#?
 	).midicps;
 	var clippedfreq = freq.clip(100, 2000);
 	var durcomp = (440 / clippedfreq) ** 0.4 * 0.5;
@@ -251,7 +254,7 @@ SynthDef(\marimba, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 }).add;
 
 // WTF
-SynthDef(\wtf, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25|
+SynthDef(\wtf, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25, grundTon|
 	var snd, env;
 	snd = Gendy1.ar(1, 0, ypos, 1.0, 50, 1000, 1, 0.005, 12, 12, 1).distort;
 	env = EnvGen.ar(Env.sine(dur), doneAction:2);
