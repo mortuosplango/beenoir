@@ -148,7 +148,7 @@ SynthDef(\clicks) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1, grundTon|
 	snd = BPF.ar(snd, ypos.linlin(0,1,500,14000), 0.25) * ypos.linlin(0,1,1,8);
 	env = EnvGen.ar(Env.linen(0,value.linlin(0,1,0.01,0.001),0));
 	snd = snd * env;
-	snd = snd + CombC.ar(snd, dur, dur/Select.kr((value*4).round, [4,6,8,12] * 6), dur);
+	snd = snd + CombC.ar(snd, dur, dur/Select.kr((value*4).round, [4,6,8,12] * 12), dur);
 	snd = snd * EnvGen.ar(Env([1,1], [dur]), doneAction:2); // for the combz
 	Out.ar(out, Pan2.ar( snd * amp, xpos.linlin(0,1,-1,1) ));
 }.add;
@@ -157,7 +157,7 @@ SynthDef(\noise) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.01, grundTon|
 	var snd, env;
 	snd = GrayNoise.ar() * 4;
 	snd = RHPF.ar(snd, ypos.linlin(0,1,200,2000)) * ypos.linlin(0,1,1,8);
-	env = EnvGen.ar(Env.linen(0,value.linlin(0,1,0.005,0.1),0), doneAction:2);
+	env = EnvGen.ar(Env.linen(0,value.linlin(0,1,0.005,0.25),0), doneAction:2);
 	Out.ar(out, Pan2.ar( snd * env * amp, xpos.linlin(0,1,-1,1) ));
 }.add;
 
