@@ -23,7 +23,7 @@ CODEPAD = 37
 DEBUG = True
 VERBOSE = False
 
-FPS = 24.0
+FPS = 28.0
 
 # Webserver-OSC->alj
 NET_ADDR = ('127.0.0.1', 57140)
@@ -211,7 +211,7 @@ class Player(Entity):
     opcodes_grid = [ pyglet.resource.image('web/opcodes_' + str(i) + '.png') 
                      for i in range(10)]
 
-    def __init__(self, world, pos, player_id=0, title="GrundSpieler"):
+    def __init__(self, world, pos, player_id=0, beat=0, title="GrundSpieler"):
         self.image_file = 'graphics/player_' + str(player_id) + '.png'
         Entity.__init__(self,pos,self.image_file, group=players)
         # center image anchor for rotation
@@ -232,7 +232,7 @@ class Player(Entity):
         self.old_direction = 0
 
         ## time
-        self.time_index = 0
+        self.time_index = beat
         self.granulation = 16
         self.new_granulation = False
 
@@ -292,6 +292,7 @@ class Player(Entity):
         for i in [self.label, self.sprite, self.label_icon] + self.labels:
             i.delete()
         self.world.players[self.player_id] = False
+        self.world.get_tile(self.pos).occupied = False
         if DEBUG:
             print "deleted player ", self.player_id
 
@@ -529,8 +530,8 @@ class BotPlayer(Player):
     """
     Player-Bot with randomly generated code
     """
-    def __init__(self, world, pos, player_id=0):
-        Player.__init__(self, world, pos, player_id, "Bot")
+    def __init__(self, world, pos, player_id=0, beat=0):
+        Player.__init__(self, world, pos, player_id, beat, "Bot")
         self.code = ([ random.randint(0,9) for i in range(CODESIZE - 4) ] + 
                      [ random.choice([1,2,3,4,6,9]) for i in range(3) ] + [ 9 ])
         random.shuffle(self.code)
@@ -544,10 +545,10 @@ class WebPlayer(Player):
     """
     Player with specific controller and timeout
     """
-    def __init__(self, world, pos, controller_id, player_id=0):
+    def __init__(self, world, pos, controller_id, player_id=0, beat=0):
         self.controller = controller_id
         self.title = "Spieler"
-        Player.__init__(self, world, pos, player_id, self.title)
+        Player.__init__(self, world, pos, player_id, beat, self.title)
         self.timeout = 5
         send_osc_to_server('dict', [controller_id, player_id] + self.code)
 
@@ -564,7 +565,7 @@ class WebPlayer(Player):
         return self.controller
 
     def resetTimeout(self):
-        self.timeout = 5
+        self.timeout = 8
 
     def _update_label(self, percent = 0):
         Player._update_label(self, percent)
@@ -585,6 +586,7 @@ class BeeNoirWorld(object):
         self.objs = [ Field(vec3()) for i in range(h*w) ]
         self.players_waiting = []
         self.controllers = dict()
+        self.beat = 0
 
         ## make teleport fields
         middle = (w / 2 * w) + (h / 2)
@@ -659,14 +661,17 @@ class BeeNoirWorld(object):
         self.controllers[controllerID] = playerID
         self.players[playerID] = WebPlayer(self, 
                                            self.random_pos(),
-                                           controllerID, playerID)
+                                           controllerID, playerID,
+                                           self.beat)
 
     def create_bot_player(self, playerID):
         self.players[playerID] = BotPlayer(self, 
                                            self.random_pos(),
-                                           playerID)
+                                           playerID,
+                                           self.beat)
 
     def update(self,dt):
+        self.beat = (self.beat + 1) % 16
         if VERBOSE:
             print "upd ", self.players, PLAYERS
         for t in self.objs:
@@ -733,11 +738,16 @@ class BeeNoirWorld(object):
             for i in [key, p.player_id] + p.code:
                 msg.append(i)
         elif len(filter(lambda x: x, self.players)) < PLAYERS:
-            for i, p in enumerate(self.players):
+            found = False
+            counter = 50
+            while not found:
+                i = random.choice(range(PLAYERS))
+                p = self.players[i]
+                counter -= 1
                 if not p: 
                     self.players_waiting.append(('web', i, key))
                     print "created player nr ", i
-                    break
+                    found = True
                 elif not p.active():
                     self.controllers[key] = i
                     p.resetTimeout()
@@ -747,9 +757,10 @@ class BeeNoirWorld(object):
                     for i in [key, i] + p.code:
                         msg.append(i)
                     client.sendto(msg, NET_SEND_ADDR)
-                    break
-                else:
-                    print "something went wrong: there should be free players!"
+                    found = True
+                elif counter < 0:
+                    found = True
+                    print "something went wrong: no free player found..."
         else:
             msg = osc.OSCMessage()
             msg.setAddress("/alj/dict")
