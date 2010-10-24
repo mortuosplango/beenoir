@@ -9,11 +9,11 @@ Dependencies:
  - SuperCollider            http://supercollider.sf.net/
 
 How to use it:
- 1) start the webserver:
-    ./runWeb
- 2) start SuperCollider or something else listening on port 57120
- 3) start the game:
+ 1) start SuperCollider or something else listening on port 57120
+ 2) start the game:
     ./run
+    or
+    ./runFullscreen
 
 
 You can receive messages with OSC in e. g. SuperCollider:
