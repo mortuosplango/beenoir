@@ -11,7 +11,6 @@ import BaseHTTPServer
 import logging
 import csv
 import sys
-import OSC as osc
 import threading
 import json
 import random
@@ -20,13 +19,6 @@ LOG_FILENAME = '/tmp/polosc.out'
 logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG,)
 logging.info("")
 logging.info("***STARTING***")
-
-# Webserver-OSC->alj
-NET_SEND_ADDR=('127.0.0.1', 57140)
-# alj->Webserver-OSC:
-NET_ADDR=('127.0.0.1', 57141)
-
-players = dict()
 
 class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     def write_response(self):
@@ -90,11 +82,6 @@ class PoloHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         
         return mimeTypes.get(suffix, "text/html")
     
-    def shortHTMLPage(self, string):
-        return "<html><head><meta name=\"viewport\" content=\"width=500, user-scalable=no\" /><link rel=\"stylesheet\" href=\"style.css\" type=\"text/css\" media=\"screen\" /></head><body><div id=\"main\">%s</div></body></html>"%(string)
-
-    def shortErrorPage(self, string):
-        return self.shortHTMLPage("<h1>Fehler!</h1><p>%s</p><p style=\"margin-top:190px;\"><a class=\"button\" href=\"/\">Zur&uuml;ck zum Start</a></p>"%(string))
     
     def send_notifications(self, osc_address, osc_data):
         if self.server.notifications.has_key(self.path):
@@ -184,10 +171,7 @@ def run(server_class = PoloServer,
     try:
         httpd.serve_forever()
     except:
-        print "\nClosing OSCServer."
-        oscServer.close()
         print "Waiting for Server-thread to finish"
-        oscServerThread.join()
         httpd.server_close()
 
 def get_filenames(arg_list, extension):
@@ -285,18 +269,6 @@ if "__main__" == __name__:
     notification_filenames = get_filenames(sys.argv, notification_extension)
     notifications = Notifications()
     notifications.read_notifications(notification_filenames)
-
-    # start communication 
-    client = osc.OSCClient()
-
-    oscServer = osc.OSCServer(NET_ADDR)
-    oscServer.addDefaultHandlers()
-
-    oscServer.addMsgHandler("/alj/dict", update_dict)
-    # Start OSCServer
-    print "\nStarting OSCServer. Use ctrl-C to quit."
-    oscServerThread = threading.Thread( target = oscServer.serve_forever )
-    oscServerThread.start()
 
     port = 8000
     if (sys.argv[1] not in mapping_filenames) and (sys.argv[1] not in notification_filenames):
