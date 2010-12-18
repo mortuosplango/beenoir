@@ -733,10 +733,7 @@ class BeeNoirWorld(object):
         if key in self.controllers:
             p = self.players[self.controllers[key]]
             p.resetTimeout()
-            msg = osc.OSCMessage()
-            msg.setAddress("/alj/dict")
-            for i in [key, p.player_id] + p.code:
-                msg.append(i)
+            send_osc_to_server("dict", [key, p.player_id] + p.code)
         elif len(filter(lambda x: x, self.players)) < PLAYERS:
             found = False
             counter = 50
@@ -752,21 +749,13 @@ class BeeNoirWorld(object):
                     self.controllers[key] = i
                     p.resetTimeout()
                     p.controller = key
-                    msg = osc.OSCMessage()
-                    msg.setAddress("/alj/dict")
-                    for i in [key, i] + p.code:
-                        msg.append(i)
-                    client.sendto(msg, NET_SEND_ADDR)
+                    send_osc_to_server("dict", [key, i] + p.code)
                     found = True
                 elif counter < 0:
                     found = True
                     print "something went wrong: no free player found..."
         else:
-            msg = osc.OSCMessage()
-            msg.setAddress("/alj/dict")
-            for i in [key, -1]:
-                msg.append(i)
-                client.sendto(msg, NET_SEND_ADDR)
+            send_osc_to_server("dict", [key, -1])
             print "no free player!"
 
 
@@ -838,12 +827,8 @@ if __name__ == '__main__':
 
     oscServer = osc.OSCServer(NET_ADDR)
     oscServer.addDefaultHandlers()
-    
-    msg = osc.OSCMessage()
-    msg.setAddress("/alj/start")
-    for i in [beenoir.width, beenoir.height]:
-        msg.append(i)
-    client.sendto(msg, SC_ADDR) 
+
+    send_osc_to_sc("start", [beenoir.width, beenoir.height])
 
     oscServer.addMsgHandler("/alj/code", beenoir.update_code)
     oscServer.addMsgHandler("/alj/ping", beenoir.ping_players)
