@@ -568,7 +568,7 @@ class WebPlayer(Player):
     def active(self):
         return self.controller
 
-    def resetTimeout(self):
+    def reset_timeout(self):
         self.timeout = 8
 
     def _update_label(self, percent = 0):
@@ -719,7 +719,7 @@ class BeeNoirWorld(object):
 
         key = data[0]
         if key in self.controllers:
-            self.players[self.controllers[key]].resetTimeout()
+            self.players[self.controllers[key]].reset_timeout()
         else:
             print 'no such controller: ', data
 
@@ -732,7 +732,7 @@ class BeeNoirWorld(object):
         key = data[0]
         if key in self.controllers:
             p = self.players[self.controllers[key]]
-            p.resetTimeout()
+            p.reset_timeout()
             send_osc_to_server("dict", [key, p.player_id] + p.code)
         elif len(filter(lambda x: x, self.players)) < PLAYERS:
             found = False
@@ -747,7 +747,7 @@ class BeeNoirWorld(object):
                     found = True
                 elif not p.active():
                     self.controllers[key] = i
-                    p.resetTimeout()
+                    p.reset_timeout()
                     p.controller = key
                     send_osc_to_server("dict", [key, i] + p.code)
                     found = True
