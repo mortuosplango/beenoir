@@ -9,6 +9,8 @@ import pyglet.window
 import pyglet.clock
 from pyglet.window import key
 
+from common import colors, debug_print
+
 WIN_WIDTH = 1200
 WIN_HEIGHT = 800
 
@@ -19,9 +21,6 @@ PLAYERS = 10
 
 CODESIZE = 8
 CODEPAD = 37
-# (verbose) debugging output
-DEBUG = True
-VERBOSE = False
 
 FPS = 28.0
 
@@ -40,10 +39,6 @@ background = pyglet.graphics.OrderedGroup(0)
 foreground = pyglet.graphics.OrderedGroup(1)
 players = pyglet.graphics.OrderedGroup(2)
 
-colors = ('EDFF00', 'FF0000', '2600FF', 
-           '006100', '6400A3', 'FF7100', 
-           'B4B4B4', 'FF00FF', '00FF3F', 
-           '00FFFF', 'FFFFFF', 'FFFFFF,' 'FFFFFF')
 
 class vec3(object):
     """
@@ -181,11 +176,11 @@ class Field(Tile):
                 self.active_sprite.opacity = 0
             else:
                 self.active_sprite.opacity = self._activedt * (255 / 0.5)
-        if VERBOSE:
-            if self.occupied:
-                self.change_bitmap('graphics/tile.png')
-            else:
-                self._update_bitmap()
+        # if VERBOSE:
+        #    if self.occupied:
+        #        self.change_bitmap('graphics/tile.png')
+        #    else:
+        #        self._update_bitmap()
 
     def update_pos(self):
         Tile.update_pos(self)
@@ -266,8 +261,8 @@ class Player(Entity):
             font_name='Tahoma',
             font_size=12,
             bold=True,
-            x= CODEPAD + 10, 
-            y= window.height - ystart - 15,
+            x=CODEPAD + 10, 
+            y=window.height - ystart - 15,
             anchor_x='left', 
             color=(222,) * 4 ,
             anchor_y='center',
@@ -285,8 +280,8 @@ class Player(Entity):
         self._update_label()
 
         self.send_status('newplayer')
-        if DEBUG:
-            print 'player id ', self.player_id, ' created'
+
+        debug_print('player id %d created'%(self.player_id))
 
 
     def delete(self):
@@ -295,8 +290,8 @@ class Player(Entity):
             i.delete()
         self.world.players[self.player_id] = False
         self.world.get_tile(self.pos).occupied = False
-        if DEBUG:
-            print 'deleted player ', self.player_id
+        
+        debug_print('deleted player %d'%(self.player_id))
 
     def _change_time(self):
         self.new_granulation = [32, 24, 16, 12, 8][self.world.get_tile(self.pos).value]
@@ -523,9 +518,9 @@ class Player(Entity):
     def _action(self):
         tile = self.world.get_tile(self.pos)
         tile.activate()
-        self.send_status("action")
-        if DEBUG:
-            print 'actione!'
+        self.send_status('action')
+        
+        debug_print('actione!')
 
 
 class BotPlayer(Player):
@@ -539,7 +534,7 @@ class BotPlayer(Player):
         random.shuffle(self.code)
 
     def _teleport(self):
-        print 'teleport and scramble!'
+        debug_print('teleport and scramble!')
         random.shuffle(self.code)
 
 
@@ -674,8 +669,7 @@ class BeeNoirWorld(object):
 
     def update(self,dt):
         self.beat = (self.beat + 1) % 16
-        if VERBOSE:
-            print 'upd ', self.players, PLAYERS
+        debug_print('upd %s %s'%(self.players, PLAYERS))
         for t in self.objs:
             t.update(dt)
         if self.players:
@@ -703,8 +697,8 @@ class BeeNoirWorld(object):
         """
         Changes the code of a player to the one sent by its controller
         """
-        if DEBUG:
-            print 'got update: ', data
+        debug_print('got update: %s'%(data))
+        
         key = data[0]
         playerID = data[1]
         if key in self.controllers:
@@ -717,8 +711,8 @@ class BeeNoirWorld(object):
         """
         Resets the timeout of a player when pinged from the controller
         """
-        if DEBUG:
-            print 'got ping: ', data
+        debug_print('got ping: %s'%(data))
+
         key = data[0]
         if key in self.controllers:
             self.players[self.controllers[key]].resetTimeout()
@@ -729,8 +723,8 @@ class BeeNoirWorld(object):
         """
         Returns the player to a specific controller or creates a new player
         """
-        if DEBUG:
-            print 'got player request: ', data
+        debug_print('got player request: %s'%(data))
+
         key = data[0]
         if key in self.controllers:
             p = self.players[self.controllers[key]]
