@@ -138,6 +138,9 @@ class Tile(Entity):
     def activate(self):
         self._active = True
         self._activedt = 0.5
+        
+    def is_teleport():
+        return False
 
 
 class Teleport(Tile):
@@ -146,6 +149,9 @@ class Teleport(Tile):
     """
     def __init__(self, pos):
         Tile.__init__(self,pos, 'graphics/tile_hole.png')
+    
+    def is_teleport():
+        return True
 
 
 class Field(Tile):
@@ -211,6 +217,7 @@ class Player(Entity):
     def __init__(self, world, pos, player_id=0, beat=0, title='GrundSpieler'):
         self.image_file = 'graphics/player_%d.png'%(player_id)
         Entity.__init__(self,pos,self.image_file, group=players)
+        
         # center image anchor for rotation
         self.image.anchor_x = self.image.width // 2 
         self.image.anchor_y = self.image.height // 2
@@ -501,7 +508,7 @@ class Player(Entity):
             pos = self._get_target_pos(forward=forward)
 
         if pos:
-            if type(self.world.get_tile(pos)) == Teleport:
+            if tself.world.get_tile(pos).is_teleport():
                 self._teleport()
                 self.world.get_tile(pos).activate()
                 pos = self.world.random_pos()
@@ -683,7 +690,7 @@ class BeeNoirWorld(object):
             pos = vec3(random.randint(0, self.width - 1),
                        random.randint(0, self.height - 1), 
                        0)
-            if type(self.get_tile(pos)) != Teleport:
+            if not self.get_tile(pos).is_teleport():
                 occupied = self.get_tile(pos).occupied
             else:
                 occupied = True
