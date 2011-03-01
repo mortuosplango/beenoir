@@ -139,7 +139,7 @@ class Tile(Entity):
         self._active = True
         self._activedt = 0.5
         
-    def is_teleport():
+    def is_teleport(self):
         return False
 
 
@@ -150,7 +150,7 @@ class Teleport(Tile):
     def __init__(self, pos):
         Tile.__init__(self,pos, 'graphics/tile_hole.png')
     
-    def is_teleport():
+    def is_teleport(self):
         return True
 
 
@@ -508,7 +508,7 @@ class Player(Entity):
             pos = self._get_target_pos(forward=forward)
 
         if pos:
-            if tself.world.get_tile(pos).is_teleport():
+            if self.world.get_tile(pos).is_teleport():
                 self._teleport()
                 self.world.get_tile(pos).activate()
                 pos = self.world.random_pos()
@@ -676,7 +676,7 @@ class BeeNoirWorld(object):
 
     def update(self,dt):
         self.beat = (self.beat + 1) % 16
-        debug_print('upd %s %s'%(self.players, PLAYERS))
+        # debug_print('upd %s %s'%(self.players, PLAYERS))
         for t in self.objs:
             t.update(dt)
         if self.players:
