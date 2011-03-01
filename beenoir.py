@@ -9,7 +9,7 @@ import pyglet.window
 import pyglet.clock
 from pyglet.window import key
 
-from common import colors, debug_print
+from common import *
 
 WIN_WIDTH = 1200
 WIN_HEIGHT = 800
@@ -584,9 +584,9 @@ class BeeNoirWorld(object):
     Represents the game
     """
     def __init__(self, w, h):
-        self.width=w
-        self.height=h
-        self.players = [False,] * PLAYERS
+        self.width = w
+        self.height = h
+        self.players = [False] * PLAYERS
         self.objs = [ Field(vec3()) for i in range(h*w) ]
         self.players_waiting = []
         self.controllers = dict()
@@ -650,15 +650,15 @@ class BeeNoirWorld(object):
         creates the waiting players all at once to avoid
         confusion in the rendering engine
         """
+        for i in self.players_waiting:
+            if not self.players[i[1]]:
+                if i[0] == 'web':
+                    self.create_web_player(i[1], i[2])
+                elif i[0] == 'bot':
+                    self.create_bot_player(i[1])
+            else:
+                print 'already there'
         if len(self.players_waiting) > 0:
-            for i in self.players_waiting:
-                if not self.players[i[1]]:
-                    if i[0] == 'web':
-                        self.create_web_player(i[1], i[2])
-                    elif i[0] == 'bot':
-                        self.create_bot_player(i[1])
-                else:
-                    print 'already there'           
             self.players_waiting = []
 
     def create_web_player(self, playerID, controllerID=False):
@@ -685,16 +685,13 @@ class BeeNoirWorld(object):
                     p.update(dt)
 
     def random_pos(self):
-        occupied = True
-        while occupied:
+        while True:
             pos = vec3(random.randint(0, self.width - 1),
                        random.randint(0, self.height - 1), 
                        0)
-            if not self.get_tile(pos).is_teleport():
-                occupied = self.get_tile(pos).occupied
-            else:
-                occupied = True
-        return pos
+            tile = self.get_tile(pos)
+            if not (tile.is_teleport() or tile.occupied):
+                return pos
 
     def get_tile(self,pos):
         return self.objs[pos.x + pos.y * self.width]
