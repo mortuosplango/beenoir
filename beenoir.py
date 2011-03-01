@@ -26,22 +26,24 @@ VERBOSE = False
 FPS = 28.0
 
 # Webserver-OSC->alj
-NET_ADDR = ('127.0.0.1', 57140)
+# NET_ADDR = ('127.0.0.1', 57140)
 # alj->Webserver-OSC:
-NET_SEND_ADDR = ('127.0.0.1', 57141)
+# NET_SEND_ADDR = ('127.0.0.1', 57141)
 
 # alj-OSC->SuperCollider
 SC_ADDR = ('127.0.0.1', 57120)
+
+SC_OSC_PREFIX = '/alj'
 
 batch = pyglet.graphics.Batch()
 background = pyglet.graphics.OrderedGroup(0)
 foreground = pyglet.graphics.OrderedGroup(1)
 players = pyglet.graphics.OrderedGroup(2)
 
-colors = [ 'EDFF00', 'FF0000', '2600FF', 
+colors = ('EDFF00', 'FF0000', '2600FF', 
            '006100', '6400A3', 'FF7100', 
            'B4B4B4', 'FF00FF', '00FF3F', 
-           '00FFFF', 'FFFFFF', 'FFFFFF,' 'FFFFFF']
+           '00FFFF', 'FFFFFF', 'FFFFFF,' 'FFFFFF')
 
 class vec3(object):
     """
@@ -148,7 +150,7 @@ class Teleport(Tile):
     A tile, that teleports the player to a random location when stepped on.
     """
     def __init__(self, pos):
-        Tile.__init__(self,pos,'graphics/tile_hole.png')
+        Tile.__init__(self,pos, 'graphics/tile_hole.png')
 
 
 class Field(Tile):
@@ -158,7 +160,7 @@ class Field(Tile):
 
     max_value = 4
 
-    tiles = ['graphics/tile_' + str(i) + '.png' for i in range(5) ]
+    tiles = ['graphics/tile_%d.png'%(i) for i in range(5) ]
     active_img = pyglet.resource.image('graphics/tile_active.png')
 
     def __init__(self, pos):
@@ -208,11 +210,11 @@ class Player(Entity):
     """ 
     Generic Player
     """
-    opcodes_grid = [ pyglet.resource.image('web/opcodes_' + str(i) + '.png') 
+    opcodes_grid = [pyglet.resource.image('web/opcodes_%d.png'%(i)) 
                      for i in range(10)]
 
-    def __init__(self, world, pos, player_id=0, beat=0, title="GrundSpieler"):
-        self.image_file = 'graphics/player_' + str(player_id) + '.png'
+    def __init__(self, world, pos, player_id=0, beat=0, title='GrundSpieler'):
+        self.image_file = 'graphics/player_%d.png'%(player_id)
         Entity.__init__(self,pos,self.image_file, group=players)
         # center image anchor for rotation
         self.image.anchor_x = self.image.width // 2 
@@ -241,7 +243,7 @@ class Player(Entity):
                        for i in range(3)] + [255,]
 
         ## code
-        self.code = [0,] * CODESIZE
+        self.code = [0] * CODESIZE
         self.index = 0
         self.player_id = player_id
 
@@ -260,7 +262,7 @@ class Player(Entity):
             self.labels[-1].scale = 32.0 / self.labels[-1].width
 
         self.label = pyglet.text.Label(
-            title + " " + str(self.player_id),
+            "%s %d"%(title, self.player_id),
             font_name='Tahoma',
             font_size=12,
             bold=True,
@@ -284,17 +286,17 @@ class Player(Entity):
 
         self.send_status('newplayer')
         if DEBUG:
-            print "player id ", self.player_id, " created"
+            print 'player id ', self.player_id, ' created'
 
 
     def delete(self):
-        self.send_status("playerdeleted")
+        self.send_status('playerdeleted')
         for i in [self.label, self.sprite, self.label_icon] + self.labels:
             i.delete()
         self.world.players[self.player_id] = False
         self.world.get_tile(self.pos).occupied = False
         if DEBUG:
-            print "deleted player ", self.player_id
+            print 'deleted player ', self.player_id
 
     def _change_time(self):
         self.new_granulation = [32, 24, 16, 12, 8][self.world.get_tile(self.pos).value]
@@ -302,9 +304,9 @@ class Player(Entity):
         # [8, 6, 4, 3, 2]
         # 1/2, 3/8, 1/4, 3/16, 1/8
 
-    def send_status(self, addr):
+    def send_status(self, status):
         tile = self.world.get_tile(self.pos)
-        send_osc_to_sc(addr,  [self.player_id, 
+        send_osc_to_sc('/' + status,  [self.player_id, 
                                self.pos.x / float(self.world.width), 
                                self.pos.y / float(self.world.height), 
                                tile.value / float(tile.max_value),
@@ -385,7 +387,7 @@ class Player(Entity):
 
         self.sprite.rotation = (
             (self.direction * percent) +
-            (self.old_direction * (1-percent))) * 60
+            (self.old_direction * (1 - percent))) * 60
 
   
     def _pos2screenpos(self,pos):
@@ -450,7 +452,7 @@ class Player(Entity):
         """
 
         if not pos:
-            pos = vec3(self.pos.x,self.pos.y,self.pos.z)
+            pos = vec3(self.pos.x, self.pos.y, self.pos.z)
         
         if forward:
             direction = self.direction
@@ -477,8 +479,8 @@ class Player(Entity):
         if ((pos.x < 0) or (pos.x >= self.world.width) 
             or (pos.y < 0) or (pos.y >= self.world.height)):
             wrap_pos = vec3(pos.x,pos.y,pos.z)
-            pos.x = pos.x%self.world.width
-            pos.y = pos.y%self.world.height
+            pos.x = pos.x % self.world.width
+            pos.y = pos.y % self.world.height
 
         if not self.world.get_tile(pos).occupied:
             if wrap_pos:
@@ -508,22 +510,22 @@ class Player(Entity):
                 self._teleport()
                 self.world.get_tile(pos).activate()
                 pos = self.world.random_pos()
-                self.send_status("teleport")
+                self.send_status('teleport')
             elif jump: 
-                self.send_status("jump")
+                self.send_status('jump')
             else:
-                self.send_status("move")
+                self.send_status('move')
             self._change_position(pos)
     
     def _teleport(self):
-        print "teleport!"
+        print 'teleport!'
 
     def _action(self):
         tile = self.world.get_tile(self.pos)
         tile.activate()
         self.send_status("action")
         if DEBUG:
-            print "actione!"
+            print 'actione!'
 
 
 class BotPlayer(Player):
@@ -531,13 +533,13 @@ class BotPlayer(Player):
     Player-Bot with randomly generated code
     """
     def __init__(self, world, pos, player_id=0, beat=0):
-        Player.__init__(self, world, pos, player_id, beat, "Bot")
+        Player.__init__(self, world, pos, player_id, beat, 'Bot')
         self.code = ([ random.randint(0,9) for i in range(CODESIZE - 4) ] + 
                      [ random.choice([1,2,3,4,6,9]) for i in range(3) ] + [ 9 ])
         random.shuffle(self.code)
 
     def _teleport(self):
-        print "teleport and scramble!"
+        print 'teleport and scramble!'
         random.shuffle(self.code)
 
 
@@ -547,7 +549,7 @@ class WebPlayer(Player):
     """
     def __init__(self, world, pos, controller_id, player_id=0, beat=0):
         self.controller = controller_id
-        self.title = "Spieler"
+        self.title = 'Spieler'
         Player.__init__(self, world, pos, player_id, beat, self.title)
         self.timeout = 5
         send_osc_to_server('dict', [controller_id, player_id] + self.code)
@@ -569,9 +571,9 @@ class WebPlayer(Player):
 
     def _update_label(self, percent = 0):
         Player._update_label(self, percent)
-        text = self.title + " " + str(self.player_id)
+        text = self.title + ' ' + str(self.player_id)
         if not self.controller:
-            text += " (frei)" 
+            text += ' (frei)' 
         self.label.text = text
 
 
@@ -608,12 +610,12 @@ class BeeNoirWorld(object):
             self.objs[i].update_pos()
 
         self.label = pyglet.text.Label(
-            "Bee Noir",
+            'Bee Noir',
             font_name='Tahoma',
             font_size=22,
             bold=True,
-            x= window.width - 20, 
-            y= 10,
+            x=window.width - 20, 
+            y=10,
             anchor_x='right', 
             color=(40, 88, 89, 255),
             anchor_y='bottom',
@@ -654,7 +656,7 @@ class BeeNoirWorld(object):
                     elif i[0] == 'bot':
                         self.create_bot_player(i[1])
                 else:
-                    print "already there"            
+                    print 'already there'           
             self.players_waiting = []
 
     def create_web_player(self, playerID, controllerID=False):
@@ -673,7 +675,7 @@ class BeeNoirWorld(object):
     def update(self,dt):
         self.beat = (self.beat + 1) % 16
         if VERBOSE:
-            print "upd ", self.players, PLAYERS
+            print 'upd ', self.players, PLAYERS
         for t in self.objs:
             t.update(dt)
         if self.players:
@@ -702,33 +704,33 @@ class BeeNoirWorld(object):
         Changes the code of a player to the one sent by its controller
         """
         if DEBUG:
-            print "got update: ", data
+            print 'got update: ', data
         key = data[0]
         playerID = data[1]
         if key in self.controllers:
             if len(data[2:]) == CODESIZE:
                 self.players[self.controllers[key]].code = data[2:]
             else:
-                print "something went wrong: code is too short"
+                print 'something went wrong: code is too short'
 
     def ping_players(self, addr, tags, data, client_addr):
         """
         Resets the timeout of a player when pinged from the controller
         """
         if DEBUG:
-            print "got ping: ", data
+            print 'got ping: ', data
         key = data[0]
         if key in self.controllers:
             self.players[self.controllers[key]].resetTimeout()
         else:
-            print "no such controller: ", data
+            print 'no such controller: ', data
 
     def get_player(self, addr, tags, data, client_addr):
         """
         Returns the player to a specific controller or creates a new player
         """
         if DEBUG:
-            print "got player request: ", data
+            print 'got player request: ', data
         key = data[0]
         if key in self.controllers:
             p = self.players[self.controllers[key]]
@@ -743,7 +745,7 @@ class BeeNoirWorld(object):
                 counter -= 1
                 if not p: 
                     self.players_waiting.append(('web', i, key))
-                    print "created player nr ", i
+                    print 'created player nr ', i
                     found = True
                 elif not p.active():
                     self.controllers[key] = i
@@ -753,18 +755,18 @@ class BeeNoirWorld(object):
                     found = True
                 elif counter < 0:
                     found = True
-                    print "something went wrong: no free player found..."
+                    print 'something went wrong: no free player found ...'
         else:
             send_osc_to_server("dict", [key, -1])
-            print "no free player!"
+            print 'no free player!'
 
 
 ## osc functions
-def send_osc_to_server(addr, data):
-    send_osc(NET_SEND_ADDR, "/alj/" + addr, data)
+# def send_osc_to_server(addr, data):
+#    send_osc(NET_SEND_ADDR, "/alj/" + addr, data)
 
 def send_osc_to_sc(addr, data):
-    send_osc(SC_ADDR, "/alj/" + addr, data)
+    send_osc(SC_ADDR, SC_OSC_PREFIX + addr, data)
 
 def send_osc(netaddr, addr, data):
     msg = osc.OSCMessage()
@@ -803,12 +805,11 @@ if __name__ == '__main__':
     @window.event
     def on_key_press(symbol, modifiers):
         if symbol == key.ESCAPE:
-            print "shutting down..."
+            print 'shutting down...'
 
-            print "\nClosing OSCServer."
+            print '\nClosing OSCServer.'
             oscServer.close()
-            print "Waiting for Server-thread to finish"
-            oscServerThread.join()
+            print 'Waiting for Server-thread to finish'
             pyglet.app.exit()
         return pyglet.event.EVENT_HANDLED
 
@@ -825,19 +826,15 @@ if __name__ == '__main__':
     ## start communication
     client = osc.OSCClient()
 
-    oscServer = osc.OSCServer(NET_ADDR)
-    oscServer.addDefaultHandlers()
+    # oscServer = osc.OSCServer(NET_ADDR)
+    # oscServer.addDefaultHandlers()
 
-    send_osc_to_sc("start", [beenoir.width, beenoir.height])
+    send_osc_to_sc('/start', [beenoir.width, beenoir.height])
 
-    oscServer.addMsgHandler("/alj/code", beenoir.update_code)
-    oscServer.addMsgHandler("/alj/ping", beenoir.ping_players)
-    oscServer.addMsgHandler("/alj/getplayer", beenoir.get_player)
+    # oscServer.addMsgHandler("/alj/code", beenoir.update_code)
+    # oscServer.addMsgHandler("/alj/ping", beenoir.ping_players)
+    # oscServer.addMsgHandler("/alj/getplayer", beenoir.get_player)
 
-    # Start OSCServer
-    print "\nStarting OSCServer. Use ctrl-C to quit."
-    oscServerThread = threading.Thread( target = oscServer.serve_forever )
-    oscServerThread.start()
 
     pyglet.clock.schedule_interval(beenoir.update, 1/FPS)
     pyglet.app.run()
