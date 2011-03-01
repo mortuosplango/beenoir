@@ -1,6 +1,5 @@
 import random
 import math
-import threading
 import sys
 
 import OSC as osc
