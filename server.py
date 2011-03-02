@@ -19,14 +19,12 @@ def run(actors, port=8000):
 
 class BeenoirHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     def do_HEAD(self):
-        success = False
         for actor in self.server.actors:
             if actor.is_responsible(self):
                 success = actor.try_handle(self)
                 if success:
+                    self.send_response_head(200)
                     break                 
-        if success:
-            self.send_response_head(200)
         else:
             self.send_response_head(404)
         
