@@ -726,7 +726,7 @@ class BeeNoirWorld(object):
             else:
                 print 'something went wrong: code is too short'
 
-    def ping_players(self, controller_id):
+    def ping_player(self, controller_id):
         """
         Resets the timeout of a player when pinged from the controller
         """
@@ -825,6 +825,7 @@ if __name__ == '__main__':
     actors = [
         BeenoirStartActor('/', beenoir),
         BeenoirGameActor('/game', beenoir),
+        BeenoirPingActor('/ping', beenoir),
         StaticFilesActor('/static/', 'web/')
     ]
 
@@ -863,7 +864,7 @@ if __name__ == '__main__':
     send_osc_to_sc('/start', [beenoir.width, beenoir.height])
 
     # oscServer.addMsgHandler("/alj/code", beenoir.update_code)
-    # oscServer.addMsgHandler("/alj/ping", beenoir.ping_players)
+    # oscServer.addMsgHandler("/alj/ping", beenoir.ping_player)
     # oscServer.addMsgHandler("/alj/getplayer", beenoir.get_player)
 
  

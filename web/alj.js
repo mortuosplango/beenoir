@@ -19,7 +19,7 @@ function sendMsg (address, data, types) {
 }
 
 
-function sendNewCode (ID, image, send) {
+function sendNewCode (image, send) {
 
   	send = typeof(send) != 'undefined' ? send : true;
 
@@ -66,34 +66,19 @@ function sendCodes()
 	        "siiiiiiiii");
 }
 
-function getValue () {
-    var value = "";
-    if (document.cookie) {
-	var valueStart = document.cookie.indexOf("=") + 1;
-	var valueEnd = document.cookie.indexOf(";");
-	if (valueEnd == -1)
-	    valueEnd = document.cookie.length;
-	value = document.cookie.substring(valueStart, valueEnd);
-    }
-    return value;
-}
-
-function setValue (name, value, expiration) {
-    var now = new Date();
-    var expires = new Date(now.getTime() + expiration);
-    document.cookie = name + "=" + value + "; expires=" + expires.toGMTString() + ";";
-}
-
 
 function pingServer() {
-    sendMsg("/alj/ping", [ID, playerNo], "si");
+    $.ajax({
+        url: '/ping?id=' + ID,
+        type: 'POST',
+        timeout: 1000,
+        error: function(){
+            // TODO: error message?
+        },
+        success: function(json){
+            // Who cares? This was one-way.
+        }
+    });
+    
     window.setTimeout("pingServer()", 1500);
-}
-
-function getPlayer() {
-    sendMsg("/alj/getplayer", [ID], "s");
-}
-
-function changeName (ID) {
-    sendMsg("/alj/name", [ID,document.code.name.value],"ss");
 }

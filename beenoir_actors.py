@@ -5,8 +5,8 @@ import beenoir
 import time
 
 class BeenoirBaseActor(PathActor):
-    def __init__(self, path, world):
-        PathActor.__init__(self, "GET", path, None)
+    def __init__(self, path, world, request="GET"):
+        PathActor.__init__(self, request, path, None)
         self.world = world
     
     def controller_id(self, handler):
@@ -30,6 +30,18 @@ class BeenoirStartActor(BeenoirBaseActor):
             
         else:
             handler.send_page(ShortErrorHTMLPage("Keine freien Spieler verf&uuml;gbar!"))
+
+class BeenoirPingActor(BeenoirBaseActor):
+    def __init__(self, path, world):
+        BeenoirBaseActor.__init__(self, path, world, "POST")
+    
+    def handle(self, handler):
+        controller_id = self.controller_id(handler)
+        if controller_id:
+            self.world.ping_player(controller_id)
+            handler.send_page("ok")
+        else:
+            handler.send_page("fail")
 
 class BeenoirGameActor(BeenoirBaseActor):
     def handle(self, handler):

@@ -1,7 +1,6 @@
     <script type="text/javascript">
-      var ID = %(controller_id)s;
+      var ID = '%(controller_id)s';
       var playerNo = %(player_id)s;
-      pingServer();
       var code = %(code_array)s;
 
       // preloading images
@@ -21,3 +20,6 @@
       background-color: #%(player_color)s;
       }
     </style>
+    <script type="text/javascript">
+    pingServer();
+    </script>
