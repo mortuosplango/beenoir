@@ -1,6 +1,6 @@
 # globally used variables and functions
 
-DEBUG = True
+DEBUG = False
 
 if DEBUG:
     def debug_print(string):

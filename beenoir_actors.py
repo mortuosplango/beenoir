@@ -43,6 +43,21 @@ class BeenoirPingActor(BeenoirBaseActor):
         else:
             handler.send_page("fail")
 
+class BeenoirCodeActor(BeenoirBaseActor):
+    def __init__(self, path, world):
+        BeenoirBaseActor.__init__(self, path, world, "POST")
+    
+    def handle(self, handler):
+        controller_id = self.controller_id(handler)
+        if controller_id:
+            dict = handler.get_json_dict()
+            self.world.update_code(controller_id, 
+                                   dict.get("code", [0] * 8))
+            handler.send_page("ok")
+        else:
+            handler.send_page("fail")
+
+
 class BeenoirGameActor(BeenoirBaseActor):
     def handle(self, handler):
         
@@ -74,7 +89,7 @@ class BeenoirGameActor(BeenoirBaseActor):
                     inactive = ""
                     if player_code[i] != e:
                         inactive = "1"
-                    code_table += "<img src='/static/opcodes_%s%s.png' onClick='sendNewCode(ID, %s, %s)' width='48' height='48' alt='%s' id='%s_%s' />\n"%(inactive, e, i, e, opcode_alts[e], i, e)
+                    code_table += "<img src='/static/opcodes_%s%s.png' onClick='changeCode(%s, %s)' width='48' height='48' alt='%s' id='%s_%s' />\n"%(inactive, e, i, e, opcode_alts[e], i, e)
                     if e < (NUMCODES - 1):
                         code_table += "<br />"
                 code_table += "</td>"

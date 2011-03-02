@@ -712,17 +712,16 @@ class BeeNoirWorld(object):
     def get_tile(self,pos):
         return self.objs[pos.x + pos.y * self.width]
 
-    def update_code(self, controller_id, data):
+    def update_code(self, controller_id, code):
         """
         Changes the code of a player to the one sent by its controller
         """
-        debug_print('got update: %s, %s'%(controller_id, data))
+        debug_print('got update: %s, %s'%(controller_id, code))
         
-
-        playerID = data[1]
+        playerID = self.controllers[controller_id];
         if controller_id in self.controllers:
-            if len(data[1:]) == CODESIZE:
-                self.players[self.controllers[controller_id]].code = data[1:]
+            if len(code) == CODESIZE:
+                self.players[playerID].code = code
             else:
                 print 'something went wrong: code is too short'
 
@@ -780,10 +779,6 @@ class BeeNoirWorld(object):
             return None
 
 
-## osc functions
-# def send_osc_to_server(addr, data):
-#    send_osc(NET_SEND_ADDR, "/alj/" + addr, data)
-
 def send_osc_to_sc(addr, data):
     send_osc(SC_ADDR, SC_OSC_PREFIX + addr, data)
 
@@ -826,13 +821,13 @@ if __name__ == '__main__':
         BeenoirStartActor('/', beenoir),
         BeenoirGameActor('/game', beenoir),
         BeenoirPingActor('/ping', beenoir),
+        BeenoirCodeActor('/code', beenoir),
         StaticFilesActor('/static/', 'web/')
     ]
 
     # WebServer Startup
     http_thread = ActorHTTPServerThread(actors, 8000)
     http_thread.start()
-
 
     @window.event
     def on_key_press(symbol, modifiers):
@@ -858,16 +853,7 @@ if __name__ == '__main__':
     ## start communication
     client = osc.OSCClient()
 
-    # oscServer = osc.OSCServer(NET_ADDR)
-    # oscServer.addDefaultHandlers()
-
     send_osc_to_sc('/start', [beenoir.width, beenoir.height])
-
-    # oscServer.addMsgHandler("/alj/code", beenoir.update_code)
-    # oscServer.addMsgHandler("/alj/ping", beenoir.ping_player)
-    # oscServer.addMsgHandler("/alj/getplayer", beenoir.get_player)
-
- 
 
     pyglet.clock.schedule_interval(beenoir.update, 1/FPS)
     pyglet.app.run()

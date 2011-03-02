@@ -2,6 +2,8 @@ import BaseHTTPServer
 from htmlpage import *
 import os
 from threading import Thread
+import json
+
 
 class ActorHTTPServer (BaseHTTPServer.HTTPServer):
     def __init__(self, server_address, handler_class, actors):
@@ -90,6 +92,13 @@ class ActorHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         else:        
             self.send_page(HTTP404ErrorHTMLPage(self.path), 404)
 
+    def get_json_dict(self):
+        msg_len = int(self.headers.getheader('Content-Length'))
+        msg = self.rfile.read(msg_len)
+        try:
+            return json.loads(msg)
+        except Exception, e:
+            return {}
 
 class BaseActor:
     def __init__(self, request):
