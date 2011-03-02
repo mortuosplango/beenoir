@@ -21,10 +21,11 @@ WORLD_HEIGHT = 12
 
 PLAYERS = 10
 
-CODESIZE = 8
 CODEPAD = 37
 
 FPS = 28.0
+
+
 
 # Webserver-OSC->alj
 # NET_ADDR = ('127.0.0.1', 57140)
@@ -677,8 +678,7 @@ class BeeNoirWorld(object):
         if len(self.players_waiting) > 0:
             self.players_waiting = []
 
-    def create_web_player(self, playerID, controllerID=False):
-        self.controllers[controllerID] = playerID
+    def create_web_player(self, playerID, controllerID):
         self.players[playerID] = WebPlayer(self, 
                                            self.random_pos(),
                                            controllerID, playerID,
@@ -737,6 +737,7 @@ class BeeNoirWorld(object):
         else:
             print 'no such controller: ', controller_id
 
+    # TODO: This should be sorted out.
     def register_and_create_web_player(self):
        if len(filter(lambda x: x, self.players)) < PLAYERS:
             found = False
@@ -746,13 +747,14 @@ class BeeNoirWorld(object):
                 p = self.players[i]
                 counter -= 1
                 if not p:
-                    token = self.next_controller_id()
-                    self.players_waiting.append(('web', i, token))
+                    controllerID = self.next_controller_id()
+                    self.controllers[controllerID] = i
+                    self.players_waiting.append(('web', i, controllerID))
                     print 'created player nr ', i
                     found = True
-                    return token
+                    return controllerID
                 elif not p.active():
-                    self.controllers[key] = i
+                    self.controllers[controllerID] = i
                     p.reset_timeout()
                     found = True
                     return p.controller
@@ -822,6 +824,7 @@ if __name__ == '__main__':
    # WebServer Actors
     actors = [
         BeenoirStartActor('/', beenoir),
+        BeenoirGameActor('/game', beenoir),
         StaticFilesActor('/static/', 'web/')
     ]
 

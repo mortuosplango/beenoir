@@ -69,6 +69,18 @@ class ActorHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     def do_POST(self):
         self.dispatch_to_actor("POST")
     
+    def path_base(self):
+        return self.path.partition('?')[0]
+    
+    def get_arguments(self):
+        arg_string = self.path.partition('?')[2]
+        dict = {}
+        arg_pairs = arg_string.split('&')
+        for pair in arg_pairs:
+            x = pair.split('=')
+            dict[x[0]] = x[1]
+        return dict
+    
     def dispatch_to_actor(self, request):
         for actor in self.server.actors:
             if actor.request == request:
@@ -111,7 +123,9 @@ class Actor(BaseActor):
         
 class PathActor(Actor):
     def __init__(self, request, path, handle_func):
-        Actor.__init__(self, request, lambda a, h: h.path == path, handle_func)
+        Actor.__init__(self, request, 
+                       lambda a, h: h.path_base() == path,
+                       handle_func)
 
 class StringActor(Actor):
     def __init__(self, request, responsible_func, string):
@@ -129,13 +143,13 @@ class StringFuncActor(Actor):
 class StringFuncPathActor(Actor):
     def __init__(self, request, path, string_func):
         Actor.__init__(self, request,
-                       lambda a, h: h.path == path, 
+                       lambda a, h: h.path_base()  == path, 
                        lambda a, h: h.send_page(string_func(a, h)))
 
 class StringPathActor(StringActor):
     def __init__(self, request, path, string):
         StringActor.__init__(self, request,
-                       lambda a, h: h.path == path, string)
+                       lambda a, h: h.path_base() == path, string)
 
 
 

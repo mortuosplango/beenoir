@@ -14,3 +14,18 @@ colors = ('EDFF00', 'FF0000', '2600FF',
            'B4B4B4', 'FF00FF', '00FF3F', 
            '00FFFF', 'FFFFFF', 'FFFFFF,' 'FFFFFF')
 
+opcode_alts = (
+    "Warte",
+    "Vorw&auml;rts",
+    "Zur&uuml;ck",
+    "Nach links",
+    "Nach rechts",
+    "Springe",
+    "Vergr&ouml;&szlig;ere Feldwert",
+    "Verkleinere Feldwert",
+    "Zeit",
+    "Sound"
+)
+
+CODESIZE = 8
+NUMCODES = 10 # number of OpCodes

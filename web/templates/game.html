@@ -1,6 +1,6 @@
     <script type="text/javascript">
-      var ID = getID();
-      var playerNo = %(player_num)s;
+      var ID = %(controller_id)s;
+      var playerNo = %(player_id)s;
       pingServer();
       var code = %(code_array)s; // [0,0,0,0,0,0,0,0]
 
@@ -15,7 +15,7 @@
     </script>
 	<div id="main">
 	<div id="field">
-	<div id="player">Spieler %(player_num)s</div>
+	<div id="player">Spieler %(player_id)s</div>
 	<a style="float:right;" href="#" class="button" onclick="resetCodes();">Befehle l&ouml;schen</a>
 
     <table style="clear:both;">
