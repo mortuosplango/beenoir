@@ -2,7 +2,7 @@ import server
 
 actors = []
 
-actors.append(server.StringPathActor("GET", "/", lambda s, h: "Index Page<br /><ul><a href='/count'>/count</a></li></ul>"))
+actors.append(server.StringPathActor("GET", "/", "Index Page<br /><ul><a href='/count'>/count</a></li></ul>"))
 
 counter = 0
 def count_up(actor, handler):
@@ -10,6 +10,6 @@ def count_up(actor, handler):
     counter = counter + 1
     return str(counter)
 
-actors.append(server.StringPathActor("GET", "/count", count_up))
+actors.append(server.StringFuncPathActor("GET", "/count", count_up))
 
 server.run(actors)

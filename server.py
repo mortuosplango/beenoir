@@ -79,13 +79,12 @@ class BaseActor:
         return True
     
     def handle(self, handler):
-        handler.send_response_header(200)
-        handler.send_response_content("Generic Handler. Please overwrite handle function")
+        handler.send_page("Generic Handler. Please overwrite handle function", 200)
     
 
 class Actor(BaseActor):
     def __init__(self, request, responsible_func, handle_func):
-        self.request = request
+        BaseActor.__init__(self, request)
         self.is_responsible_func = responsible_func
         self.handle_func = handle_func
     
@@ -97,19 +96,28 @@ class Actor(BaseActor):
         
 class PathActor(Actor):
     def __init__(self, request, path, handle_func):
-        self.request = request
-        self.is_responsible_func = lambda s, h: h.path == path
-        self.handle_func = handle_func
+        Actor.__init__(self, request, lambda s, h: h.path == path, handle_func)
 
 class StringActor(Actor):
+    def __init__(self, request, responsible_func, string):
+        Actor.__init__(self, request, responsible_func, None)
+        self.string = string
+    
+    def handle(self, handler):
+        handler.send_page(self.string)
+
+class StringFuncActor(Actor):
     def __init__(self, request, responsible_func, string_func):
-        self.request = request
-        self.is_responsible_func = responsible_func
-        self.handle_func = lambda s, h: h.send_page(string_func(s,h))
+        Actor.__init__(self, request, responsible_func, 
+                       lambda s, h: h.send_page(string_func(s,h)))
  
-class StringPathActor(Actor):
+class StringFuncPathActor(Actor):
     def __init__(self, request, path, string_func):
-        self.request = request
-        self.is_responsible_func = lambda s, h: h.path == path
-        self.handle_func = lambda s, h: h.send_page(string_func(s,h))
-        
+        Actor.__init__(self, request,
+                       lambda s, h: h.path == path, 
+                       lambda s, h: h.send_page(string_func(s,h)))
+
+class StringPathActor(StringActor):
+    def __init__(self, request, path, string):
+        StringActor.__init__(self, request,
+                       lambda s, h: h.path == path, string)
