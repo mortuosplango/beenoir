@@ -2,7 +2,7 @@ TEMPLATE_DIR = 'web/templates/'
 
 class HTMLPage:
     
-    def __init__(self, title, content):
+    def __init__(self, title="", content=""):
         self.content = content
         self.title = title
         self.head = ""

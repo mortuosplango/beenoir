@@ -22,9 +22,17 @@ class ActorHTTPServerThread(Thread):
         Thread.__init__(self)
         self.actors = actors
         self.port = port
+        self.running = True
 
     def run(self):
-        run(self.actors, self.port)
+        server_address = ('', self.port)
+        httpd = ActorHTTPServer(server_address, ActorHandler, self.actors)
+        while self.running:
+            httpd.handle_request()
+    
+    def close(self):
+        self.running = False
+        
     
 
 class ActorHandler (BaseHTTPServer.BaseHTTPRequestHandler):

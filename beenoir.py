@@ -816,14 +816,25 @@ if __name__ == '__main__':
     beenoir = BeeNoirWorld(WORLD_WIDTH,WORLD_HEIGHT)
     pyglet.gl.glClearColor(*[i/255.0 for i in [26,58,59,255]])
 
+   # WebServer Actors
+    actors = [
+        BeenoirStartActor('/', beenoir),
+        StaticFilesActor('web/', '/static/')
+    ]
+
+    # WebServer Startup
+    http_thread = ActorHTTPServerThread(actors, 8000)
+    http_thread.start()
+
+
     @window.event
     def on_key_press(symbol, modifiers):
         if symbol == key.ESCAPE:
             print 'shutting down...'
-
-            print '\nClosing OSCServer.'
-            oscServer.close()
-            print 'Waiting for Server-thread to finish'
+            print '\nClosing WebServer.'
+            print 'The next HTTP Request will kill the Server ... to improve!'
+            http_thread.close()
+            print 'Closing Pyglet.'
             pyglet.app.exit()
         return pyglet.event.EVENT_HANDLED
 
@@ -849,15 +860,7 @@ if __name__ == '__main__':
     # oscServer.addMsgHandler("/alj/ping", beenoir.ping_players)
     # oscServer.addMsgHandler("/alj/getplayer", beenoir.get_player)
 
-    # WebServer Actors
-    actors = [
-        BeenoirStartActor('/', beenoir),
-        StaticFilesActor('web/', '/static/')
-    ]
-
-    # WebServer Startup
-    ActorHTTPServerThread(actors, 8000).start()
-
+ 
 
     pyglet.clock.schedule_interval(beenoir.update, 1/FPS)
     pyglet.app.run()
