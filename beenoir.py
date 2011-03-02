@@ -1,6 +1,7 @@
 import random
 import math
 import sys
+import zlib
 
 import OSC as osc
 
@@ -10,6 +11,7 @@ from pyglet.window import key
 
 from common import *
 from actor_http_server import *
+from beenoir_actors import *
 
 WIN_WIDTH = 1200
 WIN_HEIGHT = 800
@@ -549,12 +551,14 @@ class WebPlayer(Player):
     """
     Player with specific controller and timeout
     """
+    
+    
     def __init__(self, world, pos, controller_id, player_id=0, beat=0):
         self.controller = controller_id
         self.title = 'Spieler'
         Player.__init__(self, world, pos, player_id, beat, self.title)
         self.timeout = 5
-        send_osc_to_server('dict', [controller_id, player_id] + self.code)
+
 
     def update(self, dt):
         Player.update(self, dt)
@@ -577,12 +581,15 @@ class WebPlayer(Player):
         if not self.controller:
             text += ' (frei)' 
         self.label.text = text
+     
 
 
 class BeeNoirWorld(object):
     """
     Represents the game
     """
+    
+    
     def __init__(self, w, h):
         self.width = w
         self.height = h
@@ -591,6 +598,8 @@ class BeeNoirWorld(object):
         self.players_waiting = []
         self.controllers = dict()
         self.beat = 0
+        self.last_internal_id = 0
+
 
         ## make teleport fields
         middle = (w / 2 * w) + (h / 2)
@@ -623,6 +632,10 @@ class BeeNoirWorld(object):
             anchor_y='bottom',
             batch=batch)
         
+    
+    def next_token(self):
+        self.last_internal_id += 1
+        return hex(zlib.crc32("Friedemann " + str(self.last_internal_id)))[2:]
 
     def mouse_pressed(self, x, y, button):
         """ 
@@ -696,67 +709,70 @@ class BeeNoirWorld(object):
     def get_tile(self,pos):
         return self.objs[pos.x + pos.y * self.width]
 
-    ## osc handler functions
-    def update_code(self, addr, tags, data, client_addr):
+    def update_code(self, controller_id, data):
         """
         Changes the code of a player to the one sent by its controller
         """
-        debug_print('got update: %s'%(data))
+        debug_print('got update: %s, %s'%(controller_id, data))
         
-        key = data[0]
+
         playerID = data[1]
-        if key in self.controllers:
-            if len(data[2:]) == CODESIZE:
-                self.players[self.controllers[key]].code = data[2:]
+        if controller_id in self.controllers:
+            if len(data[1:]) == CODESIZE:
+                self.players[self.controllers[controller_id]].code = data[1:]
             else:
                 print 'something went wrong: code is too short'
 
-    def ping_players(self, addr, tags, data, client_addr):
+    def ping_players(self, controller_id):
         """
         Resets the timeout of a player when pinged from the controller
         """
-        debug_print('got ping: %s'%(data))
+        debug_print('got ping: %s'%(controller_id))
 
-        key = data[0]
-        if key in self.controllers:
-            self.players[self.controllers[key]].reset_timeout()
+        if controller_id in self.controllers:
+            self.players[self.controllers[controller_id]].reset_timeout()
         else:
-            print 'no such controller: ', data
+            print 'no such controller: ', controller_id
 
-    def get_player(self, addr, tags, data, client_addr):
-        """
-        Returns the player to a specific controller or creates a new player
-        """
-        debug_print('got player request: %s'%(data))
-
-        key = data[0]
-        if key in self.controllers:
-            p = self.players[self.controllers[key]]
-            p.reset_timeout()
-            send_osc_to_server("dict", [key, p.player_id] + p.code)
-        elif len(filter(lambda x: x, self.players)) < PLAYERS:
+    def register_and_create_web_player(self):
+       if len(filter(lambda x: x, self.players)) < PLAYERS:
             found = False
             counter = 50
             while not found:
                 i = random.choice(range(PLAYERS))
                 p = self.players[i]
                 counter -= 1
-                if not p: 
-                    self.players_waiting.append(('web', i, key))
+                if not p:
+                    token = self.next_token()
+                    self.players_waiting.append(('web', i, token))
                     print 'created player nr ', i
                     found = True
+                    return token
                 elif not p.active():
                     self.controllers[key] = i
                     p.reset_timeout()
-                    p.controller = key
-                    send_osc_to_server("dict", [key, i] + p.code)
                     found = True
+                    return p.controller
                 elif counter < 0:
                     found = True
                     print 'something went wrong: no free player found ...'
-        else:
-            send_osc_to_server("dict", [key, -1])
+                    return None
+       else:
             print 'no free player!'
+            return None
+
+    def get_player(self, controller_id):
+        """
+        Returns the player to a specific controller or creates a new player
+        """
+        debug_print('got player request: %s'%(data))
+
+        if token in self.controllers:
+            p = self.players[self.controllers[controller_id]]
+            p.reset_timeout()
+            return p
+        else:
+            return None
 
 
 ## osc functions
@@ -833,12 +849,14 @@ if __name__ == '__main__':
     # oscServer.addMsgHandler("/alj/ping", beenoir.ping_players)
     # oscServer.addMsgHandler("/alj/getplayer", beenoir.get_player)
 
-    # WebServer startup
-    actors = []
-    actors.append(StaticFilesActor("web/", "/static/"))
+    # WebServer Actors
+    actors = [
+        BeenoirStartActor('/', beenoir),
+        StaticFilesActor('web/', '/static/')
+    ]
 
+    # WebServer Startup
     ActorHTTPServerThread(actors, 8000).start()
-
 
 
     pyglet.clock.schedule_interval(beenoir.update, 1/FPS)

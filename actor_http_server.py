@@ -33,14 +33,14 @@ class ActorHandler (BaseHTTPServer.BaseHTTPRequestHandler):
             if actor.is_responsible(self):
                 success = actor.try_handle(self)
                 if success:
-                    self.send_response_head(200)
+                    self.send_response_header(200)
                     break                 
         else:
             self.send_response_head(404)
         
     def send_response_header(self, response=200, mime_type="text/html"):
         self.send_response(response)
-        self.send_header("Content-type", mime_type)
+        self.send_header("Content-Type", mime_type)
         self.end_headers()
     
     def send_response_content(self, content):
@@ -49,6 +49,11 @@ class ActorHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     def send_page(self, content, response=200, mime_type="text/html"):
         self.send_response_header(response, mime_type)
         self.send_response_content(content)
+    
+    def send_redirect(self, url):
+        self.send_response(302)
+        self.send_header("Location", url)
+        self.end_headers()
     
     def do_GET(self):
         self.dispatch_to_actor("GET")
