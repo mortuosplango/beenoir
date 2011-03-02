@@ -20,7 +20,14 @@ class BeenoirStartActor(BeenoirBaseActor):
         controller_id = self.world.register_and_create_web_player()
         if controller_id:
             # handler.send_redirect("/game?id=" + str(controller_id))
-            # TODO: Lazy Redirect ...
+            page = HTMLPage("Einen Moment Bitte &hellip;")
+            page.head = page.template_string("wait_head")%{
+                "url": "/game?id=" + str(controller_id)
+            }
+            page.content = page.template_string("wait")
+            
+            handler.send_page(page)
+            
         else:
             handler.send_page(ShortErrorHTMLPage("Keine freien Spieler verf&uuml;gbar!"))
 
@@ -41,14 +48,14 @@ class BeenoirGameActor(BeenoirBaseActor):
             code_array = "[" + str(player_code[0])
             for code in player_code[1:]:
                 code_array += ", "
-                code_array += code
+                code_array += str(code)
             code_array += "]"
             
-            code_table = "<table><tr>"
+            code_table = "<table style=\"clear: both;\"><tr>"
             for i in range(CODESIZE):
                 code_table += "<td>"
                 code_table += "<div class='topSpaceDummy'> </div>"
-                code_table += "<img src='/static/opcodes_%s.png' width='48' height='48' border='0' alt='Code' class='not'><br />"%(player_code[i])
+                code_table += "<img src='/static/opcodes_%s.png' width='48' height='48' border='0' alt='Code' class='not' id='%s_x'><br />\n"%(player_code[i], i)
                 code_table += "<div class='bottomSpaceDummy'> </div>"
                 
                 for e in range(NUMCODES):
@@ -63,13 +70,14 @@ class BeenoirGameActor(BeenoirBaseActor):
         
             page = HTMLPage("Beenoir")
             page.head = page.template_string("game_head")%{
-                "player_color": colors[player_id]
-            }
-            page.content = page.template_string("game")%{
+                "player_color": colors[player_id],
                 "controller_id": controller_id,
                 "player_id": player_id,
-                "code_array": code_array,
-                "code_table": code_table
+                "code_array": code_array
+            }
+            page.content = page.template_string("game")%{
+                "code_table": code_table,
+                "player_id": player_id
             }
             handler.send_page(page)
         else:

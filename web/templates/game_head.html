@@ -1,3 +1,18 @@
+    <script type="text/javascript">
+      var ID = %(controller_id)s;
+      var playerNo = %(player_id)s;
+      pingServer();
+      var code = %(code_array)s;
+
+      // preloading images
+      for (var i = 0; i < 10; i++) {
+              image = new Image();
+              image.src = "/static/opcodes_" + i + ".png";
+      }
+      var opclickTempo = new Image();
+      opclickTempo.src = "/static/opclick.png";
+      
+    </script>
     <script type = "text/javascript" src="/static/jquery.js"></script>
     <script type = "text/javascript" src="/static/json.js"></script>
     <script type = "text/javascript" src="/static/alj.js"></script>
