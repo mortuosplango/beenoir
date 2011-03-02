@@ -1,7 +1,7 @@
 import BaseHTTPServer
 from htmlpage import *
 
-class BeenoirServer (BaseHTTPServer.HTTPServer):
+class ActorHTTPServer (BaseHTTPServer.HTTPServer):
     def __init__(self, server_address, handler_class, actors):
         BaseHTTPServer.HTTPServer.__init__(self, server_address, handler_class)
         self.actors = actors
@@ -9,14 +9,14 @@ class BeenoirServer (BaseHTTPServer.HTTPServer):
     
 def run(actors, port=8000):
     server_address = ('', port)
-    httpd = BeenoirServer(server_address, BeenoirHandler, actors)
+    httpd = ActorHTTPServer(server_address, ActorHandler, actors)
     try:
         httpd.serve_forever()
     except:
         print "Waiting for Server-thread to finish"
         httpd.server_close()
 
-class BeenoirHandler (BaseHTTPServer.BaseHTTPRequestHandler):
+class ActorHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     def do_HEAD(self):
         for actor in self.server.actors:
             if actor.is_responsible(self):
@@ -84,7 +84,7 @@ class BaseActor:
 # naming conventions for lambda functions: a = actor, h = handler
 
 class Actor(BaseActor):
-    def __init__(self, request, responsible_func, handle_func):
+    def __init__(self, request, responsible_func=None, handle_func=None):
         BaseActor.__init__(self, request)
         self.is_responsible_func = responsible_func
         self.handle_func = handle_func
@@ -103,7 +103,7 @@ class PathActor(Actor):
 
 class StringActor(Actor):
     def __init__(self, request, responsible_func, string):
-        Actor.__init__(self, request, responsible_func, None)
+        Actor.__init__(self, request, responsible_func)
         self.string = string
     
     def handle(self, handler):
