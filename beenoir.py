@@ -598,7 +598,9 @@ class BeeNoirWorld(object):
         self.players_waiting = []
         self.controllers = dict()
         self.beat = 0
+        
         self.last_internal_id = 0
+        self.controller_id_prefix = str(random.randint(0,10000))
 
 
         ## make teleport fields
@@ -633,9 +635,10 @@ class BeeNoirWorld(object):
             batch=batch)
         
     
-    def next_token(self):
+    def next_controller_id(self):
         self.last_internal_id += 1
-        return hex(zlib.crc32("Friedemann " + str(self.last_internal_id)))[2:]
+        return hex(zlib.crc32(self.controller_id_prefix +
+                              str(self.last_internal_id)))[3:]
 
     def mouse_pressed(self, x, y, button):
         """ 
@@ -743,7 +746,7 @@ class BeeNoirWorld(object):
                 p = self.players[i]
                 counter -= 1
                 if not p:
-                    token = self.next_token()
+                    token = self.next_controller_id()
                     self.players_waiting.append(('web', i, token))
                     print 'created player nr ', i
                     found = True
