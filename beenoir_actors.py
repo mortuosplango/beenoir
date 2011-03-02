@@ -37,7 +37,8 @@ class BeenoirPingActor(BeenoirBaseActor):
     
     def handle(self, handler):
         controller_id = self.controller_id(handler)
-        if controller_id:
+        player_id = self.player_id(handler)
+        if player_id:
             self.world.ping_player(controller_id)
             handler.send_page("ok")
         else:
@@ -49,7 +50,8 @@ class BeenoirCodeActor(BeenoirBaseActor):
     
     def handle(self, handler):
         controller_id = self.controller_id(handler)
-        if controller_id:
+        player_id = self.player_id(handler)
+        if player_id:
             dict = handler.get_json_dict()
             self.world.update_code(controller_id, 
                                    dict.get("code", [0] * 8))
