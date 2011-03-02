@@ -1,5 +1,6 @@
 import BaseHTTPServer
 from htmlpage import *
+import os
 
 class ActorHTTPServer (BaseHTTPServer.HTTPServer):
     def __init__(self, server_address, handler_class, actors):
@@ -53,19 +54,7 @@ class ActorHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                     break
         else:        
             self.send_page(HTTP404ErrorHTMLPage(self.path), 404)
-            
-    def mimeTypeForPath(self, path):
-        suffix = path.split(".")[-1].lower()
-            
-        mimeTypes = {
-            "png": "image/png",
-            "gif": "image/gif",
-            "html": "text/html",
-            "js": "application/javascript",
-            "css": "text/css"
-        }
-            
-        return mimeTypes.get(suffix, "text/html")
+
 
 class BaseActor:
     def __init__(self, request):
@@ -124,3 +113,50 @@ class StringPathActor(StringActor):
     def __init__(self, request, path, string):
         StringActor.__init__(self, request,
                        lambda a, h: h.path == path, string)
+
+
+
+
+class StaticFilesActor(BaseActor):
+    def __init__(self, path, map):
+        BaseActor.__init__(self, "GET")
+        self.path = path
+        self.map = map
+    
+    def is_responsible(self, handler):
+        return handler.path.startswith(self.map)
+        
+    def file_path(self, full_path):
+        return self.path + full_path[len(self.map):]
+    
+    def try_handle(self, handler):
+        return os.path.exists(self.file_path(handler.path))
+    
+    def path_is_secure(self, path):
+        # IMPLEMENT!!
+        return True
+    
+    def handle(self, handler):
+        file_path = self.file_path(handler.path)
+        if not os.path.exists(file_path):
+            handler.send_page(HTTP404ErrorHTMLPage(handler.path), 404)
+        elif not self.path_is_secure(file_path):
+            handler.send_page(ShortErrorHTMLPage("Invalid Request!"))
+        else:
+            with open(file_path, "rb") as fp:
+                handler.send_page(fp.read(), 200,
+                                  self.mime_type_for_path(file_path))
+        
+    def mime_type_for_path(self, path):
+        suffix = path.split(".")[-1].lower()
+            
+        types = {
+            "png": "image/png",
+            "gif": "image/gif",
+            "html": "text/html",
+            "js": "application/javascript",
+            "css": "text/css"
+        }
+            
+        return types.get(suffix, "text/html")
+        
