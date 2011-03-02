@@ -2,7 +2,6 @@ import BaseHTTPServer
 from htmlpage import *
 
 class BeenoirServer (BaseHTTPServer.HTTPServer):
-
     def __init__(self, server_address, handler_class, actors):
         BaseHTTPServer.HTTPServer.__init__(self, server_address, handler_class)
         self.actors = actors
@@ -28,13 +27,17 @@ class BeenoirHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             self.send_response_head(404)
         
-    def send_response_head(self, response=200, mime_type="text/html"):
+    def send_response_header(self, response=200, mime_type="text/html"):
         self.send_response(response)
         self.send_header("Content-type", mime_type)
         self.end_headers()
     
     def send_response_content(self, content):
         self.wfile.write(content)
+        
+    def send_page(self, content, response=200, mime_type="text/html"):
+        self.send_response_header(response, mime_type)
+        self.send_response_content(content)
     
     def do_GET(self):
         self.dispatch_to_actor("GET")
@@ -49,8 +52,7 @@ class BeenoirHandler (BaseHTTPServer.BaseHTTPRequestHandler):
                     actor.handle(self)
                     break
         else:        
-            self.send_response_head(404)
-            self.send_response_content(HTTP404ErrorHTMLPage(self.path))
+            self.send_page(HTTP404ErrorHTMLPage(self.path), 404)
             
     def mimeTypeForPath(self, path):
         suffix = path.split(".")[-1].lower()
@@ -64,3 +66,50 @@ class BeenoirHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         }
             
         return mimeTypes.get(suffix, "text/html")
+
+class BaseActor:
+    def __init__(self, request):
+        self.request = request
+    
+    def is_responsible(self, handler):
+        return False
+    
+    def try_handle(self, handler):
+        # in normal cases an Actor can handle any request he's responsible for
+        return True
+    
+    def handle(self, handler):
+        handler.send_response_header(200)
+        handler.send_response_content("Generic Handler. Please overwrite handle function")
+    
+
+class Actor(BaseActor):
+    def __init__(self, request, responsible_func, handle_func):
+        self.request = request
+        self.is_responsible_func = responsible_func
+        self.handle_func = handle_func
+    
+    def is_responsible(self, handler):
+        return self.is_responsible_func(self, handler)
+     
+    def handle(self, handler):
+        self.handle_func(self, handler)
+        
+class PathActor(Actor):
+    def __init__(self, request, path, handle_func):
+        self.request = request
+        self.is_responsible_func = lambda s, h: h.path == path
+        self.handle_func = handle_func
+
+class StringActor(Actor):
+    def __init__(self, request, responsible_func, string_func):
+        self.request = request
+        self.is_responsible_func = responsible_func
+        self.handle_func = lambda s, h: h.send_page(string_func(s,h))
+ 
+class StringPathActor(Actor):
+    def __init__(self, request, path, string_func):
+        self.request = request
+        self.is_responsible_func = lambda s, h: h.path == path
+        self.handle_func = lambda s, h: h.send_page(string_func(s,h))
+        
