@@ -29,7 +29,11 @@ class BeenoirGameActor(BeenoirBaseActor):
         
         player_id = self.player_id(handler)
         
-        if player_id:
+        # this is quite ugly. player creation is delayed, so
+        # if this page is accessed too early we have a problem.
+        # we bypass this with a lazy redirect.
+        
+        if player_id and self.world.players[player_id]:
             controller_id = self.controller_id(handler)
             player_code = self.world.players[player_id].code
             
@@ -54,9 +58,7 @@ class BeenoirGameActor(BeenoirBaseActor):
                     code_table += "<img src='/static/opcodes_%s%s.png' onClick='sendNewCode(ID, %s, %s)' width='48' height='48' alt='%s' id='%s_%s' />\n"%(inactive, e, i, e, opcode_alts[e], i, e)
                     if e < (NUMCODES - 1):
                         code_table += "<br />"
-    
                 code_table += "</td>"
-            
             code_table += "</tr></table>"
         
             page = HTMLPage("Beenoir")
