@@ -81,6 +81,7 @@ class BaseActor:
     def handle(self, handler):
         handler.send_page("Generic Handler. Please overwrite handle function", 200)
     
+# naming conventions for lambda functions: a = actor, h = handler
 
 class Actor(BaseActor):
     def __init__(self, request, responsible_func, handle_func):
@@ -93,10 +94,12 @@ class Actor(BaseActor):
      
     def handle(self, handler):
         self.handle_func(self, handler)
+
+# these are some generic Actors. Don't know if they will be used.
         
 class PathActor(Actor):
     def __init__(self, request, path, handle_func):
-        Actor.__init__(self, request, lambda s, h: h.path == path, handle_func)
+        Actor.__init__(self, request, lambda a, h: h.path == path, handle_func)
 
 class StringActor(Actor):
     def __init__(self, request, responsible_func, string):
@@ -109,15 +112,15 @@ class StringActor(Actor):
 class StringFuncActor(Actor):
     def __init__(self, request, responsible_func, string_func):
         Actor.__init__(self, request, responsible_func, 
-                       lambda s, h: h.send_page(string_func(s,h)))
+                       lambda a, h: h.send_page(string_func(a, h)))
  
 class StringFuncPathActor(Actor):
     def __init__(self, request, path, string_func):
         Actor.__init__(self, request,
-                       lambda s, h: h.path == path, 
-                       lambda s, h: h.send_page(string_func(s,h)))
+                       lambda a, h: h.path == path, 
+                       lambda a, h: h.send_page(string_func(a, h)))
 
 class StringPathActor(StringActor):
     def __init__(self, request, path, string):
         StringActor.__init__(self, request,
-                       lambda s, h: h.path == path, string)
+                       lambda a, h: h.path == path, string)
