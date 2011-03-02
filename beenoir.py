@@ -9,6 +9,7 @@ import pyglet.clock
 from pyglet.window import key
 
 from common import *
+from actor_http_server import *
 
 WIN_WIDTH = 1200
 WIN_HEIGHT = 800
@@ -831,6 +832,13 @@ if __name__ == '__main__':
     # oscServer.addMsgHandler("/alj/code", beenoir.update_code)
     # oscServer.addMsgHandler("/alj/ping", beenoir.ping_players)
     # oscServer.addMsgHandler("/alj/getplayer", beenoir.get_player)
+
+    # WebServer startup
+    actors = []
+    actors.append(StaticFilesActor("web/", "/static/"))
+
+    ActorHTTPServerThread(actors, 8000).start()
+
 
 
     pyglet.clock.schedule_interval(beenoir.update, 1/FPS)

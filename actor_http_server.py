@@ -1,13 +1,13 @@
 import BaseHTTPServer
 from htmlpage import *
 import os
+from threading import Thread
 
 class ActorHTTPServer (BaseHTTPServer.HTTPServer):
     def __init__(self, server_address, handler_class, actors):
         BaseHTTPServer.HTTPServer.__init__(self, server_address, handler_class)
         self.actors = actors
 
-    
 def run(actors, port=8000):
     server_address = ('', port)
     httpd = ActorHTTPServer(server_address, ActorHandler, actors)
@@ -16,6 +16,16 @@ def run(actors, port=8000):
     except:
         print "Waiting for Server-thread to finish"
         httpd.server_close()
+
+class ActorHTTPServerThread(Thread):
+    def __init__(self, actors, port=8000):
+        Thread.__init__(self)
+        self.actors = actors
+        self.port = port
+
+    def run(self):
+        run(self.actors, self.port)
+    
 
 class ActorHandler (BaseHTTPServer.BaseHTTPRequestHandler):
     def do_HEAD(self):

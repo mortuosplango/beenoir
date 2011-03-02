@@ -84,19 +84,6 @@ function setValue (name, value, expiration) {
     document.cookie = name + "=" + value + "; expires=" + expires.toGMTString() + ";";
 }
 
-function getID () {
-    var expiration = 1000 * 30; // 30 seconds
-    var ID = getValue();
-    if (ID == "") {
-	var now = new Date();
-	ID = now.getTime();
-	ID = new String(ID);
-	ID = ID + "id"
-	setValue("ID", ID , expiration);
-	//document.code.name.value = ID.slice(ID.length - 13, ID.length - 1);
-    }
-    return ID;
-}
 
 function pingServer() {
     sendMsg("/alj/ping", [ID, playerNo], "si");
