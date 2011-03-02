@@ -819,7 +819,7 @@ if __name__ == '__main__':
    # WebServer Actors
     actors = [
         BeenoirStartActor('/', beenoir),
-        StaticFilesActor('web/', '/static/')
+        StaticFilesActor('/static/', 'web/')
     ]
 
     # WebServer Startup

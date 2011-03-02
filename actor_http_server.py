@@ -141,7 +141,7 @@ class StringPathActor(StringActor):
 
 
 class StaticFilesActor(BaseActor):
-    def __init__(self, path, map):
+    def __init__(self, map, path):
         BaseActor.__init__(self, "GET")
         self.path = path
         self.map = map

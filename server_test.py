@@ -13,6 +13,6 @@ def count_up(actor, handler):
 actors.append(StringFuncPathActor("GET", "/count", count_up))
 actors.append(PathActor("GET", "/google", lambda a,h: h.send_redirect("http://www.google.de")))
 
-actors.append(StaticFilesActor("web/", "/static/"))
+actors.append(StaticFilesActor("/static/", "web/"))
 
 run(actors)
