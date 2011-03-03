@@ -81,6 +81,16 @@ a:hover {
 	background-color: #444444;
 }
 
+#timeOut {
+    position: relative;
+    top: -380px;
+    background-color: #000000;
+    padding-top: 35px;
+    padding-bottom: 35px;
+    border: 2px solid white;
+    display: none;
+}
+
 div.topSpaceDummy {
 	width: 2px;
 	height: 8px;

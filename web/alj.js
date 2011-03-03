@@ -13,13 +13,14 @@ function ajaxErrorFunction() {
     failedTransmissionCount += 1;
     
     if(failedTransmissionCount > 3) {
-        alert("Netzwerproblem!");
+        document.getElementById('timeOut').style.display = 'block';
     }
 }
 
 
 function ajaxSuccessFunction(ret) {
     failedTransmissionCount = 0;
+    document.getElementById('timeOut').style.display = 'none';
     
     if(ret == "fail") {
         self.location.href = "/fail";
