@@ -24,11 +24,10 @@ class BeenoirBaseActor(PathActor):
     def get_player_id(self, handler):
         return self.world.controllers.get(self.get_controller_id(handler))
 
-class BeenoirPostActor(BeenoirBaseActor):
+class BeenoirPlayerActor(BeenoirBaseActor):
     def __init__(self, path, world):
         BeenoirBaseActor.__init__(self, path, world, "POST")
-
-class BeenoirPlayerActor(BeenoirPostActor):
+        
     def handle(self, handler):
         # get values from handler and world
         self.controller_id = self.get_controller_id(handler)
