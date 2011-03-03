@@ -1,9 +1,13 @@
 // prepare opcode-image-lookup tables
-var topOpcodes = Array(8);
-var opcodes = Array(8);
 
-for(var i = 0; i < 8; i++) {
-    opcodes[i] = Array(10);
+var CODESIZE = 8
+var NUMCODES = 9
+
+var topOpcodes = Array(CODESIZE);
+var opcodes = Array(CODESIZE);
+
+for(var i = 0; i < CODESIZE; i++) {
+    opcodes[i] = Array(NUMCODES);
 }
 
 
@@ -36,7 +40,7 @@ function changeCode(pos, opcode, send) {
     var currentImage = opcodes[pos][opcode];
     currentImage.src = "/static/opclick.png";
     
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < NUMCODES; i++) {
         if(i != opcode) {
             opcodes[pos][i].src = "/static/opcodes_1" + (i) + ".png";
         }
@@ -56,9 +60,7 @@ function changeCode(pos, opcode, send) {
 
 function resetCodes()
 {
-    code = [0,0,0,0,0,0,0,0];
-
-    for(var i = 0; i < 8; i++){
+    for(var i = 0; i < CODESIZE; i++){
         changeCode(i, 0, false);
     }
     
@@ -92,9 +94,9 @@ function pingServer() {
 }
 
 function populateOpcodeTable() {
-    for(var i = 0; i < 8; i++) {
+    for(var i = 0; i < CODESIZE; i++) {
         topOpcodes[i] = document.getElementById(i + "_x");
-        for(var e = 0; e < 10; e++) {
+        for(var e = 0; e < NUMCODES; e++) {
             opcodes[i][e] = document.getElementById(i + "_" + e);
         }
     }

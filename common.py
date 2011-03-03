@@ -23,9 +23,9 @@ opcode_alts = (
     "Springe",
     "Vergr&ouml;&szlig;ere Feldwert",
     "Verkleinere Feldwert",
-    "Zeit",
+#   "Zeit",
     "Sound"
 )
 
 CODESIZE = 8
-NUMCODES = 10 # number of OpCodes
+NUMCODES = 9 # number of OpCodes (has to be changed in ali.js as well)

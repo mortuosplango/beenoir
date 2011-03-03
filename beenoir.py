@@ -217,7 +217,7 @@ class Player(Entity):
     Generic Player
     """
     opcodes_grid = [pyglet.resource.image('web/opcodes_%d.png'%(i)) 
-                     for i in range(10)]
+                     for i in range(NUMCODES)]
 
     def __init__(self, world, pos, player_id=0, beat=0, title='GrundSpieler'):
         self.image_file = 'graphics/player_%d.png'%(player_id)
@@ -305,8 +305,8 @@ class Player(Entity):
         
         debug_print('deleted player %d'%(self.player_id))
 
-    def _change_time(self):
-        self.new_granulation = [32, 24, 16, 12, 8][self.world.get_tile(self.pos).value]
+#    def _change_time(self):
+#        self.new_granulation = [32, 24, 16, 12, 8][self.world.get_tile(self.pos).value]
         # old timing: [12,8,6,4,3]
         # [8, 6, 4, 3, 2]
         # 1/2, 3/8, 1/4, 3/16, 1/8
@@ -321,7 +321,7 @@ class Player(Entity):
 
     def change_code(self, index, change = False):
         if change:
-            self.code[index] = (self.code[index] + change) % 10
+            self.code[index] = (self.code[index] + change) % NUMCODES
         else:
             self.code[index] = 0
         self._update_label()
@@ -338,7 +338,7 @@ class Player(Entity):
 
         if self.time_index == 0:
             action = self.code[self.index]
-            if 0 < action <= 9:
+            if 0 < action < NUMCODES:
                 if action == (1 or 'forward'):
                     self._move(forward=True)
                 elif action == (2 or 'back'):
@@ -353,9 +353,9 @@ class Player(Entity):
                     self.world.get_tile(self.pos).increase()
                 elif action == (7 or 'decrease'):
                     self.world.get_tile(self.pos).decrease()
-                elif action == (8 or 'time'):
-                    self._change_time()
-                elif action == (9 or 'action'):
+#                elif action == (8 or 'time'):
+#                    self._change_time()
+                elif action == (8 or 'action'):
                     self._action()
 
             self.index = (self.index + 1) % CODESIZE
@@ -541,8 +541,8 @@ class BotPlayer(Player):
     """
     def __init__(self, world, pos, player_id=0, beat=0):
         Player.__init__(self, world, pos, player_id, beat, 'Bot')
-        self.code = ([ random.randint(0,9) for i in range(CODESIZE - 4) ] + 
-                     [ random.choice([1,2,3,4,6,9]) for i in range(3) ] + [ 9 ])
+        self.code = ([random.randint(0,NUMCODES-1) for i in range(CODESIZE-4)] + 
+                     [random.choice([1,2,3,4,6,8]) for i in range(3)] + [8])
         random.shuffle(self.code)
 
     def _teleport(self):
