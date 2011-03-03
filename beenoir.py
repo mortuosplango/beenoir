@@ -13,6 +13,8 @@ from common import *
 from actor_http_server import *
 from beenoir_actors import *
 
+import htmlpage
+
 WIN_WIDTH = 1200
 WIN_HEIGHT = 800
 
@@ -817,13 +819,15 @@ if __name__ == '__main__':
     pyglet.gl.glClearColor(*[i/255.0 for i in [26,58,59,255]])
 
    # WebServer Actors
-    actors = [
+    actors = (
         BeenoirStartActor('/', beenoir),
         BeenoirGameActor('/game', beenoir),
         BeenoirPingActor('/ping', beenoir),
         BeenoirCodeActor('/code', beenoir),
+        StringPathActor('GET', '/fail', 
+            htmlpage.ShortErrorHTMLPage("Spieler nicht mehr verf&uuml;gbar!")),
         StaticFilesActor('/static/', 'web/')
-    ]
+    )
 
     # WebServer Startup
     http_thread = ActorHTTPServerThread(actors, 8000)

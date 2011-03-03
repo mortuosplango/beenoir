@@ -7,7 +7,26 @@ for(var i = 0; i < 8; i++) {
 }
 
 
-function changeCode (pos, opcode, send) {
+var failedTransmissionCount = 0;
+
+function ajaxErrorFunction() {
+    failedTransmissionCount += 1;
+    
+    if(failedTransmissionCount > 3) {
+        alert("Netzwerproblem!");
+    }
+}
+
+
+function ajaxSuccessFunction(ret) {
+    failedTransmissionCount = 0;
+    
+    if(ret == "fail") {
+        self.location.href = "/fail";
+    }
+}
+
+function changeCode(pos, opcode, send) {
 
     send = typeof(send) != 'undefined' ? send : true;
     
@@ -53,12 +72,8 @@ function sendCodes()
         dataType: 'json',
         data: $.toJSON({"code": code}),
         timeout: 1000,
-        error: function(){
-            // TODO: error message?
-        },
-        success: function(json){
-            // Who cares? This was one-way.
-        }
+        error: ajaxErrorFunction,
+        success: ajaxSuccessFunction
     });
 }
 
@@ -68,12 +83,8 @@ function pingServer() {
         url: '/ping?id=' + ID,
         type: 'POST',
         timeout: 1000,
-        error: function(){
-            // TODO: error message?
-        },
-        success: function(json){
-
-        }
+        error: ajaxErrorFunction,
+        success: ajaxSuccessFunction
     });
     
     window.setTimeout("pingServer()", 1500);
