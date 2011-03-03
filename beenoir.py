@@ -796,7 +796,9 @@ def send_osc(netaddr, addr, data):
         
 
 if __name__ == '__main__':
-
+    
+    print "Close Bee Noir with ESC key with focus on the game window."
+    
     fullscreen = False
     for i, arg in enumerate(sys.argv):
         if arg == '-p':
@@ -805,9 +807,9 @@ if __name__ == '__main__':
             fullscreen = True
 
     if fullscreen:
-        window = pyglet.window.Window(fullscreen=True, caption='bee noir')
+        window = pyglet.window.Window(fullscreen=True, caption='Bee Noir')
     else:
-        window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='bee noir')
+        window = pyglet.window.Window(WIN_WIDTH, WIN_HEIGHT, caption='Bee Noir')
 
 
     PADDING = [int((window.width - WIN_WIDTH) / 2.0), 

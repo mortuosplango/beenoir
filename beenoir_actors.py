@@ -97,7 +97,7 @@ class BeenoirGameActor(BeenoirBaseActor):
                 code_table += "</td>"
             code_table += "</tr></table>"
         
-            page = HTMLPage("Beenoir")
+            page = HTMLPage("Bee Noir")
             page.head = page.template_string("game_head")%{
                 "player_color": colors[player_id],
                 "controller_id": controller_id,
