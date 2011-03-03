@@ -47,11 +47,15 @@ class BeenoirPlayerActor(BeenoirPostActor):
     def handle(self, handler):
         self.controller_id = self.get_controller_id(handler)
         self.player_id = self.get_player_id(handler)
+        # these can be overwritten by handle_action
+        self.success_response = "ok"
+        self.fail_response = "fail"
+        
         if self.player_id:
             self.handle_action(handler)
-            handler.send_page("ok")
+            handler.send_page(self.success_response)
         else:
-            handler.send_page("fail")
+            handler.send_page(self.fail_response)
 
 class BeenoirPingActor(BeenoirPlayerActor):
     def handle_action(self, handler):
