@@ -82,7 +82,7 @@ class BeenoirTempoActor(BeenoirPlayerActor):
     def handle_success(self, handler):
         dict = handler.get_post_json_dict()
         player = self.world.players[self.player_id]
-        player.change_time(dict.get("tempo", 0))
+        player.change_tempo(dict.get("tempo", 0))
 
 
 class BeenoirGameActor(BeenoirBaseActor):
@@ -116,7 +116,7 @@ class BeenoirGameActor(BeenoirBaseActor):
                     inactive = ""
                     if player_code[i] != e:
                         inactive = "1"
-                    code_table += "<img src='/static/opcodes_%s%s.png' onClick='changeCode(%s, %s)' width='48' height='48' alt='%s' id='%s_%s' />\n"%(inactive, e, i, e, opcode_alts[e], i, e)
+                    code_table += "<img src='/static/opcodes_%s%s.png' onClick='changeCode(%s, %s)' width='48' height='48' alt='%s' id='%s_%s' />\n"%(inactive, e, i, e, OPCODE_ALTS[e], i, e)
                     if e < (NUMCODES - 1):
                         code_table += "<br />"
                 code_table += "</td>"
@@ -124,10 +124,13 @@ class BeenoirGameActor(BeenoirBaseActor):
         
             page = HTMLPage("Bee Noir")
             page.head = page.template_string("game_head")%{
-                "player_color": colors[player_id],
+                "player_color": COLORS[player_id],
                 "controller_id": controller_id,
                 "player_id": player_id,
-                "code_array": code_array
+                "code_array": code_array,
+                "codesize": CODESIZE,
+                "numcodes": NUMCODES,
+                "numtempos": NUMTEMPOS
             }
             page.content = page.template_string("game")%{
                 "code_table": code_table,

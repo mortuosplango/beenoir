@@ -1,7 +1,5 @@
 // prepare opcode-image-lookup tables
 
-var CODESIZE = 8
-var NUMCODES = 9
 
 var topOpcodes = Array(CODESIZE);
 var opcodes = Array(CODESIZE);
@@ -58,6 +56,19 @@ function changeCode(pos, opcode, send) {
     }
 }
 
+function changeTempo(newTempo) {
+    
+    if(newTempo < 0) {
+        newTempo = 0;
+    } else if (newTempo >= NUMTEMPOS) {
+        newTempo = NUMTEMPOS - 1;
+    }
+    
+    // TODO: graphical representation
+    
+    sendTempo(newTempo);
+}
+
 function resetCodes()
 {
     for(var i = 0; i < CODESIZE; i++){
@@ -91,6 +102,18 @@ function pingServer() {
     });
     
     window.setTimeout("pingServer()", 1500);
+}
+
+function sendTempo(newTempo) {
+    $.ajax({
+        url: '/tempo?id=' + ID,
+        type: 'POST',
+        timeout: 1000,
+        error: ajaxErrorFunction,
+        success: ajaxSuccessFunction,
+        dataType: 'json',
+        data: $.toJSON({"tempo": newTempo})
+    });
 }
 
 function populateOpcodeTable() {

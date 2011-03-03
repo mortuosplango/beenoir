@@ -246,7 +246,7 @@ class Player(Entity):
         self.new_granulation = False
 
         ## color
-        self.color =  [eval('0x' + colors[player_id][i*2:(i*2)+2]) 
+        self.color =  [eval('0x' + COLORS[player_id][i*2:(i*2)+2]) 
                        for i in range(3)] + [255,]
 
         ## code
@@ -305,11 +305,13 @@ class Player(Entity):
         
         debug_print('deleted player %d'%(self.player_id))
 
-    def change_time(self, value):
-        self.new_granulation = [32, 24, 16, 12, 8][value % 5]
+    def change_tempo(self, value):
+        self.new_granulation = TEMPOS[value % NUMTEMPOS]
         # old timing: [12,8,6,4,3]
         # [8, 6, 4, 3, 2]
         # 1/2, 3/8, 1/4, 3/16, 1/8
+        
+        # timings are now in common.py
 
     def send_status(self, status):
         tile = self.world.get_tile(self.pos)
