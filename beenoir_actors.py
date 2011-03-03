@@ -11,6 +11,7 @@ class PlayerFailHTMLPage(ShortErrorHTMLPage):
             "Sorry!"
         )
 
+
 class BeenoirBaseActor(PathActor):
     def __init__(self, path, world, request="GET"):
         PathActor.__init__(self, request, path, None)
@@ -26,22 +27,6 @@ class BeenoirBaseActor(PathActor):
 class BeenoirPostActor(BeenoirBaseActor):
     def __init__(self, path, world):
         BeenoirBaseActor.__init__(self, path, world, "POST")
-
-class BeenoirStartActor(BeenoirBaseActor):
-    def handle(self, handler):
-        controller_id = self.world.register_and_create_web_player()
-        if controller_id:
-            # handler.send_redirect("/game?id=" + str(controller_id))
-            page = HTMLPage("Einen Moment Bitte &hellip;")
-            page.head = page.template_string("wait_head")%{
-                "url": "/game?id=" + str(controller_id)
-            }
-            page.content = page.template_string("wait")
-            
-            handler.send_page(page)
-            
-        else:
-            handler.send_page(ShortErrorHTMLPage("Keine freien Spieler verf&uuml;gbar!", "Sorry!"))
 
 class BeenoirPlayerActor(BeenoirPostActor):
     def handle(self, handler):
@@ -67,6 +52,25 @@ class BeenoirPlayerActor(BeenoirPostActor):
     def handle_fail(self, handler):
         pass
 
+# Start of more concrete actors
+
+class BeenoirStartActor(BeenoirBaseActor):
+    def handle(self, handler):
+        controller_id = self.world.register_and_create_web_player()
+        if controller_id:
+            # handler.send_redirect("/game?id=" + str(controller_id))
+            page = HTMLPage("Einen Moment Bitte &hellip;")
+            page.head = page.template_string("wait_head")%{
+                "url": "/game?id=" + str(controller_id)
+            }
+            page.content = page.template_string("wait")
+            
+            handler.send_page(page)
+            
+        else:
+            handler.send_page(ShortErrorHTMLPage("Keine freien Spieler verf&uuml;gbar!", "Sorry!"))
+
+
 class BeenoirPingActor(BeenoirPlayerActor):
     def handle_success(self, handler):
         self.world.ping_player(self.controller_id)
@@ -76,6 +80,7 @@ class BeenoirCodeActor(BeenoirPlayerActor):
     def handle_success(self, handler):
         self.world.update_code(self.controller_id, 
                                self.post.get("code", [0] * 8))
+
 
 class BeenoirTempoActor(BeenoirPlayerActor):
     def handle_success(self, handler):
