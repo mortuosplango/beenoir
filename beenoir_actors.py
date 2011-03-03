@@ -31,7 +31,6 @@ class BeenoirPlayerActor(BeenoirBaseActor):
         # get values from handler and world
         self.controller_id = self.get_controller_id(handler)
         self.player_id = self.get_player_id(handler)
-        self.post = handler.get_json_dict()
         
         # these can be overwritten by handle_action
         self.success_response = "ok"
@@ -74,14 +73,16 @@ class BeenoirPingActor(BeenoirPlayerActor):
 
 class BeenoirCodeActor(BeenoirPlayerActor):
     def handle_success(self, handler):
+        dict = handler.get_post_json_dict()
         self.world.update_code(self.controller_id, 
-                               self.post.get("code", [0] * 8))
+                               dict.get("code", [0] * 8))
 
 
 class BeenoirTempoActor(BeenoirPlayerActor):
     def handle_success(self, handler):
+        dict = handler.get_post_json_dict()
         player = self.world.players[self.player_id]
-        player.change_time(self.post.get("tempo", 0))
+        player.change_time(dict.get("tempo", 0))
 
 
 class BeenoirGameActor(BeenoirBaseActor):

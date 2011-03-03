@@ -92,7 +92,7 @@ class ActorHandler (BaseHTTPServer.BaseHTTPRequestHandler):
         else:        
             self.send_page(HTTP404ErrorHTMLPage(self.path), 404)
 
-    def get_json_dict(self):
+    def get_post_json_dict(self):
         msg_len = int(self.headers.getheader('Content-Length'))
         msg = self.rfile.read(msg_len)
         try:
