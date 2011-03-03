@@ -305,8 +305,8 @@ class Player(Entity):
         
         debug_print('deleted player %d'%(self.player_id))
 
-#    def _change_time(self):
-#        self.new_granulation = [32, 24, 16, 12, 8][self.world.get_tile(self.pos).value]
+    def change_time(self, value):
+        self.new_granulation = [32, 24, 16, 12, 8][value % 5]
         # old timing: [12,8,6,4,3]
         # [8, 6, 4, 3, 2]
         # 1/2, 3/8, 1/4, 3/16, 1/8
@@ -353,8 +353,6 @@ class Player(Entity):
                     self.world.get_tile(self.pos).increase()
                 elif action == (7 or 'decrease'):
                     self.world.get_tile(self.pos).decrease()
-#                elif action == (8 or 'time'):
-#                    self._change_time()
                 elif action == (8 or 'action'):
                     self._action()
 
@@ -826,8 +824,8 @@ if __name__ == '__main__':
         BeenoirGameActor('/game', beenoir),
         BeenoirPingActor('/ping', beenoir),
         BeenoirCodeActor('/code', beenoir),
-        StringPathActor('GET', '/fail', 
-            htmlpage.ShortErrorHTMLPage("Spieler nicht mehr verf&uuml;gbar!", "Sorry!")),
+        BeenoirTempoActor('/tempo', beenoir),
+        StringPathActor('GET', '/fail', PlayerFailHTMLPage()),
         StaticFilesActor('/static/', 'web/')
     )
 

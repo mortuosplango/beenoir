@@ -4,16 +4,28 @@ from common import *
 import beenoir
 import time
 
+class PlayerFailHTMLPage(ShortErrorHTMLPage):
+    def __init__(self):
+        ShortErrorHTMLPage.__init__(self, 
+            "Spieler nicht mehr verf&uuml;gbar &hellip;", 
+            "Sorry!"
+        )
+
 class BeenoirBaseActor(PathActor):
     def __init__(self, path, world, request="GET"):
         PathActor.__init__(self, request, path, None)
         self.world = world
+        
     
-    def controller_id(self, handler):
+    def get_controller_id(self, handler):
         return handler.get_arguments().get("id")
     
-    def player_id(self, handler):
-        return self.world.controllers.get(self.controller_id(handler))
+    def get_player_id(self, handler):
+        return self.world.controllers.get(self.get_controller_id(handler))
+
+class BeenoirPostActor(BeenoirBaseActor):
+    def __init__(self, path, world):
+        BeenoirBaseActor.__init__(self, path, world, "POST")
 
 class BeenoirStartActor(BeenoirBaseActor):
     def handle(self, handler):
@@ -31,46 +43,43 @@ class BeenoirStartActor(BeenoirBaseActor):
         else:
             handler.send_page(ShortErrorHTMLPage("Keine freien Spieler verf&uuml;gbar!", "Sorry!"))
 
-class BeenoirPingActor(BeenoirBaseActor):
-    def __init__(self, path, world):
-        BeenoirBaseActor.__init__(self, path, world, "POST")
-    
+class BeenoirPlayerActor(BeenoirPostActor):
     def handle(self, handler):
-        controller_id = self.controller_id(handler)
-        player_id = self.player_id(handler)
-        if player_id:
-            self.world.ping_player(controller_id)
+        self.controller_id = self.get_controller_id(handler)
+        self.player_id = self.get_player_id(handler)
+        if self.player_id:
+            self.handle_action(handler)
             handler.send_page("ok")
         else:
             handler.send_page("fail")
 
-class BeenoirCodeActor(BeenoirBaseActor):
-    def __init__(self, path, world):
-        BeenoirBaseActor.__init__(self, path, world, "POST")
-    
-    def handle(self, handler):
-        controller_id = self.controller_id(handler)
-        player_id = self.player_id(handler)
-        if player_id:
-            dict = handler.get_json_dict()
-            self.world.update_code(controller_id, 
-                                   dict.get("code", [0] * 8))
-            handler.send_page("ok")
-        else:
-            handler.send_page("fail")
+class BeenoirPingActor(BeenoirPlayerActor):
+    def handle_action(self, handler):
+        self.world.ping_player(self.controller_id)
+
+
+class BeenoirCodeActor(BeenoirPlayerActor):
+    def handle_action(self, handler):
+        dict = handler.get_json_dict()
+        self.world.update_code(self.controller_id, dict.get("code", [0] * 8))
+
+class BeenoirTempoActor(BeenoirPlayerActor):
+    def handle_action(self, handler):
+        dict = handler.get_json_dict()
+        self.world.players[self.player_id].change_time(dict.get("tempo", 0))
 
 
 class BeenoirGameActor(BeenoirBaseActor):
     def handle(self, handler):
         
-        player_id = self.player_id(handler)
+        player_id = self.get_player_id(handler)
         
         # this is quite ugly. player creation is delayed, so
         # if this page is accessed too early we have a problem.
         # we bypass this with a lazy redirect.
         
         if player_id and self.world.players[player_id]:
-            controller_id = self.controller_id(handler)
+            controller_id = self.get_controller_id(handler)
             player_code = self.world.players[player_id].code
             
             # stupid implementation
@@ -110,4 +119,4 @@ class BeenoirGameActor(BeenoirBaseActor):
             }
             handler.send_page(page)
         else:
-            handler.send_page(ShortErrorHTMLPage("Spieler nicht mehr verf&uuml;gbar!", "Sorry!"))
+            handler.send_page(PlayerFailHTMLPage())
