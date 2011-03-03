@@ -17,7 +17,6 @@ class BeenoirBaseActor(PathActor):
         PathActor.__init__(self, request, path, None)
         self.world = world
         
-    
     def get_controller_id(self, handler):
         return handler.get_arguments().get("id")
     
@@ -63,9 +62,7 @@ class BeenoirStartActor(BeenoirBaseActor):
                 "url": "/game?id=" + str(controller_id)
             }
             page.content = page.template_string("wait")
-            
             handler.send_page(page)
-            
         else:
             handler.send_page(ShortErrorHTMLPage("Keine freien Spieler verf&uuml;gbar!", "Sorry!"))
 
