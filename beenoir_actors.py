@@ -45,32 +45,42 @@ class BeenoirStartActor(BeenoirBaseActor):
 
 class BeenoirPlayerActor(BeenoirPostActor):
     def handle(self, handler):
+        # get values from handler and world
         self.controller_id = self.get_controller_id(handler)
         self.player_id = self.get_player_id(handler)
+        self.post = handler.get_json_dict()
+        
         # these can be overwritten by handle_action
         self.success_response = "ok"
         self.fail_response = "fail"
         
         if self.player_id:
-            self.handle_action(handler)
+            self.handle_success(handler)
             handler.send_page(self.success_response)
         else:
+            self.handle_fail(handler)
             handler.send_page(self.fail_response)
+            
+    def handle_success(self, handler):
+        pass
+    
+    def handle_fail(self, handler):
+        pass
 
 class BeenoirPingActor(BeenoirPlayerActor):
-    def handle_action(self, handler):
+    def handle_success(self, handler):
         self.world.ping_player(self.controller_id)
 
 
 class BeenoirCodeActor(BeenoirPlayerActor):
-    def handle_action(self, handler):
-        dict = handler.get_json_dict()
-        self.world.update_code(self.controller_id, dict.get("code", [0] * 8))
+    def handle_success(self, handler):
+        self.world.update_code(self.controller_id, 
+                               self.post.get("code", [0] * 8))
 
 class BeenoirTempoActor(BeenoirPlayerActor):
-    def handle_action(self, handler):
-        dict = handler.get_json_dict()
-        self.world.players[self.player_id].change_time(dict.get("tempo", 0))
+    def handle_success(self, handler):
+        player = self.world.players[self.player_id]
+        player.change_time(self.post.get("tempo", 0))
 
 
 class BeenoirGameActor(BeenoirBaseActor):
