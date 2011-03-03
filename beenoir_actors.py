@@ -29,7 +29,7 @@ class BeenoirStartActor(BeenoirBaseActor):
             handler.send_page(page)
             
         else:
-            handler.send_page(ShortErrorHTMLPage("Keine freien Spieler verf&uuml;gbar!"))
+            handler.send_page(ShortErrorHTMLPage("Keine freien Spieler verf&uuml;gbar!", "Sorry!"))
 
 class BeenoirPingActor(BeenoirBaseActor):
     def __init__(self, path, world):
@@ -110,4 +110,4 @@ class BeenoirGameActor(BeenoirBaseActor):
             }
             handler.send_page(page)
         else:
-            handler.send_page(ShortErrorHTMLPage("Spieler nicht mehr verf&uuml;gbar!"))
+            handler.send_page(ShortErrorHTMLPage("Spieler nicht mehr verf&uuml;gbar!", "Sorry!"))

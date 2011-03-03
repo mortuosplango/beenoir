@@ -827,7 +827,7 @@ if __name__ == '__main__':
         BeenoirPingActor('/ping', beenoir),
         BeenoirCodeActor('/code', beenoir),
         StringPathActor('GET', '/fail', 
-            htmlpage.ShortErrorHTMLPage("Spieler nicht mehr verf&uuml;gbar!")),
+            htmlpage.ShortErrorHTMLPage("Spieler nicht mehr verf&uuml;gbar!", "Sorry!")),
         StaticFilesActor('/static/', 'web/')
     )
 
