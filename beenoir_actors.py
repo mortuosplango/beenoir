@@ -121,7 +121,17 @@ class BeenoirGameActor(BeenoirBaseActor):
                         code_table += "<br />"
                 code_table += "</td>"
             code_table += "</tr></table>"
-        
+            
+            tempo_control = "<div id='tempoControl'>Tempo: \n"
+            for i in range(NUMTEMPOS):
+                tempo_class = "button off"
+                if self.world.players[player_id].tempo == i:
+                    tempo_class = "button on"
+                tempo_control += "<a href='#' class='%s' id='%s' onclick='changeTempo(%s)'>%s</a>\n"%(
+                    tempo_class,"tempo_" + str(i),i, TEMPO_NAMES[i]
+                 )
+            tempo_control += "</div>"
+            
             page = HTMLPage("Bee Noir")
             page.head = page.template_string("game_head")%{
                 "player_color": COLORS[player_id],
@@ -134,6 +144,7 @@ class BeenoirGameActor(BeenoirBaseActor):
             }
             page.content = page.template_string("game")%{
                 "code_table": code_table,
+                "tempo_control": tempo_control,
                 "player_id": player_id
             }
             handler.send_page(page)

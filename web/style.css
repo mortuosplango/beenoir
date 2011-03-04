@@ -55,8 +55,8 @@ a:hover {
 
 .button, #player {
 	padding:10px;
-	-webkit-border-radius: 5px;
-	-moz-border-radius: 5px;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
 }
 
 #player {
@@ -69,6 +69,8 @@ a:hover {
 	background-color: #DDDDDD;
 	background-image: url('buttonShading.png');
 	background-repeat: repeat-x;
+	margin-right: 5px;
+	text-align: center;
 }
 
 .button:hover {
@@ -79,6 +81,18 @@ a:hover {
 .button:active {
 	color: #DDDDDD;
 	background-color: #444444;
+}
+
+.on {
+    background-color: #FF5555;
+    
+}
+.on:hover {
+    background-color: #FF5555;
+}
+
+#tempoControl {
+    margin-top: 18px;
 }
 
 #timeOut {

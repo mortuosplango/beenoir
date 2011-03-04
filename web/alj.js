@@ -64,7 +64,14 @@ function changeTempo(newTempo) {
         newTempo = NUMTEMPOS - 1;
     }
     
-    // TODO: graphical representation
+    for(var i = 0; i < NUMTEMPOS; i++) {
+        var cur = document.getElementById('tempo_' + i);
+        if(i == newTempo) {
+            cur.className = "button on";
+        } else {
+            cur.className = "button off";
+        }
+    }
     
     sendTempo(newTempo);
 }
