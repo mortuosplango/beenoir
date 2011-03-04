@@ -124,11 +124,13 @@ class BeenoirGameActor(BeenoirBaseActor):
             
             tempo_control = "<div id='tempoControl'>Tempo: \n"
             for i in range(NUMTEMPOS):
-                tempo_class = "button off"
+                tempo_class = "button tempo off"
                 if self.world.players[player_id].tempo == i:
-                    tempo_class = "button on"
+                    tempo_class = "button tempo on"
+                if i == 0: tempo_class += " first"
+                if i == NUMTEMPOS - 1 : tempo_class += " last"
                 tempo_control += "<a href='#' class='%s' id='%s' onclick='changeTempo(%s)'>%s</a>\n"%(
-                    tempo_class,"tempo_" + str(i),i, TEMPO_NAMES[i]
+                    tempo_class,"tempo_" + str(i),i, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
                  )
             tempo_control += "</div>"
             

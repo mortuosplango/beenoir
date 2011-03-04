@@ -64,13 +64,22 @@ function changeTempo(newTempo) {
         newTempo = NUMTEMPOS - 1;
     }
     
+    
     for(var i = 0; i < NUMTEMPOS; i++) {
         var cur = document.getElementById('tempo_' + i);
+        var className;
         if(i == newTempo) {
-            cur.className = "button on";
+            className = "button tempo on";
         } else {
-            cur.className = "button off";
+            className = "button tempo off";
         }
+        
+        if(i == 0) {
+            className = className + " first";
+        } else if (i == NUMTEMPOS - 1) {
+            className = className + " last";
+        }
+        cur.className = className;
     }
     
     sendTempo(newTempo);

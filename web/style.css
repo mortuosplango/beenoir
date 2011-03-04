@@ -55,8 +55,8 @@ a:hover {
 
 .button, #player {
 	padding:10px;
-	-webkit-border-radius: 3px;
-	-moz-border-radius: 3px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
 }
 
 #player {
@@ -69,7 +69,7 @@ a:hover {
 	background-color: #DDDDDD;
 	background-image: url('buttonShading.png');
 	background-repeat: repeat-x;
-	margin-right: 5px;
+	margin-right: -5px;
 	text-align: center;
 }
 
@@ -83,12 +83,28 @@ a:hover {
 	background-color: #444444;
 }
 
+.tempo {
+    -webkit-border-radius: 0px;
+	-moz-border-radius: 0px;
+	padding: 7px;
+}
+
 .on {
-    background-color: #FF5555;
+    background-color: #777777;
     
 }
 .on:hover {
-    background-color: #FF5555;
+    background-color: #777777;
+}
+
+.first {
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-bottom-left-radius: 5px;
+}
+
+.last {
+    -webkit-border-top-right-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
 }
 
 #tempoControl {
