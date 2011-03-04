@@ -33,6 +33,10 @@ NUMCODES = 9
 TEMPOS = (32, 24, 16, 12, 8)
 NUMTEMPOS = len(TEMPOS)
 
+# old timing: [12,8,6,4,3]
+# [8, 6, 4, 3, 2]
+# 1/2, 3/8, 1/4, 3/16, 1/8
+
 TEMPO_NAMES = (
     "1/1",
     "3/4",

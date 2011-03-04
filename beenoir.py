@@ -242,8 +242,8 @@ class Player(Entity):
 
         ## time
         self.time_index = beat
-        self.granulation = 16
-        self.new_granulation = False
+        self.granulation = TEMPOS[2]
+        self.change_tempo(2) # init through interface
 
         ## color
         self.color =  [eval('0x' + COLORS[player_id][i*2:(i*2)+2]) 
@@ -306,11 +306,9 @@ class Player(Entity):
         debug_print('deleted player %d'%(self.player_id))
 
     def change_tempo(self, value):
-        self.new_granulation = TEMPOS[value % NUMTEMPOS]
-        # old timing: [12,8,6,4,3]
-        # [8, 6, 4, 3, 2]
-        # 1/2, 3/8, 1/4, 3/16, 1/8
-        
+        value = value % NUMTEMPOS
+        self.tempo = value
+        self.new_granulation = TEMPOS[value]       
         # timings are now in common.py
 
     def send_status(self, status):
@@ -544,6 +542,7 @@ class BotPlayer(Player):
         self.code = ([random.randint(0,NUMCODES-1) for i in range(CODESIZE-4)] + 
                      [random.choice([1,2,3,4,6,8]) for i in range(3)] + [8])
         random.shuffle(self.code)
+        self.change_tempo(random.randint(0,NUMTEMPOS-1))
 
     def _teleport(self):
         debug_print('teleport and scramble!')
