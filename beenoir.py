@@ -597,7 +597,7 @@ class WebPlayer(Player):
         self.controller = controller_id
         self.title = 'Spieler'
         Player.__init__(self, world, pos, player_id, beat, self.title)
-        self.timeout = 5
+        self.timeout = 10
 
 
     def update(self, dt):
@@ -613,7 +613,7 @@ class WebPlayer(Player):
         return self.controller
 
     def reset_timeout(self):
-        self.timeout = 8
+        self.timeout = 10
 
     def _update_label(self, percent = 0):
         Player._update_label(self, percent)
