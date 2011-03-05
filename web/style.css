@@ -69,8 +69,8 @@ a:hover {
 	background-color: #DDDDDD;
 	background-image: url('buttonShading.png');
 	background-repeat: repeat-x;
-	margin-right: -5px;
 	text-align: center;
+	margin-right: 5px;
 }
 
 .button:hover {
@@ -87,6 +87,7 @@ a:hover {
     -webkit-border-radius: 0px;
 	-moz-border-radius: 0px;
 	padding: 7px;
+	margin-right: -5px;
 }
 
 .on {

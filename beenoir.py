@@ -43,6 +43,7 @@ batch = pyglet.graphics.Batch()
 background = pyglet.graphics.OrderedGroup(0)
 foreground = pyglet.graphics.OrderedGroup(1)
 players = pyglet.graphics.OrderedGroup(2)
+pings = pyglet.graphics.OrderedGroup(3)
 
 
 class vec3(object):
@@ -212,6 +213,35 @@ class Field(Tile):
         self.change_bitmap(self.tiles[self.value])
 
 
+class PlayerVisualHint(Entity):
+    def __init__(self, player):
+        Entity.__init__(self, player.pos, player.image_file, group=pings)
+        self.player = player
+        
+        self.image.anchor_x = player.image.anchor_x
+        self.image.anchor_y = player.image.anchor_y
+        
+        self.sprite.rotation = player.sprite.rotation
+        self.sprite.x = player.sprite.x
+        self.sprite.y = player.sprite.y
+        
+        self.scale = 1.0
+        self.opacity = 240
+        self.active = True
+     
+    def update(self,dt):
+        self.scale *= 1.25
+        self.sprite.scale = self.scale
+        
+        if self.opacity > 0:
+            self.opacity -= 20
+            
+        self.sprite.opacity = self.opacity
+        
+        if self.scale > 6:
+            self.player.visual_hint = None
+
+
 class Player(Entity):
     """ 
     Generic Player
@@ -292,9 +322,15 @@ class Player(Entity):
         self._update_label()
 
         self.send_status('newplayer')
+        
+        self.visual_hint = None
+        self.create_visual_hint()
 
         debug_print('player id %d created'%(self.player_id))
 
+    def create_visual_hint(self):
+        if not self.visual_hint:
+            self.visual_hint = PlayerVisualHint(self)
 
     def delete(self):
         self.send_status('playerdeleted')
@@ -328,6 +364,26 @@ class Player(Entity):
 
     def active(self):
         return True
+
+    def _pos2screenpos(self,pos):
+        """
+        Translates a relative position to pixel coordinates
+        """
+        if 0 < (pos.x%2) <= 1: # odd
+            y = pos.y + (0.5 * (pos.x%2))
+        elif (pos.x%2) == 0:
+            y = pos.y
+        else:
+            y = pos.y + (0.5 - (0.5 * ((pos.x%2) - 1)))
+
+        return vec3(
+            (WIN_WIDTH * 0.3  + 50 * pos.x 
+             + (self.tile_width - self.sprite.width) / 2.0 
+             + self.sprite.width / 2) + PADDING[0],
+            (WIN_HEIGHT * 0.9 + 
+             (self.tile_height - self.sprite.height) / 2.0 
+             - self.tile_height * y + self.tile_height / 2) + PADDING[1],
+            0)
 
     def update(self,dt):
         percent = self.time_index / float(self.granulation - 1)
@@ -364,6 +420,9 @@ class Player(Entity):
 
         self._update_label(percent)
         self.time_index = (self.time_index + 1) % self.granulation
+        
+        if self.visual_hint:
+            self.visual_hint.update(dt)
 
     def _update_label(self, percent = 0):
         for index,i in enumerate(self.code):
@@ -393,27 +452,6 @@ class Player(Entity):
         self.sprite.rotation = (
             (self.direction * percent) +
             (self.old_direction * (1 - percent))) * 60
-
-  
-    def _pos2screenpos(self,pos):
-        """
-        Translates a relative position to pixel coordinates
-        """
-        if 0 < (pos.x%2) <= 1: # odd
-            y = pos.y + (0.5 * (pos.x%2))
-        elif (pos.x%2) == 0:
-            y = pos.y
-        else:
-            y = pos.y + (0.5 - (0.5 * ((pos.x%2) - 1)))
-
-        return vec3(
-            (WIN_WIDTH * 0.3  + 50 * pos.x 
-             + (self.tile_width - self.sprite.width) / 2.0 
-             + self.sprite.width / 2) + PADDING[0],
-            (WIN_HEIGHT * 0.9 + 
-             (self.tile_height - self.sprite.height) / 2.0 
-             - self.tile_height * y + self.tile_height / 2) + PADDING[1],
-            0)
 
     def _change_position(self, pos=vec3(), percent=0): 
         """
@@ -826,6 +864,7 @@ if __name__ == '__main__':
         BeenoirPingActor('/ping', beenoir),
         BeenoirCodeActor('/code', beenoir),
         BeenoirTempoActor('/tempo', beenoir),
+        BeenoirVisualHintActor('/visual_hint', beenoir),
         StringPathActor('GET', '/fail', PlayerFailHTMLPage()),
         StaticFilesActor('/static/', 'web/')
     )

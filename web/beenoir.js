@@ -107,6 +107,17 @@ function sendCodes()
     });
 }
 
+function visualHint()
+{
+ $.ajax({
+        url: '/visual_hint?id=' + ID,
+        type: 'POST',
+        timeout: 1000,
+        error: ajaxErrorFunction,
+        success: ajaxSuccessFunction
+    });
+}
+
 
 function pingServer() {
     $.ajax({
@@ -119,6 +130,7 @@ function pingServer() {
     
     window.setTimeout("pingServer()", 1500);
 }
+
 
 function sendTempo(newTempo) {
     $.ajax({

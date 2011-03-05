@@ -84,6 +84,10 @@ class BeenoirTempoActor(BeenoirPlayerActor):
         player = self.world.players[self.player_id]
         player.change_tempo(dict.get("tempo", 0))
 
+class BeenoirVisualHintActor(BeenoirPlayerActor):
+    def handle_success(self, handler):
+        player = self.world.players[self.player_id]
+        player.create_visual_hint()
 
 class BeenoirGameActor(BeenoirBaseActor):
     def handle(self, handler):
