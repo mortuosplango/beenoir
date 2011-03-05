@@ -121,6 +121,7 @@ div#waitBox {
 
 #tempoControl {
     margin-top: 18px;
+    font-weight: bold;
 }
 
 #timeOut {
