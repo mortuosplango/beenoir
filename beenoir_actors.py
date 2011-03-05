@@ -36,7 +36,7 @@ class BeenoirPlayerActor(BeenoirBaseActor):
         self.success_response = "ok"
         self.fail_response = "fail"
         
-        if self.player_id:
+        if self.player_id != None:
             self.handle_success(handler)
             handler.send_page(self.success_response)
         else:
@@ -101,7 +101,7 @@ class BeenoirGameActor(BeenoirBaseActor):
         # if this page is accessed too early we have a problem.
         # we bypass this with a lazy redirect.
         
-        if player_id and self.world.players[player_id]:
+        if player_id != None and self.world.players[player_id]:
             controller_id = self.get_controller_id(handler)
             player_code = self.world.players[player_id].code
             

@@ -336,7 +336,7 @@ class Player(Entity):
         self.send_status('playerdeleted')
         for i in [self.label, self.sprite, self.label_icon] + self.labels:
             i.delete()
-        self.world.players[self.player_id] = False
+        self.world.players[self.player_id] = None
         self.world.get_tile(self.pos).occupied = False
         
         debug_print('deleted player %d'%(self.player_id))
@@ -802,7 +802,7 @@ class BeeNoirWorld(object):
                     return (None, None)
        else:
             print 'no free player!'
-            return None
+            return (None, None)
 
     def get_player(self, controller_id):
         """
