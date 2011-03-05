@@ -43,7 +43,7 @@ batch = pyglet.graphics.Batch()
 background = pyglet.graphics.OrderedGroup(0)
 foreground = pyglet.graphics.OrderedGroup(1)
 players = pyglet.graphics.OrderedGroup(2)
-pings = pyglet.graphics.OrderedGroup(3)
+visual_hints = pyglet.graphics.OrderedGroup(3)
 
 
 class vec3(object):
@@ -215,7 +215,7 @@ class Field(Tile):
 
 class PlayerVisualHint(Entity):
     def __init__(self, player):
-        Entity.__init__(self, player.pos, player.image_file, group=pings)
+        Entity.__init__(self, player.pos, player.image_file, group=visual_hints)
         self.player = player
         
         self.image.anchor_x = player.image.anchor_x
