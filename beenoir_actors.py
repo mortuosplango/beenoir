@@ -53,14 +53,17 @@ class BeenoirPlayerActor(BeenoirBaseActor):
 
 class BeenoirStartActor(BeenoirBaseActor):
     def handle(self, handler):
-        controller_id = self.world.register_and_create_web_player()
+        controller_id, player_id = self.world.register_and_create_web_player()
         if controller_id:
             # handler.send_redirect("/game?id=" + str(controller_id))
             page = HTMLPage("Einen Moment Bitte &hellip;")
             page.head = page.template_string("wait_head")%{
                 "url": "/game?id=" + str(controller_id)
             }
-            page.content = page.template_string("wait")
+            page.content = page.template_string("wait")%{
+                "color": COLORS[player_id],
+                "player_id": player_id
+            }
             handler.send_page(page)
         else:
             handler.send_page(ShortErrorHTMLPage("Keine freien Spieler verf&uuml;gbar!", "Sorry!"))

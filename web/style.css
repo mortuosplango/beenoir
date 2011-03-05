@@ -22,6 +22,7 @@ img.not {
 	cursor: default !important;
 }
 
+
 div#main {
 	margin-left: auto;
 	margin-right: auto;
@@ -53,16 +54,26 @@ a:hover {
 }
 
 
-.button, #player {
+.button, #player, div#waitBox {
 	padding:10px;
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
 }
 
-#player {
+#player, div#waitBox {
 	float: left;
 	font-weight: bold;
 	color: black;
+}
+
+div#waitBox {
+    padding: 20px;
+    padding-left: 100px;
+    padding-right: 100px;
+    width: 100px;
+    margin-left:90px;
+    margin-right:90px;
+    margin-top:180px;
 }
 
 .button {

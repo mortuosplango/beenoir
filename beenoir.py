@@ -790,16 +790,16 @@ class BeeNoirWorld(object):
                     self.players_waiting.append(('web', i, controllerID))
                     print 'created player nr ', i
                     found = True
-                    return controllerID
+                    return (controllerID, i)
                 elif not p.active():
                     self.controllers[controllerID] = i
                     p.reset_timeout()
                     found = True
-                    return p.controller
+                    return (p.controller, i)
                 elif counter < 0:
                     found = True
                     print 'something went wrong: no free player found ...'
-                    return None
+                    return (None, None)
        else:
             print 'no free player!'
             return None
