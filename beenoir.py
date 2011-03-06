@@ -794,11 +794,12 @@ class BeeNoirWorld(object):
                 p = self.players[i]
                 counter -= 1
                 if not p:
-                    self.controllers[controllerID] = i
-                    self.players_waiting.append(('web', i, controllerID))
+                    controller_id = self.next_controller_id()
+                    self.controllers[controller_id] = i
+                    self.players_waiting.append(('web', i, controller_id))
                     print 'created player nr ', i
                     found = True
-                    return (controllerID, i)
+                    return (controller_id, i)
                 # elif not p.active():
                 #    self.controllers[p.controller] = i
                 #    p.reset_timeout()
