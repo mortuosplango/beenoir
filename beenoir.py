@@ -636,6 +636,7 @@ class BeeNoirWorld(object):
         self.players = [False] * PLAYERS
         self.objs = [ Field(vec3()) for i in range(h*w) ]
         self.players_waiting = []
+        self.visual_hints_stack = []
         self.controllers = dict()
         self.beat = 0
         
@@ -716,6 +717,11 @@ class BeeNoirWorld(object):
                 print 'already there'
         if len(self.players_waiting) > 0:
             self.players_waiting = []
+            
+        while len(self.visual_hints_stack) > 0:
+            player = self.players[self.visual_hints_stack.pop()]
+            if player:
+                player.create_visual_hint()
 
     def create_web_player(self, playerID, controllerID):
         self.players[playerID] = WebPlayer(self, 
@@ -750,6 +756,9 @@ class BeeNoirWorld(object):
 
     def get_tile(self,pos):
         return self.objs[pos.x + pos.y * self.width]
+    
+    def push_visual_hint(player_id):
+        visual_hints_stack.append(player_id)
 
     def update_code(self, controller_id, code):
         """

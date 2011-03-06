@@ -89,8 +89,7 @@ class BeenoirTempoActor(BeenoirPlayerActor):
 
 class BeenoirVisualHintActor(BeenoirPlayerActor):
     def handle_success(self, handler):
-        player = self.world.players[self.player_id]
-        player.create_visual_hint()
+        self.world.push_visual_hint(self.player_id)
 
 class BeenoirGameActor(BeenoirBaseActor):
     def handle(self, handler):
