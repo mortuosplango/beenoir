@@ -324,7 +324,7 @@ class Player(Entity):
         self.send_status('newplayer')
         
         self.visual_hint = None
-        self.create_visual_hint()
+        self.world.push_visual_hint(player_id)
 
         debug_print('player id %d created'%(self.player_id))
 
@@ -757,8 +757,8 @@ class BeeNoirWorld(object):
     def get_tile(self,pos):
         return self.objs[pos.x + pos.y * self.width]
     
-    def push_visual_hint(player_id):
-        visual_hints_stack.append(player_id)
+    def push_visual_hint(self, player_id):
+        self.visual_hints_stack.append(player_id)
 
     def update_code(self, controller_id, code):
         """
