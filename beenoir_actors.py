@@ -36,7 +36,7 @@ class BeenoirPlayerActor(BeenoirBaseActor):
         self.success_response = "ok"
         self.fail_response = "fail"
         
-        if self.player_id != None:
+        if self.player_id != None and self.world.players[player_id]:
             self.handle_success(handler)
             handler.send_page(self.success_response)
         else:
