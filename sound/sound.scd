@@ -1,4 +1,16 @@
 (
+/*
+(
+Server.local.quit;
+Server.internal.quit;
+Server.default = Server.local;
+Server.local.options.device_("Digidesign Mbox 2 Mini")
+s = Server.local;
+s.boot;
+
+)
+*/
+
 
 s.freeAll;
 
@@ -80,8 +92,9 @@ Ndef(\bees, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	snd = LPF.ar(snd, (ypos.linlin(0,1,50,100)).midicps * value.linexp(0,1,1,8).lag(0.1));
 	snd = FreeVerb2.ar(snd[0], snd[1], 0.3, 1, 1) * 0.6;
 	snd = Balance2.ar(snd[0], snd[1], xpos.linlin(0,1,-0.8,0.8).lag(0.2));
-	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.2,0.005), 1, 5), t_trig, 1, 1);
-	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1)
+	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.3,0.1), 4, 24, -16), t_trig, 1, 0.5);
+	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1);
+	snd * 0.1
 });
 
 Ndef(\fifths, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
@@ -130,18 +143,25 @@ SynthDef(\clicks) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 SynthDef(\noise) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.01|
 	var snd, env;
 	snd = GrayNoise.ar() * 4;
-	snd = RHPF.ar(snd, ypos.linlin(0,1,200,2000)) * ypos.linlin(0,1,1,8);
-	env = EnvGen.ar(Env.linen(0,value.linlin(0,1,0.005,0.1),0), doneAction:2);
-	Out.ar(0, Pan2.ar( snd * env * amp, xpos.linlin(0,1,-1,1) ));
+	snd = RHPF.ar(snd, ypos.linlin(0,1,200,2000)) * ypos.linlin(0,1,4,8);
+	env = Select.ar((value * 5).round, [
+		EnvGen.ar(Env.linen(0,dur,0)),
+		EnvGen.ar(Env.perc(dur, 0, 2, 4)),
+		EnvGen.ar(Env.linen(0,dur,0)),
+		EnvGen.ar(Env.perc(dur, 0, 2, 4)),
+		EnvGen.ar(Env.perc(0,dur)),
+	]);
+	Line.kr(0, 1, dur, doneAction:2);
+	Out.ar(0, Pan2.ar( snd * 0.5 * env * amp, xpos.linlin(0,1,-1,1) ));
 }.add;
 
 SynthDef(\kick, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.5|
 	// kick by otophilia @ synth def pool
 	var env0, env1, env1m, son;
 	
-	env0 =  EnvGen.ar(Env.new([0.5, 1, 0.5, 0], [0.005, 0.06, 0.26], [-4, -2, -4]), doneAction:2);
-	env1 = EnvGen.ar(Env.new([110, 59, 29], [0.005, 0.29], [-4, -5]));
-	env1m = env1.midicps * ypos.linlin(0,1,0.5,3);
+	env0 =  EnvGen.ar(Env.new([0.5, 1, 0.5, 0], [0.005, dur/2, dur/2], [-4, -2, -4]), doneAction:2);
+	env1 = EnvGen.ar(Env.new([110, 59, 29, 20], [0.005, 0.29, dur/2], [-4, -5, 1]));
+	env1m = env1.midicps * ypos.linlin(0,1,1,2);
 	
 	son = LFPulse.ar(env1m, 0, 0.5, 1, -0.5);
 	son = son + WhiteNoise.ar(1);
@@ -167,11 +187,11 @@ SynthDef(\perc, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2|
 	).midicps;
 	snd = VarSaw.ar(
 		freq
-		+ SinOsc.kr(value.linlin(0,1,0,5) + Rand(0.0, 0.5), 0, value.linlin(0,1,0,3))
+		+ SinOsc.kr(value.linlin(0,1,0,10) + Rand(0.0, 0.5), 0, value.linlin(0,1,0,5))
 	);
-	env = EnvGen.ar(Env.perc(0.01,value.linlin(0,1,0.25,4)), doneAction:2);
-	snd = RLPF.ar(snd, Rand(freq*2, freq*4), Rand(0.1, 1.0));
-	snd = DelayN.ar(snd, 0.1, [0, 0.001]);
+	env = EnvGen.ar(Env.perc(0.01,dur), doneAction:2);
+	snd = RLPF.ar(snd, freq * (value + 1), 0.01 + abs(1 - (value/5)));
+	snd = DelayN.ar(snd, 0.1, [0, 0.003]);
 	Out.ar(0, Pan2.ar( snd * amp * 1.5 * env, xpos.linlin(0,1,-0.5,0.5) ));
 }).add;
 
@@ -183,13 +203,13 @@ SynthDef(\bell, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 		ypos.linlin(0,1,0,12), // how many y waben??
 		12,
 		1,
-		61+24	// c#?
+		61+12	// c#?
 	).midicps;
 	snd = Ringz.ar(
-		Decay2.ar(Impulse.ar(0), 0.003, 0.5),
-		freq * [1,2.05,2,4,4.01],
+		Decay2.ar(Impulse.ar(0), 0.01, dur),
+		freq * [1,2,2.01,4, 8],
 		len,
-		[0.4, 0.4, 0.3, 0.25, 0.4]
+		[0.4, 0.4, 0.3, 0.1, 0.025]
 	) * SinOsc.ar(Rand(0.5, [0.5, 0.7, 1.0, 1.5, 2.0]), 0.5pi, 0.3, 0.7);
 	env = EnvGen.ar(Env.perc(0.001,len));
 	snd = snd.sum * env;
@@ -207,31 +227,43 @@ SynthDef(\marimba, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 		1,
 		61-12	// c#?
 	).midicps;
-	var clippedfreq = freq.clip(100, 2000);
+	var clippedfreq = freq.clip(20, 10000);
 	var durcomp = (440 / clippedfreq) ** 0.4 * 0.5;
 	var ampcomp = ((440 / freq) ** 0); 
 	var cutenv = EnvGen.kr(Env([1,1,0], [durcomp, 0.01]), doneAction: 2); 
-	var noisebal = 0.7; 
+	var noisebal = value.linlin(0, 1, 0.3, 1.0); 
 	
 	var sound = Formlet.ar(
-		Decay.ar(
-			Impulse.ar(0), 
-			0.03
+		Decay2.ar(
+			Impulse.ar(0),
+			0.01,
+			dur
 		) 
 		* PinkNoise.ar(noisebal, 1 - noisebal) 
 		* (amp * ampcomp), 
 		freq, 
 		0.002, durcomp
 	).softclip;
-	sound = DelayN.ar(sound, 0.1, [0, 0.001]);
+//	sound = DelayN.ar(sound, 0.1, [0, 0.005]);
 	Out.ar(out, Pan2.ar(sound * 1.5, xpos.linlin(0,1,-1,1), cutenv));
 }).add;
 
 // WTF
 SynthDef(\wtf, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25|
 	var snd, env;
-	snd = Gendy1.ar(1, 0, ypos, 1.0, 50, 1000, 1, 0.005, 12, 12, 1).distort;
-	env = EnvGen.ar(Env.sine(dur), doneAction:2);
+	var freq = DegreeToKey.kr(
+		b.bufnum,
+		ypos.linlin(0,1,0,12),
+		12,
+		1,
+		61+48	
+	).midicps;
+	snd = Gendy1.ar(1, 0, freq, 1.0, 50, 1000, 1, 0.005, 12, 12, 1).distort;
+	snd = (1 + (snd * 0.1)) * FBSineC.ar(freq, 0.8, 0.8);
+//	snd = snd * 20;
+
+	snd = LPF.ar(snd, 5000);
+	env = EnvGen.ar(Env([0, 2, 0.3, 0.2, 0], [0.01, 0.3, dur, 0.3]), doneAction:2);
 	Out.ar(0, Pan2.ar( snd * amp * env, Line.kr(0 - value, xpos, dur) ));
 }).add;
 
@@ -248,6 +280,9 @@ SynthDef(\teleport, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25|
 // master FX
 SynthDef(\stageLimiter, { |wet=0.1, room=0.3|
 	var input = In.ar(0, 2);
+	input = MidEQ.ar(input, 120, 1, 8); // crank the bass
+	input = MidEQ.ar(input, 60, 0.3, 20); // crank the bass
+
 	input = Select.ar(CheckBadValues.ar(input, 0, 0), [input, DC.ar(0), DC.ar(0), input]);
 	input = FreeVerb2.ar(input[0], input[1], wet.lag, room.lag, 1);
 	ReplaceOut.ar(0, Limiter.ar(input)) ;
