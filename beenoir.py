@@ -681,7 +681,7 @@ class BeeNoirWorld(object):
         return hex(zlib.crc32(self.controller_id_prefix +
                               str(self.last_internal_id)))[3:]
 
-    def mouse_pressed(self, x, y, button):
+    def mouse_pressed(self, x, y, button, modifiers):
         """ 
         change a specific player's code on press 
         """
@@ -690,16 +690,23 @@ class BeeNoirWorld(object):
             if CODEPAD < x < (CODESIZE + 2) * CODEPAD:
                 playerno = int((window.height - y) / LABEL_HEIGHT)
                 player = self.players[playerno]
+                
+                left_button = button == pyglet.window.mouse.LEFT
+                right_button = (button == pyglet.window.mouse.RIGHT) or (
+                    left_button and modifiers == pyglet.window.key.MOD_CTRL)
+                
+                if right_button: left_button = False
+                
                 if player and (CODEPAD >
                                y - ((window.height -
                                      (playerno * LABEL_HEIGHT)) - 60) > 0):
                     change = False
-                    if button == pyglet.window.mouse.LEFT: change = 1
-                    elif button == pyglet.window.mouse.RIGHT: change = -1
+                    if left_button: change = 1
+                    elif right_button: change = -1
                     player.change_code((x - CODEPAD) / CODEPAD, change)
-                elif player and (button == pyglet.window.mouse.RIGHT):
+                elif player and right_button:
                     player.delete()
-                elif not player and (button == pyglet.window.mouse.LEFT):
+                elif (not player) and left_button:
                     self.players_waiting.append(('bot', playerno))
                     
     def create_waiting_players(self):
@@ -895,7 +902,7 @@ if __name__ == '__main__':
 
     @window.event
     def on_mouse_press(x, y, button, modifiers):
-        beenoir.mouse_pressed(x, y, button)
+        beenoir.mouse_pressed(x, y, button, modifiers)
 
     @window.event
     def on_draw():
