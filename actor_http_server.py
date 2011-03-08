@@ -179,8 +179,8 @@ class StaticFilesActor(BaseActor):
         return os.path.exists(self.file_path(handler.path))
     
     def path_is_secure(self, path):
-        # IMPLEMENT!!
-        return True
+        # surely needs more.
+        return os.path.realpath(path).startswith(os.path.realpath(self.path))
     
     def handle(self, handler):
         file_path = self.file_path(handler.path)
