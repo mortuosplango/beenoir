@@ -12,6 +12,8 @@ How to use it:
     ./run
     or
     ./runFullscreen
+    or
+    ./run80 (HTTP Server listens on port 80 & Fullscreen)
 
 
 You can receive messages with OSC in e. g. SuperCollider:

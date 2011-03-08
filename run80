@@ -1,0 +1,4 @@
+#!/bin/sh
+export VERSIONER_PYTHON_PREFER_32_BIT=yes
+echo "Running on port 80 requires su privileges:"
+sudo python beenoir.py -f -p 80

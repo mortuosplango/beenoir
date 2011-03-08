@@ -852,12 +852,17 @@ if __name__ == '__main__':
     
     print "Close Bee Noir with ESC key with focus on the game window."
     
+    http_port = 8000
     fullscreen = False
+    
     for i, arg in enumerate(sys.argv):
-        if arg == '-p':
+        if arg == '-o':
             SC_ADDR = ('127.0.0.1', int(sys.argv[i+1]))
         elif arg == '-f':
             fullscreen = True
+        elif arg == "-p":
+            http_port = int(sys.argv[i+1])
+            
 
     if fullscreen:
         window = pyglet.window.Window(fullscreen=True, caption='Bee Noir')
@@ -886,7 +891,7 @@ if __name__ == '__main__':
     )
 
     # WebServer Startup
-    http_thread = ActorHTTPServerThread(actors, 8000)
+    http_thread = ActorHTTPServerThread(actors, http_port)
     http_thread.start()
 
     @window.event
