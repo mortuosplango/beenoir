@@ -110,7 +110,7 @@ Ndef(\fifths, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 
 Ndef(\texture, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	var snd = Splay.ar(
-		Ringz.ar(ClipNoise.ar(0.005 * ypos.linlin(0, 1, 1, 2)), ([60,67,72,79]+1+24).midicps *
+		Ringz.ar(ClipNoise.ar(0.005 * ypos.linlin(0, 1, 1, 2)), ([60,67,72,79]+1+12).midicps *
 			Select.kr(ypos.linlin(0,1,0,11), [0.75,1,2,0.5,2,1.5].mirror),
 			0.5
 		).distort
