@@ -280,9 +280,22 @@ class Player(Entity):
                        for i in range(3)] + [255,]
 
         ## code
-        self.code = [0] * CODESIZE
+        self.code = [NUMCODES-1] * CODESIZE
         self.index = 0
         self.player_id = player_id
+        
+        ## action_table
+        self.action_table = (
+            lambda: self._action(),
+            lambda: self._move(forward=True),
+            lambda: self._move(forward=False),
+            lambda: self._turn(-1),
+            lambda: self._turn(1),
+            lambda: self._move(jump=True),
+            lambda: self.world.get_tile(self.pos).increase(),
+            lambda: self.world.get_tile(self.pos).decrease(),
+            lambda: None
+        )
 
         ## label
         
@@ -394,23 +407,8 @@ class Player(Entity):
 
         if self.time_index == 0:
             action = self.code[self.index]
-            if 0 < action < NUMCODES:
-                if action == (1 or 'forward'):
-                    self._move(forward=True)
-                elif action == (2 or 'back'):
-                    self._move(forward=False)
-                elif action == (3 or 'turnLeft'):
-                    self._turn(-1)
-                elif action == (4 or 'turnRight'):
-                    self._turn(1)
-                elif action == (5 or 'jump'):
-                    self._move(jump=True)
-                elif action == (6 or 'increase'):
-                    self.world.get_tile(self.pos).increase()
-                elif action == (7 or 'decrease'):
-                    self.world.get_tile(self.pos).decrease()
-                elif action == (8 or 'action'):
-                    self._action()
+            
+            self.action_table[action]()
 
             self.index = (self.index + 1) % CODESIZE
             if self.new_granulation:
@@ -578,7 +576,7 @@ class BotPlayer(Player):
     def __init__(self, world, pos, player_id=0, beat=0):
         Player.__init__(self, world, pos, player_id, beat, 'Bot')
         self.code = ([random.randint(0,NUMCODES-1) for i in range(CODESIZE-4)] + 
-                     [random.choice([1,2,3,4,6,8]) for i in range(3)] + [8])
+                     [random.choice([1,2,3,4,6,0]) for i in range(3)] + [0])
         random.shuffle(self.code)
         self.change_tempo(random.randint(0,NUMTEMPOS-1))
 

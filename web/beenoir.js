@@ -88,7 +88,7 @@ function changeTempo(newTempo) {
 function resetCodes()
 {
     for(var i = 0; i < CODESIZE; i++){
-        changeCode(i, 0, false);
+        changeCode(i, NUMCODES-1, false);
     }
     
     sendCodes();

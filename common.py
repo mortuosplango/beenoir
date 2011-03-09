@@ -15,7 +15,7 @@ COLORS = ('EDFF00', 'FF0000', '2600FF',
            '00FFFF', 'FFFFFF', 'FFFFFF,' 'FFFFFF')
 
 OPCODE_ALTS = (
-    "Warte",
+    "Sound",
     "Vorw&auml;rts",
     "Zur&uuml;ck",
     "Nach links",
@@ -23,8 +23,7 @@ OPCODE_ALTS = (
     "Springe",
     "Vergr&ouml;&szlig;ere Feldwert",
     "Verkleinere Feldwert",
-#   "Zeit",
-    "Sound"
+    "Warte"
 )
 
 CODESIZE = 8
