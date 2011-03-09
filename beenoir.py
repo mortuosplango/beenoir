@@ -595,31 +595,33 @@ class WebPlayer(Player):
         self.controller = controller_id
         self.title = 'Spieler'
         Player.__init__(self, world, pos, player_id, beat, self.title)
-        self.timeout = 10
+        self.timeout = 15
 
 
     def update(self, dt):
         Player.update(self, dt)
-        if self.timeout < -5:
-            self.delete()
-        elif (self.timeout < 0) and self.controller:
-            self.world.controllers.pop(self.controller)
-            self.controller = False          
+        if self.timeout < 0:
+            self.delete()      
         self.timeout -= dt
 
     def active(self):
         return self.controller
 
     def reset_timeout(self):
-        self.timeout = 10
+        self.timeout = 15
 
     def _update_label(self, percent = 0):
         Player._update_label(self, percent)
         text = self.title + ' ' + str(self.player_id)
-        if not self.controller:
-            text += ' (frei)' 
+        # if not self.controller:
+        #    text += ' (frei)' 
         self.label.text = text
-     
+    
+    def delete(self):
+        Player.delete(self)
+        if self.controller:
+            self.world.controllers.pop(self.controller)
+            self.controller = False      
 
 
 class BeeNoirWorld(object):
