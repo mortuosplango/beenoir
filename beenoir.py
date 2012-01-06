@@ -575,7 +575,7 @@ class BotPlayer(Player):
     Player-Bot with randomly generated code
     """
     def __init__(self, world, pos, player_id=0, beat=0):
-        Player.__init__(self, world, pos, player_id, beat, 'Bot')
+        Player.__init__(self, world, pos, player_id, beat, I18N["bot"])
         self.code = ([random.randint(0,NUMCODES-1) for i in range(CODESIZE-4)] + 
                      [random.choice([1,2,3,4,6,0]) for i in range(3)] + [0])
         random.shuffle(self.code)

@@ -1,5 +1,6 @@
 I18N = {
     "player": "Spieler",
+    "bot": "Bot",
     "player_lost": "Spieler nicht mehr verf&uuml;gbar &hellip;",
     "sorry!": "Entschuldigung!",
     "just_a_moment": "Einen Moment Bitte &hellip;",
@@ -24,7 +25,7 @@ I18N = {
 }
 
 OPCODE_ALTS = (
-    "Sound",
+    "Klang",
     "Vorw&auml;rts",
     "Zur&uuml;ck",
     "Nach links",
