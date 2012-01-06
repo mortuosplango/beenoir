@@ -3,6 +3,7 @@
     <a style="float:right;" href="#" class="button" onclick="visualHint();"><img src="/static/eye.png" width="27" height="23"/></a>
     <a style="float:right;" href="#" class="button" onclick="resetCodes();">%(i18n_clear_button)s</a>
     <a style="float:right;" href="/" class="button">%(i18n_reset_button)s</a>
+    <a style="float:right;" href="#" class="button" onclick="showHelp();">%(i18n_help_button)s</a>
 
      %(code_table)s
      
@@ -16,3 +17,11 @@
     <p>%(i18n_lost_connection)s;</p>
     <p style="margin-top: 30px;"><a class="button" href="/">%(i18n_back_to_start)s</a></p>
     </div>
+    
+    <div id='help'>
+    <h1>%(i18n_help)s</h1>
+    <p class="descr">%(i18n_help_descr)s</p>
+    %(help_table)s
+    <p style="margin-top: 30px;"><a class="button" href="#" onclick="hideHelp();">%(i18n_back_to_game)s</a></p>
+    </div>
+    

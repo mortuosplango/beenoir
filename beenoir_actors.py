@@ -130,6 +130,14 @@ class BeenoirGameActor(BeenoirBaseActor):
                 code_table += "</td>"
             code_table += "</tr></table>"
             
+            help_table = "<table style=\"clear: both;\">"
+            for i in range(NUMCODES):
+                help_table += "<tr><td class=\"code\"><img src='static/opcodes_%s.png' width='32' height='32' class=\"not\" \></td><td class=\"text\">%s</td></tr>"%(
+                    i,
+                    OPCODE_HELP[i]
+                )
+            help_table += "</table>"
+            
             tempo_control = "<div id='tempoControl'>%s: \n"%(I18N["tempo"])
             for i in range(NUMTEMPOS):
                 tempo_class = "button tempo off"
@@ -160,7 +168,13 @@ class BeenoirGameActor(BeenoirBaseActor):
                 "i18n_back_to_start": I18N["back_to_start"],
                 "i18n_lost_connection": I18N["lost_connection"],
                 "i18n_reset_button": I18N["reset_button"],
-                "i18n_clear_button": I18N["clear_button"]
+                "i18n_clear_button": I18N["clear_button"],
+                "i18n_help_button": I18N["help_button"],
+                
+                "i18n_help": I18N["help"],
+                "i18n_help_descr": I18N["help_descr"],
+                "i18n_back_to_game": I18N["back_to_game"],
+                "help_table": help_table
             }
             handler.send_page(page)
         else:

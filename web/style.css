@@ -124,14 +124,53 @@ div#waitBox {
     font-weight: bold;
 }
 
+#timeOut, #help {
+    background-color: #000000;
+    border: 2px solid white;
+    display: none;
+}
+
 #timeOut {
     position: relative;
     top: -380px;
-    background-color: #000000;
     padding-top: 35px;
     padding-bottom: 35px;
-    border: 2px solid white;
-    display: none;
+}
+
+#help {
+    position: relative;
+    top: -590px;
+    left: -30px;
+    width: 460px;
+    height: 575px;
+    padding: 10px;
+    margin: 0px;
+}
+
+#help table {
+    background-color: #222222;
+    border-spacing: 0px;
+}
+
+#help table td {
+    border: 2px solid black;
+    padding: 4px;
+    margin: 0px;
+}
+
+#help table td.code {
+    background-color: #000000;
+}
+
+#help table td.text {
+    padding-left: 10px;
+    padding-right: 10px;
+
+}
+
+p.descr {
+    text-align: left;
+    font-size: 80%;
 }
 
 div.topSpaceDummy {

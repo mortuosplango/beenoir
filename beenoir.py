@@ -903,7 +903,12 @@ if __name__ == '__main__':
             print 'The next HTTP Request will kill the Server ... to improve!'
             http_thread.close()
             print 'Sending myself a HTTP Request  ...'
-            urllib.urlopen("http://127.0.0.1:%d/die"%(http_port)) # hack
+            
+            try:
+                urllib.urlopen("http://127.0.0.1:%d/die"%(http_port)) # hack
+            except Exception:
+                pass
+            
             print 'Closing Pyglet.'
             pyglet.app.exit()
         return pyglet.event.EVENT_HANDLED
