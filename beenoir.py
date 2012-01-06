@@ -2,6 +2,7 @@ import random
 import math
 import sys
 import zlib
+import urllib
 
 import OSC as osc
 
@@ -26,7 +27,6 @@ PLAYERS = 10
 CODEPAD = 37
 
 FPS = 28.0
-
 
 
 # Webserver-OSC->alj
@@ -901,6 +901,8 @@ if __name__ == '__main__':
             print '\nClosing WebServer.'
             print 'The next HTTP Request will kill the Server ... to improve!'
             http_thread.close()
+            print 'Sending myself a HTTP Request  ...'
+            urllib.urlopen("http://127.0.0.1:%d/die"%(http_port)) # hack
             print 'Closing Pyglet.'
             pyglet.app.exit()
         return pyglet.event.EVENT_HANDLED
