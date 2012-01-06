@@ -11,6 +11,7 @@ import pyglet.clock
 from pyglet.window import key
 
 from common import *
+
 from actor_http_server import *
 from beenoir_actors import *
 
@@ -593,7 +594,7 @@ class WebPlayer(Player):
     
     def __init__(self, world, pos, controller_id, player_id=0, beat=0):
         self.controller = controller_id
-        self.title = 'Spieler'
+        self.title = I18N["player"]
         Player.__init__(self, world, pos, player_id, beat, self.title)
         self.timeout = 15
 

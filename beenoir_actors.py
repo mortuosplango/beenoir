@@ -7,8 +7,8 @@ import time
 class PlayerFailHTMLPage(ShortErrorHTMLPage):
     def __init__(self):
         ShortErrorHTMLPage.__init__(self, 
-            "Spieler nicht mehr verf&uuml;gbar &hellip;", 
-            "Sorry!"
+            I18N["player_lost"], 
+            I18N["sorry!"]
         )
 
 
@@ -56,17 +56,19 @@ class BeenoirStartActor(BeenoirBaseActor):
         controller_id, player_id = self.world.register_and_create_web_player()
         if controller_id:
             # handler.send_redirect("/game?id=" + str(controller_id))
-            page = HTMLPage("Einen Moment Bitte &hellip;")
+            page = HTMLPage(I18N["just_a_moment"])
             page.head = page.template_string("wait_head")%{
                 "url": "/game?id=" + str(controller_id)
             }
             page.content = page.template_string("wait")%{
                 "color": COLORS[player_id],
-                "player_id": player_id
+                "player_id": player_id,
+                "i18n_player": I18N["player"],
+                "i18n_just_a_moment": I18N["just_a_moment"]
             }
             handler.send_page(page)
         else:
-            handler.send_page(ShortErrorHTMLPage("Keine freien Spieler verf&uuml;gbar!", "Sorry!"))
+            handler.send_page(ShortErrorHTMLPage(I18N["no_free_players"], I18N["sorry!"]))
 
 
 class BeenoirPingActor(BeenoirPlayerActor):
@@ -128,7 +130,7 @@ class BeenoirGameActor(BeenoirBaseActor):
                 code_table += "</td>"
             code_table += "</tr></table>"
             
-            tempo_control = "<div id='tempoControl'>Tempo: \n"
+            tempo_control = "<div id='tempoControl'>%s: \n"%(I18N["tempo"])
             for i in range(NUMTEMPOS):
                 tempo_class = "button tempo off"
                 if self.world.players[player_id].tempo == i:
@@ -153,7 +155,12 @@ class BeenoirGameActor(BeenoirBaseActor):
             page.content = page.template_string("game")%{
                 "code_table": code_table,
                 "tempo_control": tempo_control,
-                "player_id": player_id
+                "player_id": player_id,
+                "i18n_player": I18N["player"],
+                "i18n_back_to_start": I18N["back_to_start"],
+                "i18n_lost_connection": I18N["lost_connection"],
+                "i18n_reset_button": I18N["reset_button"],
+                "i18n_clear_button": I18N["clear_button"]
             }
             handler.send_page(page)
         else:

@@ -1,3 +1,6 @@
+# coupling with beenoir for language - well!
+from common import *
+
 TEMPLATE_DIR = 'web/templates/'
 
 class HTMLPage:
@@ -23,12 +26,13 @@ class ShortErrorHTMLPage(HTMLPage):
     def __init__(self, error, title='Error!'):
         HTMLPage.__init__(self, title, self.template_string('error')%{
             'heading': title,
-            'text': error
+            'text': error,
+            'i18n_back_to_start': I18N["back_to_start"]
         })
 
 class HTTP404ErrorHTMLPage(ShortErrorHTMLPage):
     def __init__(self, file):
-        ShortErrorHTMLPage.__init__(self, self.template_string('404')%{'file': file}, 'HTTP 404')
+        ShortErrorHTMLPage.__init__(self, I18N["404"]%{'file': file}, 'HTTP 404')
 
 # some test print outs
 
