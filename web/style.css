@@ -94,6 +94,10 @@ div#waitBox {
 	background-color: #444444;
 }
 
+a#helpButton {
+    font-weight: bold;
+}
+
 .tempo {
     -webkit-border-radius: 0px;
 	-moz-border-radius: 0px;
@@ -118,6 +122,7 @@ div#waitBox {
     -webkit-border-top-right-radius: 5px;
     -webkit-border-bottom-right-radius: 5px;
 }
+
 
 #tempoControl {
     margin-top: 18px;
