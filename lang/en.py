@@ -20,6 +20,10 @@ I18N = {
     "clear_button": "Clear",
     "help_button": "Help",
     
+    "back_to_help": "Return to Help",
+    "about": "More Info",
+    "about_text": "This should be written ...",
+    
     # web templates
     "404": "The adress '<em>%(file)s</em>' could not be opened."
 }

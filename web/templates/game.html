@@ -22,6 +22,17 @@
     <h1>%(i18n_help)s</h1>
     <p class="descr">%(i18n_help_descr)s</p>
     %(help_table)s
-    <p style="margin-top: 22px;"><a class="button" href="#" onclick="hideHelp();">%(i18n_back_to_game)s</a></p>
+    <p style="margin-top: 22px;">
+    <a class="button" href="#" onclick="showGame();">%(i18n_back_to_game)s</a>
+    <a class="button" href="#" onclick="showAbout();">%(i18n_about)s</a>
+    </p>
     </div>
     
+    <div id='about'>
+    <h1>%(i18n_about)s</h1>
+    <p class="descr">%(i18n_about_text)s</p>
+    <p>
+    <a class="button" href="#" onclick="showGame();">%(i18n_back_to_game)s</a>
+    <a class="button" href="#" onclick="showHelp();">%(i18n_back_to_help)s</a>
+    </p>
+    </div>

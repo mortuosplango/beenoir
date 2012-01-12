@@ -134,7 +134,7 @@ a#helpButton {
     font-weight: bold;
 }
 
-#timeOut, #help {
+#timeOut, div#help, div#about {
     background-color: #000000;
     border: 2px solid white;
     display: none;
@@ -147,7 +147,7 @@ a#helpButton {
     padding-bottom: 35px;
 }
 
-#help {
+div#help, div#about {
     position: relative;
     top: -590px;
     left: -30px;

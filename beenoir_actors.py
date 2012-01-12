@@ -174,7 +174,12 @@ class BeenoirGameActor(BeenoirBaseActor):
                 "i18n_help": I18N["help"],
                 "i18n_help_descr": I18N["help_descr"],
                 "i18n_back_to_game": I18N["back_to_game"],
-                "help_table": help_table
+                "i18n_back_to_help": I18N["back_to_help"],
+                "help_table": help_table,
+                
+                "i18n_about": I18N["about"],
+                "i18n_about_text": I18N["about_text"]
+                
             }
             handler.send_page(page)
         else:

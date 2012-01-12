@@ -14,11 +14,18 @@ I18N = {
     "help": "Hilfe",
     "help_descr": "Sie k&ouml;nnen ihre Biene mit folgenden Befehlen programmieren. Die Befehle werden nacheinander von der Biene ausgef&uuml;hrt. Der aktuell ausgef&uumlhrte Befehl leuchtet auf der Projektion auf.",
     
+    "back_to_help": "Zur&uumlck zur Hilfe",
+    "about": "Mehr Informationen",
+    "about_text": "Muss noch geschrieben werden ...",
+
     
     # maybe don't translate
     "reset_button": "Neustart",
     "clear_button": "Leeren",
     "help_button": "Hilfe",
+    
+
+    
     
     # web templates
     "404": "Die Adresse '<em>%(file)s</em>' konnte nicht ge&ouml;ffnet werden."

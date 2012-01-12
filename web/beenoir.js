@@ -155,8 +155,15 @@ function populateOpcodeTable() {
 
 function showHelp() {
     document.getElementById('help').style.display = 'block';
+    document.getElementById('about').style.display = 'none';
 }
 
-function hideHelp() {
+function showAbout() {
     document.getElementById('help').style.display = 'none';
+    document.getElementById('about').style.display = 'block';
+}
+
+function showGame() {
+    document.getElementById('help').style.display = 'none';
+    document.getElementById('about').style.display = 'none';
 }
