@@ -12,7 +12,7 @@ I18N = {
     
     # Hilfe
     "help": "Hilfe",
-    "help_descr": "Sie k&ouml;nnen ihre Biene mit folgenden Befehlen programmieren. Die Befehle werden nacheinander von der Biene abgearbeitet.",
+    "help_descr": "Sie k&ouml;nnen ihre Biene mit folgenden Befehlen programmieren. Die Befehle werden nacheinander von der Biene ausgef&uuml;hrt. Der aktuell ausgef&uumlhrte Befehl leuchtet auf der Projektion auf.",
     
     
     # maybe don't translate

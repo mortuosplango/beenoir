@@ -12,7 +12,7 @@ I18N = {
     
     # Hilfe
     "help": "Help",
-    "help_descr": "You can program your bee with the following instructions. The instructions will be executed one after another.",
+    "help_descr": "You can program your bee with the following instructions. The instructions will be executed one after another. The game screen shows which instruction is currently executed.",
     
     
     # maybe don't translate
