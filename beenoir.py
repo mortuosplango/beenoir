@@ -898,10 +898,11 @@ if __name__ == '__main__':
     # WebServer Startup
     http_thread = ActorHTTPServerThread(actors, http_port)
     http_thread.start()
-
+    
     @window.event
     def on_key_press(symbol, modifiers):
         if symbol == key.ESCAPE:
+            send_osc_to_sc('/stop', [])
             print 'shutting down...'
             print '\nClosing WebServer.'
             print 'The next HTTP Request will kill the Server ... to improve!'
