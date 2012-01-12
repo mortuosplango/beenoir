@@ -27,6 +27,7 @@ Messages (normalized = between 0 and 1):
  5) /alj/action
     musical action
  6) /alj/playerdeleted
+ 7) /alj/changetempo
 
 Message Format: 
      1) player_id (int)
@@ -34,6 +35,9 @@ Message Format:
      3) y-position (normalized) (float) 
      4) tile-value (normalized) (float)
      5) length of the event in seconds (float)
+
+The length of the event is actually the tick-rate per seconds
+and depends on the tempo. Tempo can be infered from length of event.
 
 To control a player go to http://127.0.0.1:8000/
 

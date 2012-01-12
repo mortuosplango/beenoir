@@ -358,7 +358,9 @@ class Player(Entity):
     def change_tempo(self, value):
         value = value % NUMTEMPOS
         self.tempo = value
-        self.new_granulation = TEMPOS[value]       
+        self.new_granulation = TEMPOS[value]
+        # tempo changed status can't be send here.
+        # it's sent when new_granulation is set to granulation.
         # timings are now in common.py
 
     def send_status(self, status):
@@ -416,6 +418,8 @@ class Player(Entity):
                 self.granulation = self.new_granulation
                 self.new_granulation = False
                 self.time_index = 0
+                self.send_status('changetempo')
+
 
         self._update_label(percent)
         self.time_index = (self.time_index + 1) % self.granulation
