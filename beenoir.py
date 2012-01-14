@@ -38,7 +38,7 @@ FPS = 28.0
 # alj-OSC->SuperCollider
 SC_ADDR = ('127.0.0.1', 57120)
 
-SC_OSC_PREFIX = '/alj'
+SC_OSC_PREFIX = '/beenoir'
 
 batch = pyglet.graphics.Batch()
 background = pyglet.graphics.OrderedGroup(0)

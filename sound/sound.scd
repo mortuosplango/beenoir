@@ -38,7 +38,7 @@ Ndef(\fifths).play;
 Ndef(\texture).play;
 
 
-u = OSCresponder(a, '/alj/action', { |t, r, msg| 
+u = OSCresponder(a, '/beenoir/action', { |t, r, msg| 
 	var addr, playerid, xpos, ypos, value, dur;
 	#addr, playerid, xpos, ypos, value, dur = msg;
 	msg.postln;
@@ -75,7 +75,7 @@ u = OSCresponder(a, '/alj/action', { |t, r, msg|
 	};
 }).add;
 
-t = OSCresponder(a, '/alj/teleport', { |t, r, msg| 
+t = OSCresponder(a, '/beenoir/teleport', { |t, r, msg| 
 	var addr, playerid, xpos, ypos, value, dur;
 	#addr, playerid, xpos, ypos, value, dur = msg;
 	msg.postln;

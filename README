@@ -24,19 +24,19 @@ OSC receiver about general changes in the game, game messages about
 changes/actions of each player. Floats are normalized; between 0 and 1.
 
 General messages:
- - /alj/start (the game was started)
+ - /beenoir/start (the game was started)
     1) play field width (int)
     2) play field height (int)
- - /alj/stop (the game quit properly)
+ - /beenoir/stop (the game quit properly)
 
 Player messages:
- - /alj/newplayer
- - /alj/move
- - /alj/jump
- - /alj/teleport
- - /alj/action (musical action)
- - /alj/playerdeleted
- - /alj/changetempo
+ - /beenoir/newplayer
+ - /beenoir/move
+ - /beenoir/jump
+ - /beenoir/teleport
+ - /beenoir/action (musical action)
+ - /beenoir/playerdeleted
+ - /beenoir/changetempo
 
 Message format für player messages: 
      1) player_id (int)
