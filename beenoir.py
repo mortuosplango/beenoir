@@ -875,7 +875,10 @@ def exit_beenoir():
 
 if __name__ == '__main__':
     
-    print "Close Bee Noir with ESC key with focus on the game window."
+    print "\nClose BeeNoir either by:"
+    print "* Focus window and press ESC"
+    print "* Focus terminal window and press ctrl-c"
+    print "* Close the window (if not running in fullscreen)\n"
     
     http_port = 8000
     fullscreen = False
