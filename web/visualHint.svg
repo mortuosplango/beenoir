@@ -17,7 +17,7 @@
    inkscape:export-filename="/Users/patrick/src/beenoir/web/visualHint.png"
    inkscape:export-xdpi="6.507875"
    inkscape:export-ydpi="6.507875"
-   sodipodi:docname="Neues Dokument 1">
+   sodipodi:docname="visualHint.svg">
   <defs
      id="defs4" />
   <sodipodi:namedview
@@ -46,7 +46,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -66,13 +66,14 @@
        style="fill:none;stroke:#000000;stroke-width:15;stroke-linecap:round;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none" />
     <path
        sodipodi:type="arc"
-       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:15;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       style="fill:none;stroke:#000000;stroke-width:15;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
        id="path2993"
        sodipodi:cx="321.22852"
        sodipodi:cy="380.61075"
        sodipodi:rx="118.18785"
        sodipodi:ry="118.18785"
-       d="m 439.41637,380.61075 a 118.18785,118.18785 0 1 1 -236.37571,0 118.18785,118.18785 0 1 1 236.37571,0 z" />
+       d="m 439.41637,380.61075 a 118.18785,118.18785 0 1 1 -236.37571,0 118.18785,118.18785 0 1 1 236.37571,0 z"
+       transform="translate(1.6286244,0.32286171)" />
     <path
        sodipodi:type="arc"
        style="fill:none;stroke:#000000;stroke-width:15;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
@@ -81,7 +82,8 @@
        sodipodi:cy="379.60059"
        sodipodi:rx="59.598999"
        sodipodi:ry="59.598999"
-       d="m 380.82751,379.60059 a 59.598999,59.598999 0 1 1 -119.19799,0 59.598999,59.598999 0 1 1 119.19799,0 z" />
+       d="m 380.82751,379.60059 a 59.598999,59.598999 0 1 1 -119.19799,0 59.598999,59.598999 0 1 1 119.19799,0 z"
+       transform="translate(1.6286244,1.3330241)" />
     <path
        sodipodi:type="arc"
        style="fill:none;stroke:#000000;stroke-width:15;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
@@ -91,6 +93,6 @@
        sodipodi:rx="14.142136"
        sodipodi:ry="14.142136"
        d="m 335.37065,380.61075 a 14.142136,14.142136 0 1 1 -28.28427,0 14.142136,14.142136 0 1 1 28.28427,0 z"
-       transform="translate(2,0)" />
+       transform="translate(1.6286244,0.32286171)" />
   </g>
 </svg>
