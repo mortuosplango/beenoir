@@ -29,7 +29,7 @@ PLAYERS = 10
 CODEPAD = 37
 
 FPS = 28.0
-
+INACTIVE_TICKS_FOR_RESET = FPS * 60 * 5
 
 # Webserver-OSC->alj
 # NET_ADDR = ('127.0.0.1', 57140)
@@ -202,13 +202,14 @@ class Field(Tile):
         self.active_sprite.y = self.sprite.y 
 
     def increase(self):
-        if self.value < self.max_value:
-            self.value += 1
-            self._update_bitmap()
+        self.set_value(self.value + 1)
 
     def decrease(self):
-        if self.value > 0:
-            self.value -= 1
+        self.set_value(self.value - 1)
+            
+    def set_value(self, value):
+        if not(value < 0 or value > self.max_value):
+            self.value = value
             self._update_bitmap()
 
     def _update_bitmap(self):
@@ -566,7 +567,7 @@ class Player(Entity):
             self._change_position(pos)
     
     def _teleport(self):
-        print 'teleport!'
+        debug_print('teleport!')
 
     def _action(self):
         tile = self.world.get_tile(self.pos)
@@ -586,6 +587,7 @@ class BotPlayer(Player):
                      [random.choice([1,2,3,4,6,0]) for i in range(3)] + [0])
         random.shuffle(self.code)
         self.change_tempo(random.randint(0,NUMTEMPOS-1))
+        self.type = "bot"
 
     def _teleport(self):
         debug_print('teleport and scramble!')
@@ -603,6 +605,7 @@ class WebPlayer(Player):
         self.title = I18N["player"]
         Player.__init__(self, world, pos, player_id, beat, self.title)
         self.timeout = 15
+        self.type = "web"
 
 
     def update(self, dt):
@@ -642,6 +645,7 @@ class BeeNoirWorld(object):
         self.height = h
         self.players = [False] * PLAYERS
         self.objs = [ Field(vec3()) for i in range(h*w) ]
+        self.fields = list(self.objs) # make a copy of the list, not elements
         self.players_waiting = []
         self.visual_hints_stack = []
         self.controllers = dict()
@@ -649,7 +653,9 @@ class BeeNoirWorld(object):
         
         self.last_internal_id = 0
         self.controller_id_prefix = str(random.randint(0,10000))
-
+        
+        self.ticks_since_inactive = 0
+        self.player_num = {"bot": 0, "web": 0}
 
         ## make teleport fields
         middle = (w / 2 * w) + (h / 2)
@@ -752,6 +758,17 @@ class BeeNoirWorld(object):
     def update(self,dt):
         self.beat = (self.beat + 1) % 16
         # debug_print('upd %s %s'%(self.players, PLAYERS))
+        
+        self.count_players()
+        if self.player_num["web"] == 0:
+            self.ticks_since_inactive = self.ticks_since_inactive + 1
+        else:
+            self.ticks_since_inactive = 0
+            
+        if self.ticks_since_inactive > INACTIVE_TICKS_FOR_RESET:
+            self.reset_field()
+            self.ticks_since_inactive = 0
+        
         for t in self.objs:
             t.update(dt)
         if self.players:
@@ -840,6 +857,16 @@ class BeeNoirWorld(object):
         else:
             return None
 
+    def count_players(self):
+        self.player_num["web"] = 0
+        self.player_num["bot"] = 0
+        for player in self.players:
+            if player:
+                self.player_num[player.type] = self.player_num[player.type] + 1
+
+    def reset_field(self):
+        for field in self.fields:
+            field.set_value(0)
 
 def send_osc_to_sc(addr, data):
     send_osc(SC_ADDR, SC_OSC_PREFIX + addr, data)
@@ -950,13 +977,16 @@ if __name__ == '__main__':
 
     pyglet.clock.schedule_interval(beenoir.update, 1/FPS)
     
-    # swallow errors, post and continue
-    # not the safest but better for installations
-    while keep_game_alive:
-        try:
-            pyglet.app.run()
-        except KeyboardInterrupt:
-            exit_beenoir()
-        except Exception, e:
-            traceback.print_exc()
-            print "BEENOIR IS STILL RUNNING :-)"
+    if not DEBUG:
+        # swallow errors, post and continue
+        # not the safest but better for installations
+        while keep_game_alive:
+            try:
+                pyglet.app.run()
+            except KeyboardInterrupt:
+                exit_beenoir()
+            except Exception, e:
+                traceback.print_exc()
+                print "BEENOIR IS STILL RUNNING :-)"
+    else:
+        pyglet.app.run()
