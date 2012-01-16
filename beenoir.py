@@ -318,7 +318,7 @@ class Player(Entity):
             font_name='Tahoma',
             font_size=12,
             bold=True,
-            x=CODEPAD + 10, 
+            x=CODEPAD + 20, 
             y=window.height - ystart - 15,
             anchor_x='left', 
             color=(222,) * 4 ,
@@ -333,6 +333,7 @@ class Player(Entity):
                                                ystart - 20)
         self.label_icon.scale = 1
         self.label_icon.rotation = 20 + random.randint(0,100)
+        # self.label_icon.rotation = 90
 
         self._update_label()
 
