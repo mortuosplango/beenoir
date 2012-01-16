@@ -16,7 +16,8 @@ I18N = {
     
     "back_to_help": "Zur&uumlck zur Hilfe",
     "about": "Mehr Informationen",
-    "about_text": "Muss noch geschrieben werden ...",
+    #html
+    "about_page": "<p class='descr'>Muss noch geschrieben werden ...</p>",
 
     
     # maybe don't translate

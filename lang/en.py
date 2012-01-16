@@ -22,7 +22,8 @@ I18N = {
     
     "back_to_help": "Return to Help",
     "about": "More Info",
-    "about_text": "This should be written ...",
+    #html
+    "about_page": "<p class='descr'>This should be written ...</p>",
     
     # web templates
     "404": "The adress '<em>%(file)s</em>' could not be opened."
