@@ -3,6 +3,7 @@ import math
 import sys
 import zlib
 import urllib
+import traceback
 
 import OSC as osc
 
@@ -851,7 +852,25 @@ def send_osc(netaddr, addr, data):
         client.sendto(msg, netaddr)
     except:
         print "Could not send OSC. Is SuperCollider running?"
-        
+
+keep_game_alive = True        
+def exit_beenoir():
+    global keep_game_alive
+    send_osc_to_sc('/stop', [])
+    print 'shutting down...'
+    print '\nClosing WebServer.'
+    print 'The next HTTP Request will kill the Server ... to improve!'
+    http_thread.close()
+    print 'Sending myself a HTTP Request  ...'
+            
+    try:
+        urllib.urlopen("http://127.0.0.1:%d/die"%(http_port)) # hack
+    except Exception:
+        pass
+            
+    print 'Closing Pyglet.'
+    keep_game_alive = False
+    pyglet.app.exit()
 
 if __name__ == '__main__':
     
@@ -898,24 +917,12 @@ if __name__ == '__main__':
     # WebServer Startup
     http_thread = ActorHTTPServerThread(actors, http_port)
     http_thread.start()
-    
+        
     @window.event
     def on_key_press(symbol, modifiers):
+        global keep_game_alive
         if symbol == key.ESCAPE:
-            send_osc_to_sc('/stop', [])
-            print 'shutting down...'
-            print '\nClosing WebServer.'
-            print 'The next HTTP Request will kill the Server ... to improve!'
-            http_thread.close()
-            print 'Sending myself a HTTP Request  ...'
-            
-            try:
-                urllib.urlopen("http://127.0.0.1:%d/die"%(http_port)) # hack
-            except Exception:
-                pass
-            
-            print 'Closing Pyglet.'
-            pyglet.app.exit()
+            exit_beenoir()
         return pyglet.event.EVENT_HANDLED
 
     @window.event
@@ -927,6 +934,10 @@ if __name__ == '__main__':
         beenoir.create_waiting_players()
         window.clear()
         batch.draw()
+            
+    @window.event
+    def on_close():
+        exit_beenoir()
 
     ## start communication
     client = osc.OSCClient()
@@ -934,4 +945,14 @@ if __name__ == '__main__':
     send_osc_to_sc('/start', [beenoir.width, beenoir.height])
 
     pyglet.clock.schedule_interval(beenoir.update, 1/FPS)
-    pyglet.app.run()
+    
+    # swallow errors, post and continue
+    # not the safest but better for installations
+    while keep_game_alive:
+        try:
+            pyglet.app.run()
+        except KeyboardInterrupt:
+            exit_beenoir()
+        except Exception, e:
+            traceback.print_exc()
+            print "BEENOIR IS STILL RUNNING :-)"
