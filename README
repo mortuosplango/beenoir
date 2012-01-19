@@ -15,6 +15,7 @@ How to use it:
     or
     ./run80 (HTTP Server listens on port 80 & Fullscreen)
 
+There are a lot of configuration options in common.py.
 
 You can receive messages with OSC in e. g. SuperCollider:
     port: 57120
