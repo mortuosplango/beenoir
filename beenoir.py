@@ -21,6 +21,9 @@ import htmlpage
 WIN_WIDTH = 1200
 WIN_HEIGHT = 800
 
+FIELD_START_LEFT = 0.3
+FIELD_START_BOTTOM = 0.9
+
 WORLD_WIDTH = 16
 WORLD_HEIGHT = 12
 
@@ -110,8 +113,8 @@ class Entity(object):
         else:
             y = pos.y + 0.5
         return vec3(
-            (WIN_WIDTH * 0.3)  + (50 * pos.x) + PADDING[0],
-            (WIN_HEIGHT * 0.9) - (self.tile_height * y) + PADDING[1],
+            (WIN_WIDTH * FIELD_START_LEFT)  + (50 * pos.x) + PADDING[0],
+            (WIN_HEIGHT * FIELD_START_BOTTOM) - (self.tile_height * y) + PADDING[1],
             0)
 
     def update_pos(self):
@@ -322,7 +325,7 @@ class Player(Entity):
             x=CODEPAD + 20, 
             y=window.height - ystart - 15,
             anchor_x='left', 
-            color=(222,) * 4 ,
+            color=UI_TEXT_COLOR ,
             anchor_y='center',
             batch=batch)
 
@@ -675,19 +678,58 @@ class BeeNoirWorld(object):
                    0)
             self.objs[i].pos = pos
             self.objs[i].update_pos()
+        
+        if DISPLAY_ONSCREEN_INFO: self.display_onscreen_info()
 
-        self.label = pyglet.text.Label(
-            'Bee Noir',
+        pyglet.text.Label(
+            'BeeNoir',
             font_name='Tahoma',
             font_size=22,
             bold=True,
             x=window.width - 20, 
-            y=10,
+            y=8,
             anchor_x='right', 
-            color=(40, 88, 89, 255),
+            color=UI_BEENOIR_COLOR,
             anchor_y='bottom',
-            batch=batch)
+            batch=batch
+        )
+    
+    def display_onscreen_info(self):
+         # visually the field starts here:
+        start_left = window.width * FIELD_START_LEFT + \
+                     (window.width * (1 - FIELD_START_LEFT) / WORLD_WIDTH / 2)
+        # doesn't work yet, manual correction (also to look smooth)
+        start_left = start_left - 10
+
+        pyglet.text.Label(
+            I18N["onscreen_info_1"]%{
+                "ssid": INFO_SSID,
+                "url": INFO_URL
+            },
+            font_name='Tahoma',
+            font_size=11,
+            x=start_left,
+            y=27,
+            anchor_x='left',
+            color=UI_TEXT_COLOR,
+            anchor_y='bottom',
+            batch=batch
+        )
         
+        pyglet.text.Label(
+            I18N["onscreen_info_2"]%{
+                "ssid": INFO_SSID,
+                "url": INFO_URL
+            },
+            font_name='Tahoma',
+            font_size=11,
+            x=start_left,
+            y=10,
+            anchor_x='left',
+            color=UI_TEXT_COLOR,
+            anchor_y='bottom',
+            batch=batch
+        )
     
     def next_controller_id(self):
         self.last_internal_id += 1

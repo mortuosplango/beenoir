@@ -1,3 +1,4 @@
+
 I18N = {
     "player": "Player",
     "bot": "Bot",
@@ -10,10 +11,11 @@ I18N = {
     "back_to_game": "Return to the Game",
     "lost_connection": "Lost connection to server &hellip",
     
-    # Hilfe
     "help": "Help",
     "help_descr": "You can program your bee with the following instructions. The instructions will be executed one after another. The game screen shows which instruction is currently executed.",
     
+    "onscreen_info_1": "You can participate with a JavaScript enabled smart phone.",
+    "onscreen_info_2": "Connect your wireless LAN to SSID \"%(ssid)s\" and browse to %(url)s",
     
     # maybe don't translate
     "reset_button": "Reset",

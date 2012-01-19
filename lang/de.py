@@ -1,3 +1,4 @@
+# coding=UTF-8
 I18N = {
     "player": "Spieler",
     "bot": "Bot",
@@ -10,9 +11,11 @@ I18N = {
     "back_to_game": "Zur&uuml;ck zum Spiel",
     "lost_connection": "Verbindung zum Server ist unterbrochen &hellip",
     
-    # Hilfe
     "help": "Hilfe",
     "help_descr": "Sie k&ouml;nnen ihre Biene mit folgenden Befehlen programmieren. Die Befehle werden nacheinander von der Biene ausgef&uuml;hrt. Der aktuell ausgef&uumlhrte Befehl leuchtet auf der Projektion auf.",
+    
+    "onscreen_info_1": u"Mit einem JavaScript fähigen Smartphone können sie mitmachen!",
+    "onscreen_info_2": u"Verbinden Sie sich mit dem WLAN \"%(ssid)s\" surfen sie mit ihrem Browser auf die Seite %(url)s",
     
     "back_to_help": "Zur&uumlck zur Hilfe",
     "about": "Mehr Informationen",
