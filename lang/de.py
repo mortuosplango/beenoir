@@ -14,6 +14,9 @@ I18N = {
     "help": "Hilfe",
     "help_descr": "Sie k&ouml;nnen ihre Biene mit folgenden Befehlen programmieren. Die Befehle werden nacheinander von der Biene ausgef&uuml;hrt. Der aktuell ausgef&uumlhrte Befehl leuchtet auf der Projektion auf.",
     
+    "help_visual_hint": "Wenn Sie ihre Biene auf dem Bildschirm verloren haben k&ouml;nnen sie diesen Knopf dr&uuml;cken.",
+    "help_opcodes": "Befehle",
+    
     "onscreen_info_1": u"Mit einem JavaScript fähigen Smartphone können sie mitmachen!",
     "onscreen_info_2": u"Verbinden Sie sich mit dem WLAN \"%(ssid)s\" surfen sie mit ihrem Browser auf die Seite %(url)s",
     

@@ -15,7 +15,7 @@ function ajaxErrorFunction() {
     failedTransmissionCount += 1;
     
     if(failedTransmissionCount > 3) {
-        document.getElementById('timeOut').style.display = 'block';
+        showTimeout();
     }
 }
 
@@ -166,4 +166,9 @@ function showAbout() {
 function showGame() {
     document.getElementById('help').style.display = 'none';
     document.getElementById('about').style.display = 'none';
+}
+
+function showTimeout() {
+    showGame();
+    document.getElementById('timeOut').style.display = 'block';
 }

@@ -11,6 +11,10 @@ body {
 }
 
 h1 {
+	font-size: 36px;
+}
+
+h2 {
 	font-size: 24px;
 }
 
@@ -155,6 +159,10 @@ div#help, div#about {
 #help table {
     background-color: #222222;
     border-spacing: 0px;
+}
+
+#help table.plain {
+    background-color: #000000;
 }
 
 #help table td {

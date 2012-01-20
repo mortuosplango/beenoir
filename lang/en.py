@@ -14,6 +14,9 @@ I18N = {
     "help": "Help",
     "help_descr": "You can program your bee with the following instructions. The instructions will be executed one after another. The game screen shows which instruction is currently executed.",
     
+    "help_visual_hint": "If you lost your bee on the screen you can press this button to give you a visual hint.",
+    "help_opcodes": "Instructions",
+    
     "onscreen_info_1": "You can participate with a JavaScript enabled smart phone.",
     "onscreen_info_2": "Connect your wireless LAN to SSID \"%(ssid)s\" and browse to %(url)s",
     

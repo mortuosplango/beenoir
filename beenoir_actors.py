@@ -160,6 +160,7 @@ class BeenoirGameActor(BeenoirBaseActor):
                 "numcodes": NUMCODES,
                 "numtempos": NUMTEMPOS
             }
+            # I18N should get merged automatically (or something)
             page.content = page.template_string("game")%{
                 "code_table": code_table,
                 "tempo_control": tempo_control,
@@ -173,6 +174,8 @@ class BeenoirGameActor(BeenoirBaseActor):
                 
                 "i18n_help": I18N["help"],
                 "i18n_help_descr": I18N["help_descr"],
+                "i18n_help_visual_hint": I18N["help_visual_hint"],
+                "i18n_help_opcodes": I18N["help_opcodes"],
                 "i18n_back_to_game": I18N["back_to_game"],
                 "i18n_back_to_help": I18N["back_to_help"],
                 "help_table": help_table,
