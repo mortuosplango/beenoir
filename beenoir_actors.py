@@ -150,7 +150,7 @@ class BeenoirGameActor(BeenoirBaseActor):
                  )
             tempo_control += "</div>"
             
-            page = HTMLPage("Bee Noir")
+            page = HTMLPage("BeeNoir")
             page.head = page.template_string("game_head")%{
                 "player_color": COLORS[player_id],
                 "controller_id": controller_id,
