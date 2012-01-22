@@ -1,4 +1,4 @@
-# globally used variables and functions
+# globally used variables and functions, also config
 
 # select language here
 from lang.en import *
@@ -18,6 +18,13 @@ COLORS = ('EDFF00', 'FF0000', '2600FF',
            '00FFFF', 
            
            'FFFFFF', 'FFFFFF,' 'FFFFFF') #unused
+
+
+TILESET = {
+    "tiles": ['graphics/tile_%d.png'%(i) for i in range(5) ],
+    "hole": 'graphics/tile_hole.png',
+    "active": 'graphics/tile_active.png'
+}
 
 CODESIZE = 8
 NUMCODES = 9

@@ -159,7 +159,7 @@ class Teleport(Tile):
     A tile, that teleports the player to a random location when stepped on.
     """
     def __init__(self, pos):
-        Tile.__init__(self,pos, 'graphics/tile_hole.png')
+        Tile.__init__(self,pos, TILESET["hole"])
     
     def is_teleport(self):
         return True
@@ -172,16 +172,15 @@ class Field(Tile):
 
     max_value = 4
 
-    tiles = ['graphics/tile_%d.png'%(i) for i in range(5) ]
-    active_img = pyglet.resource.image('graphics/tile_active.png')
-
     def __init__(self, pos):
         """
         """
-        self.active_sprite = pyglet.sprite.Sprite(self.active_img, 
+        
+        active_img = pyglet.resource.image(TILESET["active"])        
+        self.active_sprite = pyglet.sprite.Sprite(active_img, 
                                                   batch=batch, group=foreground)
         self.active_sprite.opacity = 0
-        Tile.__init__(self,pos,self.tiles[0])
+        Tile.__init__(self,pos,TILESET["tiles"][0])
         self.animation = False
         self.value = 0
 
@@ -216,7 +215,7 @@ class Field(Tile):
             self._update_bitmap()
 
     def _update_bitmap(self):
-        self.change_bitmap(self.tiles[self.value])
+        self.change_bitmap(TILESET["tiles"][self.value])
 
 
 class PlayerVisualHint(Entity):
