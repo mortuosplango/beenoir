@@ -20,16 +20,34 @@ COLORS = ('EDFF00', 'FF0000', '2600FF',
            'FFFFFF', 'FFFFFF,' 'FFFFFF') #unused
 
 
+# Tilesets
+
+# Normal
+"""
 TILESET = {
     "tiles": ['graphics/tile_%d.png'%(i) for i in range(5) ],
     "hole": 'graphics/tile_hole.png',
     "active": 'graphics/tile_active.png'
 }
+UI_BEENOIR_COLOR = (40, 88, 89, 255)
+"""
+
+# Bright
+# """
+TILESET = {
+    "tiles": ['graphics/tile_0_bright.png'] + ['graphics/tile_%d.png'%(i+1) for i in range(4) ],
+    "hole": 'graphics/tile_hole_bright.png',
+    "active": 'graphics/tile_active.png'
+}
+UI_BEENOIR_COLOR = (60, 120, 124, 255)
+# """
+
+
+
 
 CODESIZE = 8
 NUMCODES = 9
 
-UI_BEENOIR_COLOR = (40, 88, 89, 255)
 UI_TEXT_COLOR = (222,) * 4
 
 # On Screen Info
