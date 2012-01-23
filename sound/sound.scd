@@ -12,7 +12,7 @@ s.boot;
 */
 
 var out_offset = 100;
-var spec = [-60, 12, \lin, 0.5, 0, "dB"].asSpec;
+var spec = [-60, 12, \lin, 0.1, 0, "dB"].asSpec;
 var net = NetAddr.new("127.0.0.1", nil);
 
 s.freeAll;
