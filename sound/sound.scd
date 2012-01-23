@@ -57,12 +57,13 @@ Ndef(\texture).play(112, addAction:\addToHead);
 // RESPONDERS
 // ignore warnings???
 
-u = OSCresponder(net, '/beenoir/action', { |t, r, msg| 
+u = OSCresponder(net, '/beenoir/action', { |t, r, msg|
+	var drone, synth; 
 	var cmd, playerid, xpos, ypos, value, dur, out;
 	#cmd, playerid, xpos, ypos, value, dur = msg;
 	out = out_offset+(playerid*2);
 	if ( [0,3,6].includes(playerid) ) {
-		var drone = [\bees, nil, nil, \fifths, nil, nil, \texture, nil, nil, nil][playerid];
+		drone = [\bees, nil, nil, \fifths, nil, nil, \texture, nil, nil, nil][playerid];
 		Ndef(drone).set(
 			\xpos, xpos,
 			\ypos, ypos,
@@ -73,7 +74,7 @@ u = OSCresponder(net, '/beenoir/action', { |t, r, msg|
 		);
 	} {
 		// TRIGGER SYNTHS
-		var synth = [
+		synth = [
 			nil,		//  0 DRONE
 			\clicks,	//  1
 			\perc,	//  2
