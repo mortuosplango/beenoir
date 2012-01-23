@@ -140,7 +140,7 @@ Ndef(\bees, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	snd = LPF.ar(snd, (ypos.linlin(0,1,50,100)).midicps * value.linexp(0,1,1,8).lag(0.1));
 	snd = FreeVerb2.ar(snd[0], snd[1], 0.3, 1, 1) * 0.6;
 	snd = Balance2.ar(snd[0], snd[1], xpos.linlin(0,1,-0.8,0.8).lag(0.2));
-	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.3,0.1), 4, 24, -16), t_trig, 1, 0.5);
+	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.3,0.1), value.linlin(0,1,2,6), 24, -16), t_trig, 1, 0.5);
 	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1);
 	snd * 0.1
 });
