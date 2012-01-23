@@ -18,18 +18,22 @@ from beenoir_actors import *
 
 import htmlpage
 
-WIN_WIDTH = 1200
-WIN_HEIGHT = 800
 
-FIELD_START_LEFT = 0.3
-FIELD_START_BOTTOM = 0.9
+FIELD_START_LEFT = 0.33
+FIELD_START_BOTTOM = 0.885
 
-WORLD_WIDTH = 16
-WORLD_HEIGHT = 12
+WIN_WIDTH = 1024 #1200
+WIN_HEIGHT = 768 #800
+
+WORLD_WIDTH = 13 #16
+WORLD_HEIGHT = 11 #12
 
 PLAYERS = 10
 
-CODEPAD = 37
+CODEPAD = 36
+CODEINDENT = 30
+
+INFO_START_BOTTOM = 16
 
 FPS = 28.0
 INACTIVE_TICKS_FOR_RESET = FPS * 60 * 5
@@ -312,7 +316,7 @@ class Player(Entity):
                     self.opcodes_grid[0],
                     batch=batch, 
                     group=foreground,
-                    x= CODEPAD * (i + 1), 
+                    x= CODEPAD * (i) + CODEINDENT, 
                     y= window.height - ystart - 60))
             self.labels[-1].scale = 32.0 / self.labels[-1].width
 
@@ -398,10 +402,10 @@ class Player(Entity):
             y = pos.y + (0.5 - (0.5 * ((pos.x%2) - 1)))
 
         return vec3(
-            (WIN_WIDTH * 0.3  + 50 * pos.x 
+            (WIN_WIDTH * FIELD_START_LEFT  + 50 * pos.x 
              + (self.tile_width - self.sprite.width) / 2.0 
              + self.sprite.width / 2) + PADDING[0],
-            (WIN_HEIGHT * 0.9 + 
+            (WIN_HEIGHT * FIELD_START_BOTTOM + 
              (self.tile_height - self.sprite.height) / 2.0 
              - self.tile_height * y + self.tile_height / 2) + PADDING[1],
             0)
@@ -683,10 +687,10 @@ class BeeNoirWorld(object):
         pyglet.text.Label(
             'BeeNoir',
             font_name='Tahoma',
-            font_size=22,
+            font_size=18,
             bold=True,
-            x=window.width - 20, 
-            y=8,
+            x=window.width - 28, 
+            y=INFO_START_BOTTOM + 6,
             anchor_x='right', 
             color=UI_BEENOIR_COLOR,
             anchor_y='bottom',
@@ -703,12 +707,13 @@ class BeeNoirWorld(object):
         pyglet.text.Label(
             I18N["onscreen_info_1"]%{
                 "ssid": INFO_SSID,
-                "url": INFO_URL
+                "url": INFO_URL,
+                "url2": INFO_URL2
             },
             font_name='Tahoma',
             font_size=11,
             x=start_left,
-            y=27,
+            y=INFO_START_BOTTOM + 19,
             anchor_x='left',
             color=UI_TEXT_COLOR,
             anchor_y='bottom',
@@ -718,12 +723,13 @@ class BeeNoirWorld(object):
         pyglet.text.Label(
             I18N["onscreen_info_2"]%{
                 "ssid": INFO_SSID,
-                "url": INFO_URL
+                "url": INFO_URL,
+                "url2": INFO_URL2
             },
             font_name='Tahoma',
             font_size=11,
             x=start_left,
-            y=10,
+            y=INFO_START_BOTTOM,
             anchor_x='left',
             color=UI_TEXT_COLOR,
             anchor_y='bottom',

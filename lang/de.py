@@ -18,7 +18,7 @@ I18N = {
     "help_opcodes": "Befehle",
     
     "onscreen_info_1": u"Mit einem JavaScript fähigen Smartphone können sie mitmachen!",
-    "onscreen_info_2": u"Verbinden Sie sich mit dem WLAN \"%(ssid)s\" surfen sie mit ihrem Browser auf die Seite %(url)s",
+    "onscreen_info_2": u"Verbinden Sie sich mit dem WLAN \"%(ssid)s\" surfen sie mit ihrem Browser auf die Seite %(url)s oder %(url2)s",
     
     "back_to_help": "Zur&uumlck zur Hilfe",
     "about": "Mehr Informationen",

@@ -17,8 +17,8 @@ I18N = {
     "help_visual_hint": "If you lost your bee on the screen you can press this button to give you a visual hint.",
     "help_opcodes": "Instructions",
     
-    "onscreen_info_1": "You can participate with a JavaScript enabled smart phone.",
-    "onscreen_info_2": "Connect your wireless LAN to SSID \"%(ssid)s\" and browse to %(url)s",
+    "onscreen_info_1": "Connect your JavaScript enabled smart phone/device to WiFi \"%(ssid)s\".",
+    "onscreen_info_2": "Now you can browse to %(url)s or %(url2)s to join the game!",
     
     # maybe don't translate
     "reset_button": "Reset",
