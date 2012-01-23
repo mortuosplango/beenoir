@@ -276,10 +276,10 @@ SynthDef(\marimba, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 		61-12	// c#?
 	).midicps;
 	var clippedfreq = freq.clip(20, 10000);
-	var durcomp = (440 / clippedfreq) ** 0.4 * 0.5;
+	var durcomp = (440 / clippedfreq) ** 0.4 * 0.7;
 	var ampcomp = ((440 / freq) ** 0); 
 	var cutenv = EnvGen.kr(Env([1,1,0], [durcomp, 0.01]), doneAction: 2); 
-	var noisebal = value.linlin(0, 1, 0.3, 1.0); 
+	var noisebal = value.linlin(0, 1, 0.5, 0.3); 
 	
 	var sound = Formlet.ar(
 		Decay2.ar(
@@ -292,7 +292,7 @@ SynthDef(\marimba, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 		freq, 
 		0.002, durcomp
 	).softclip;
-//	sound = DelayN.ar(sound, 0.1, [0, 0.005]);
+	sound = DelayN.ar(sound, 0.1, [0, ypos.linlin(0,1,0,0.05)]).sum;
 	Out.ar(out, Pan2.ar(sound * 1.5, xpos.linlin(0,1,-1,1), cutenv));
 }).add;
 
