@@ -322,8 +322,8 @@ class Player(Entity):
 
         self.label = pyglet.text.Label(
             "%s %d"%(title, self.player_id),
-            font_name='Tahoma',
-            font_size=12,
+            font_name='Arial',
+            font_size=11,
             bold=True,
             x=CODEPAD + 20, 
             y=window.height - ystart - 15,
@@ -686,11 +686,11 @@ class BeeNoirWorld(object):
 
         pyglet.text.Label(
             'BeeNoir',
-            font_name='Tahoma',
+            font_name='Verdana',
             font_size=18,
             bold=True,
             x=window.width - 28, 
-            y=INFO_START_BOTTOM + 6,
+            y=INFO_START_BOTTOM + 4,
             anchor_x='right', 
             color=UI_BEENOIR_COLOR,
             anchor_y='bottom',
@@ -710,7 +710,7 @@ class BeeNoirWorld(object):
                 "url": INFO_URL,
                 "url2": INFO_URL2
             },
-            font_name='Tahoma',
+            font_name='Arial',
             font_size=11,
             x=start_left,
             y=INFO_START_BOTTOM + 19,
@@ -726,7 +726,7 @@ class BeeNoirWorld(object):
                 "url": INFO_URL,
                 "url2": INFO_URL2
             },
-            font_name='Tahoma',
+            font_name='Arial',
             font_size=11,
             x=start_left,
             y=INFO_START_BOTTOM,
