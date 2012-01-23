@@ -254,9 +254,9 @@ SynthDef(\perc, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2|
 
 SynthDef(\bell, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	var snd, env, freq, len, note, chord;
-	len = value.linlin(0,1,0.5,3);
+	len = value.linlin(0,1,0.5,4);
 	chord = Select.kr(value.linlin(0,1,0,4), [[0,1], [0,1,2], [0,2,3], [0,3,4], [0,2,3,4]]);
-	note = ypos.linlin(0,1,0,12) + Duty.kr(dur/value.linlin(0,1,2,8), 0, Dseq(chord, inf));
+	note = ypos.linlin(0,1,0,12) + Duty.kr(dur/value.linlin(0,1,2,4), 0, Dseq(chord, inf));
 	freq = DegreeToKey.kr(
 		b.bufnum, // minorPenta
 		note, // how many y waben??
