@@ -11,9 +11,9 @@ s.boot;
 )
 */
 
-var out_offset = 100;
-var spec = [-60, 12, \lin, 0.1, 0, "dB"].asSpec;
-var net = NetAddr.new("127.0.0.1", nil);
+~spec = [-60, 12, \lin, 0.1, 0, "dB"].asSpec;
+~net = NetAddr.new("127.0.0.1", nil);
+~buses = ~buses ? 11.collect{ Bus.audio(s, 2) };
 
 s.freeAll;
 
@@ -37,14 +37,14 @@ c = [
 //////////////////////////////////////////////////////////////////////////
 // SPECS AND MIXER
 
-10.do{ |i| Spec.add(("Player"++i).asSymbol, spec) }; Spec.add(\Special, spec);
+10.do{ |i| Spec.add(("Player"++i).asSymbol, ~spec) }; Spec.add(\Special, ~spec);
 
 Ndef.all.clear;
 Ndef(\MASTER).playN([0,1], addAction:\addToTail);
 Ndef(\MASTER, {
 	var inctl = 10.collect{ |i| ("Player"++i).asSymbol.kr(0) };
-	var input = 10.collect{ |i| In.ar(100+(i*2), 2) * inctl[i].dbamp }; // from chan 100-120 is private then! !!!
-	var special = In.ar(124, 2) * \Special.kr(0);
+	var input = 10.collect{ |i| ~buses[i].ar * inctl[i].dbamp };
+	var special = ~buses[10].ar * \Special.kr(0);
 	var snd = Mix(input ++ special);
 	
 	// Master FX
@@ -57,19 +57,20 @@ Ndef(\MASTER, {
 });
 
 Ndef(\MASTER).edit;
-Ndef(\bees).play(100, addAction:\addToHead);
-Ndef(\fifths).play(106, addAction:\addToHead);
-Ndef(\texture).play(112, addAction:\addToHead);
+
+Ndef(\bees).play(~buses[0], addAction:\addToHead);
+Ndef(\fifths).play(~buses[3], addAction:\addToHead);
+Ndef(\texture).play(~buses[6], addAction:\addToHead);
 
 //////////////////////////////////////////////////////////////////////////
 // RESPONDERS
 // ignore warnings???
 
-u = OSCresponder(net, '/beenoir/action', { |t, r, msg|
+u = OSCresponder(~net, '/beenoir/action', { |t, r, msg|
 	var drone, synth; 
 	var cmd, playerid, xpos, ypos, value, dur, out;
 	#cmd, playerid, xpos, ypos, value, dur = msg;
-	out = out_offset+(playerid*2);
+	out = ~buses[playerid];
 	if ( [0,3,6].includes(playerid) ) {
 		drone = [\bees, nil, nil, \fifths, nil, nil, \texture, nil, nil, nil][playerid];
 		Ndef(drone).set(
@@ -99,14 +100,14 @@ u = OSCresponder(net, '/beenoir/action', { |t, r, msg|
 	};
 }).add;
 
-OSCresponder(net, '/beenoir/teleport', { |t, r, msg| 
+OSCresponder(~net, '/beenoir/teleport', { |t, r, msg| 
 	var cmd, playerid, xpos, ypos, value, dur;
 	#cmd, playerid, xpos, ypos, value, dur = msg;
 	b.setn(0, c.choose); // change scale
-	Synth(\teleport, [\out, 124]);
+	Synth(\teleport, [\out, ~buses[10]]);
 }).add;
 
-OSCresponder(net, '/beenoir/playerdeleted', { |t, r, msg| 
+OSCresponder(~net, '/beenoir/playerdeleted', { |t, r, msg| 
 	var cmd, playerid, xpos, ypos, value, dur, drone;
 	#cmd, playerid, xpos, ypos, value, dur = msg;
 	drone = [\bees, nil, nil, \fifths, nil, nil, \texture, nil, nil, nil][playerid];
@@ -115,17 +116,17 @@ OSCresponder(net, '/beenoir/playerdeleted', { |t, r, msg|
 	};
 }).add;
 
-OSCresponder(net, '/beenoir/newplayer', { |t, r, msg| 
+OSCresponder(~net, '/beenoir/newplayer', { |t, r, msg| 
 	var cmd, playerid, xpos, ypos, value, dur, drone;
 	#cmd, playerid, xpos, ypos, value, dur = msg;
 	drone = [\bees, nil, nil, \fifths, nil, nil, \texture, nil, nil, nil][playerid];
 	if ( [0,3,6].includes(playerid) ) {
 		Ndef(drone).fadeTime = 0;
-		Ndef(drone).play(out_offset + (playerid*2), addAction:\addToHead);
+		Ndef(drone).play(~buses[playerid], addAction:\addToHead);
 	};
 }).add;
 
-OSCresponder(net, '/beenoir/stop', { |t, r, msg| 
+OSCresponder(~net, '/beenoir/stop', { |t, r, msg| 
 	Ndef(\MASTER).stop;
 }).add;
 
