@@ -102,7 +102,6 @@ u = OSCresponder(net, '/beenoir/action', { |t, r, msg|
 OSCresponder(net, '/beenoir/teleport', { |t, r, msg| 
 	var cmd, playerid, xpos, ypos, value, dur;
 	#cmd, playerid, xpos, ypos, value, dur = msg;
-	msg.postln;
 	b.setn(0, c.choose); // change scale
 	Synth(\teleport, [\out, 124]);
 }).add;
@@ -153,7 +152,7 @@ Ndef(\fifths, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	snd = snd * LFNoise2.ar(40).range(0.5, 1);
 	snd = FreeVerb2.ar(snd[0], snd[1], 1, 0.3, 1) * 0.15;
 	snd = Balance2.ar(snd[0], snd[1], xpos.linlin(0,1,-0.8,0.8).lag(0.2));
-	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.01,0.005), value.linlin(0,1,0.01,0.8), value.linlin(0,1,2,10)), t_trig, 1, 1);
+	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.01,0.005), value.linlin(0,1,0.1,2.0), value.linlin(0,1,4,8)), t_trig, 1, 1);
 	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1) * 2
 });
 
