@@ -191,7 +191,7 @@ SynthDef(\clicks) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 SynthDef(\noise) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.01|
 	var snd, env;
 	snd = GrayNoise.ar() * 4;
-	snd = RHPF.ar(snd, ypos.linlin(0,1,200,2000)) * ypos.linlin(0,1,4,8);
+	snd = RHPF.ar(snd, ypos.linlin(0,1,100,4000).round(100), value.linlin(0,1,0.3,0.01)) * ypos.linlin(0,1,6,8);
 	env = Select.ar((value * 5).round, [
 		EnvGen.ar(Env.linen(0,dur,0)),
 		EnvGen.ar(Env.perc(dur, 0, 2, 4)),
