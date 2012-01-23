@@ -951,7 +951,7 @@ if __name__ == '__main__':
     
     print "\nClose BeeNoir either by:"
     print "* Focus window and press ESC"
-    print "* Focus terminal window and press ctrl-c"
+    # print "* Focus terminal window and press ctrl-c"
     print "* Close the window (if not running in fullscreen)\n"
     
     http_port = 8000
