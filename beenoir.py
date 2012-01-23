@@ -747,7 +747,7 @@ class BeeNoirWorld(object):
         """
         if window.height > y > (window.height -
                                 PLAYERS * LABEL_HEIGHT):
-            if CODEPAD < x < (CODESIZE + 2) * CODEPAD:
+            if CODEINDENT < x < (CODESIZE * CODEPAD) :
                 playerno = int((window.height - y) / LABEL_HEIGHT)
                 player = self.players[playerno]
                 
