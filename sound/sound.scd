@@ -43,9 +43,17 @@ Ndef.all.clear;
 Ndef(\MASTER).playN([0,1], addAction:\addToTail);
 Ndef(\MASTER, {
 	var inctl = 10.collect{ |i| ("Player"++i).asSymbol.kr(0) };
-	var input = 10.collect{ |i| In.ar(out_offset+(i*2), 2) * inctl[i].dbamp }; // from chan 100-120 is private then! !!!
+	var input = 10.collect{ |i| In.ar(100+(i*2), 2) * inctl[i].dbamp }; // from chan 100-120 is private then! !!!
 	var special = In.ar(124, 2) * \Special.kr(0);
-	Mix(input ++ special);
+	var snd = Mix(input ++ special);
+	
+	// Master FX
+	snd = MidEQ.ar(snd, 120, 1, 8); // crank the bass
+	snd = MidEQ.ar(snd, 60, 0.3, 20); // crank the bass
+
+//	snd = Select.ar(CheckBadValues.ar(input, 0, 0), [input, DC.ar(0), DC.ar(0), input]);
+//	snd = FreeVerb2.ar(input[0], input[1], wet.lag, room.lag, 1);
+	snd	
 });
 
 Ndef(\MASTER).edit;
