@@ -12,7 +12,7 @@ s.boot;
 */
 
 var out_offset = 100;
-var spec = [0, 2, \lin, 0.01, 1].asSpec;
+var spec = [-60, 12, \lin, 0.5, 0, "dB"].asSpec;
 var net = NetAddr.new("127.0.0.1", nil);
 
 s.freeAll;
@@ -42,9 +42,9 @@ c = [
 Ndef.all.clear;
 Ndef(\MASTER).playN([0,1], addAction:\addToTail);
 Ndef(\MASTER, {
-	var inctl = 10.collect{ |i| ("Player"++i).asSymbol.kr(1) };
-	var input = 10.collect{ |i| In.ar(out_offset+(i*2), 2) * inctl[i] }; // from chan 100-120 is private then! !!!
-	var special = In.ar(124, 2) * \Special.kr(1);
+	var inctl = 10.collect{ |i| ("Player"++i).asSymbol.kr(0) };
+	var input = 10.collect{ |i| In.ar(out_offset+(i*2), 2) * inctl[i].dbamp }; // from chan 100-120 is private then! !!!
+	var special = In.ar(124, 2) * \Special.kr(0);
 	Mix(input ++ special);
 });
 
