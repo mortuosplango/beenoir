@@ -4,20 +4,25 @@
 Server.local.quit;
 Server.internal.quit;
 Server.default = Server.local;
-Server.local.options.device_("Digidesign Mbox 2 Mini")
+Server.local.options.device_("Digidesign Mbox 2 Mini");
 s = Server.local;
 s.boot;
 
 )
 */
 
+var out_offset = 100;
+var spec = [0, 2, \lin, 0.01, 1].asSpec;
+var net = NetAddr.new("127.0.0.1", nil);
 
 s.freeAll;
 
-a = NetAddr.new("127.0.0.1", nil);
+//////////////////////////////////////////////////////////////////////////
+// GLOBALS
+
 b = Buffer.alloc(s, 12);
 c = [
-	// scales with 12 values! (for bending the melodies to the y axis)
+	// scales with 12 values! (for binding the melodies to the y axis)
 	FloatArray[0,2,3,5,7,8,10,12,14,15,17,18],	// minor ext
 	FloatArray[0,2,3,5,7,8,10,12,10,8,7,3],		// minor pseudo mirror
 	FloatArray[0,3,5,7,10,12,15,10,7,5,3,0],	// pent minor mirror
@@ -29,25 +34,36 @@ c = [
 	FloatArray[0,2,4,5,7,9,11,12,7,5,4,2],		// major pseudo mirror
 ];
 
+//////////////////////////////////////////////////////////////////////////
+// SPECS AND MIXER
 
-// need a responder to start the drones!
+10.do{ |i| Spec.add(("Player"++i).asSymbol, spec) }; Spec.add(\Special, spec);
 
 Ndef.all.clear;
-Ndef(\bees).play;
-Ndef(\fifths).play;
-Ndef(\texture).play;
+Ndef(\MASTER).playN([0,1], addAction:\addToTail);
+Ndef(\MASTER, {
+	var inctl = 10.collect{ |i| ("Player"++i).asSymbol.kr(1) };
+	var input = 10.collect{ |i| In.ar(out_offset+(i*2), 2) * inctl[i] }; // from chan 100-120 is private then! !!!
+	var special = In.ar(124, 2) * \Special.kr(1);
+	Mix(input ++ special);
+});
 
+Ndef(\MASTER).edit;
+Ndef(\bees).play(100, addAction:\addToHead);
+Ndef(\fifths).play(106, addAction:\addToHead);
+Ndef(\texture).play(112, addAction:\addToHead);
 
-u = OSCresponder(a, '/beenoir/action', { |t, r, msg| 
-	var addr, playerid, xpos, ypos, value, dur;
-	#addr, playerid, xpos, ypos, value, dur = msg;
-	msg.postln;
+//////////////////////////////////////////////////////////////////////////
+// RESPONDERS
+// ignore warnings???
+
+u = OSCresponder(net, '/beenoir/action', { |t, r, msg| 
+	var cmd, playerid, xpos, ypos, value, dur, out;
+	#cmd, playerid, xpos, ypos, value, dur = msg;
+	out = out_offset+(playerid*2);
 	if ( [0,3,6].includes(playerid) ) {
-		// DRONES!
-		Ndef(
-			// use just 0, 3 and 6
-			[\bees, nil, nil, \fifths, nil, nil, \texture, nil, nil, nil][playerid]
-		).set(
+		var drone = [\bees, nil, nil, \fifths, nil, nil, \texture, nil, nil, nil][playerid];
+		Ndef(drone).set(
 			\xpos, xpos,
 			\ypos, ypos,
 			\dur, dur,
@@ -57,32 +73,41 @@ u = OSCresponder(a, '/beenoir/action', { |t, r, msg|
 		);
 	} {
 		// TRIGGER SYNTHS
-		Synth.grain(
-			[
-				nil,		//  0 DRONE
-				\clicks,	//  1
-				\perc,		//  2
-				nil,		//  3 DRONE
-				\noise,		//  4
-				\marimba,	//  5
-				nil,		//  6 DRONE
-				\kick,		//  7
-				\bell,		//  8
-				\wtf		//	9
-			][playerid], 
-			[\out, 0, \xpos, xpos, \ypos, ypos, \dur, dur, \value, value]
-		);
+		var synth = [
+			nil,		//  0 DRONE
+			\clicks,	//  1
+			\perc,	//  2
+			nil,		//  3 DRONE
+			\noise,	//  4
+			\marimba,	//  5
+			nil,		//  6 DRONE
+			\kick,	//  7
+			\bell,	//  8
+			\wtf		//  9
+		][playerid];
+
+		Synth.grain(synth, [\out, out, \xpos, xpos, \ypos, ypos, \dur, dur, \value, value]);
 	};
 }).add;
 
-t = OSCresponder(a, '/beenoir/teleport', { |t, r, msg| 
-	var addr, playerid, xpos, ypos, value, dur;
-	#addr, playerid, xpos, ypos, value, dur = msg;
+t = OSCresponder(net, '/beenoir/teleport', { |t, r, msg| 
+	var cmd, playerid, xpos, ypos, value, dur;
+	#cmd, playerid, xpos, ypos, value, dur = msg;
 	msg.postln;
 	b.setn(0, c.choose); // change scale
-	Synth(\teleport)
+	Synth(\teleport, [\out, 124]);
 }).add;
 
+v = OSCresponder(net, '/beenoir/playerdeleted', { |t, r, msg| 
+	msg.postln;
+}).add;
+
+w = OSCresponder(net, '/beenoir/playerdeleted', { |t, r, msg| 
+	msg.postln;
+}).add;
+
+//////////////////////////////////////////////////////////////////////////
+// SYNTHS
 
 ///////////////// DRONES //////////////////////////////////
 
@@ -137,7 +162,7 @@ SynthDef(\clicks) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	snd = snd * env;
 	snd = snd + CombC.ar(snd, dur, dur/Select.kr((value*4).round, [4,6,8,12] * 6), dur);
 	snd = snd * EnvGen.ar(Env([1,1], [dur]), doneAction:2); // for the combz
-	Out.ar(0, Pan2.ar( snd * amp, xpos.linlin(0,1,-1,1) ));
+	Out.ar(out, Pan2.ar( snd * amp, xpos.linlin(0,1,-1,1) ));
 }.add;
 
 SynthDef(\noise) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.01|
@@ -152,7 +177,7 @@ SynthDef(\noise) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.01|
 		EnvGen.ar(Env.perc(0,dur)),
 	]);
 	Line.kr(0, 1, dur, doneAction:2);
-	Out.ar(0, Pan2.ar( snd * 0.5 * env * amp, xpos.linlin(0,1,-1,1) ));
+	Out.ar(out, Pan2.ar( snd * 0.5 * env * amp, xpos.linlin(0,1,-1,1) ));
 }.add;
 
 SynthDef(\kick, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.5|
@@ -192,7 +217,7 @@ SynthDef(\perc, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.2|
 	env = EnvGen.ar(Env.perc(0.01,dur), doneAction:2);
 	snd = RLPF.ar(snd, freq * (value + 1), 0.01 + abs(1 - (value/5)));
 	snd = DelayN.ar(snd, 0.1, [0, 0.003]);
-	Out.ar(0, Pan2.ar( snd * amp * 1.5 * env, xpos.linlin(0,1,-0.5,0.5) ));
+	Out.ar(out, Pan2.ar( snd * amp * 1.5 * env, xpos.linlin(0,1,-0.5,0.5) ));
 }).add;
 
 SynthDef(\bell, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
@@ -215,7 +240,7 @@ SynthDef(\bell, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	snd = snd.sum * env;
 	snd = snd * EnvGen.ar(Env([1,1], [len]), doneAction:2) * amp * 4 * ypos.linexp(0,1,1,2);
 	snd = DelayN.ar(snd, 0.1, [0, 0.001]);
-	Out.ar(0, Pan2.ar(snd, xpos.linlin(0,1,-0.5,0.5) ));
+	Out.ar(out, Pan2.ar(snd, xpos.linlin(0,1,-0.5,0.5) ));
 }).add;
 
 SynthDef(\marimba, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
@@ -264,7 +289,7 @@ SynthDef(\wtf, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25|
 
 	snd = LPF.ar(snd, 5000);
 	env = EnvGen.ar(Env([0, 2, 0.3, 0.2, 0], [0.01, 0.3, dur, 0.3]), doneAction:2);
-	Out.ar(0, Pan2.ar( snd * amp * env, Line.kr(0 - value, xpos, dur) ));
+	Out.ar(out, Pan2.ar( snd * amp * env, Line.kr(0 - value, xpos, dur) ));
 }).add;
 
 //////////////////// FX!!!!
@@ -274,32 +299,32 @@ SynthDef(\teleport, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.25|
 		SinOsc.ar(Rand(8.0, 400.0), 0, Rand(40, 800), Rand(1000, 10000))
 	).distort;
 	env = EnvGen.ar(Env.sine(dur), doneAction:2);
-	Out.ar(0, Pan2.ar( snd * amp * 2 * env, Rand(-0.5, 0.5) ));
+	Out.ar(out, Pan2.ar( snd * amp * 2 * env, Rand(-0.5, 0.5) ));
 }).add;
 
 // master FX
-SynthDef(\stageLimiter, { |wet=0.1, room=0.3|
-	var input = In.ar(0, 2);
-	input = MidEQ.ar(input, 120, 1, 8); // crank the bass
-	input = MidEQ.ar(input, 60, 0.3, 20); // crank the bass
-
-	input = Select.ar(CheckBadValues.ar(input, 0, 0), [input, DC.ar(0), DC.ar(0), input]);
-	input = FreeVerb2.ar(input[0], input[1], wet.lag, room.lag, 1);
-	ReplaceOut.ar(0, Limiter.ar(input)) ;
-}).add;
-
-{
-~master = Synth(\stageLimiter,
-	target: RootNode(Server.default), 
-	addAction: \addToTail
-);
-b.setn(0, c[2]); // start with pent minor mirrored
-
-}.defer(1);
-
+//SynthDef(\stageLimiter, { |wet=0.1, room=0.3|
+//	var input = In.ar(0, 2);
+//	input = MidEQ.ar(input, 120, 1, 8); // crank the bass
+//	input = MidEQ.ar(input, 60, 0.3, 20); // crank the bass
+//
+//	input = Select.ar(CheckBadValues.ar(input, 0, 0), [input, DC.ar(0), DC.ar(0), input]);
+//	input = FreeVerb2.ar(input[0], input[1], wet.lag, room.lag, 1);
+//	ReplaceOut.ar(0, Limiter.ar(input)) ;
+//}).add;
+//
+//{
+//~master = Synth(\stageLimiter,
+//	target: RootNode(Server.default), 
+//	addAction: \addToTail
+//);
+//b.setn(0, c[2]); // start with pent minor mirrored
+//
+//}.defer(1);
+//
 /* MASTER Ctrl
 
-~master.set(\wet, 1, \room, 1)
+//~master.set(\wet, 1, \room, 1)
 
 */
 
