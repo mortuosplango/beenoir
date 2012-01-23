@@ -157,7 +157,7 @@ Ndef(\texture, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 SynthDef(\clicks) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.1|
 	var snd, env;
 	snd = Crackle.ar() * 10;
-	snd = BPF.ar(snd, ypos.linlin(0,1,500,14000), 0.25) * ypos.linlin(0,1,1,8);
+	snd = BPF.ar(snd, ypos.linlin(0,1,500,14000), 0.25) * ypos.linlin(0,1,12,1);
 	env = EnvGen.ar(Env.linen(0,value.linlin(0,1,0.01,0.001),0));
 	snd = snd * env;
 	snd = snd + CombC.ar(snd, dur, dur/Select.kr((value*4).round, [4,6,8,12] * 6), dur);
