@@ -325,7 +325,7 @@ class Player(Entity):
             font_name='Arial',
             font_size=11,
             bold=True,
-            x=CODEPAD + 20, 
+            x=CODEPAD * 1.5, 
             y=window.height - ystart - 15,
             anchor_x='left', 
             color=UI_TEXT_COLOR ,
