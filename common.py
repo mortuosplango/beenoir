@@ -54,7 +54,8 @@ UI_TEXT_COLOR = (222,) * 4
 
 DISPLAY_ONSCREEN_INFO = True
 INFO_SSID = 'BeeNoir'
-INFO_URL = 'http://192.168.0.10/'
+INFO_URL = 'http://beenoir/'
+INFO_URL2 = 'http://192.168.1.1/'
 
 TEMPOS = (32, 24, 16, 12, 8)
 NUMTEMPOS = len(TEMPOS)
