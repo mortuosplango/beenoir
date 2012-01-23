@@ -91,7 +91,7 @@ u = OSCresponder(net, '/beenoir/action', { |t, r, msg|
 	};
 }).add;
 
-t = OSCresponder(net, '/beenoir/teleport', { |t, r, msg| 
+OSCresponder(net, '/beenoir/teleport', { |t, r, msg| 
 	var cmd, playerid, xpos, ypos, value, dur;
 	#cmd, playerid, xpos, ypos, value, dur = msg;
 	msg.postln;
@@ -99,12 +99,27 @@ t = OSCresponder(net, '/beenoir/teleport', { |t, r, msg|
 	Synth(\teleport, [\out, 124]);
 }).add;
 
-v = OSCresponder(net, '/beenoir/playerdeleted', { |t, r, msg| 
-	msg.postln;
+OSCresponder(net, '/beenoir/playerdeleted', { |t, r, msg| 
+	var cmd, playerid, xpos, ypos, value, dur, drone;
+	#cmd, playerid, xpos, ypos, value, dur = msg;
+	drone = [\bees, nil, nil, \fifths, nil, nil, \texture, nil, nil, nil][playerid];
+	if ( [0,3,6].includes(playerid) ) {
+		Ndef(drone).end(2);
+	};
 }).add;
 
-w = OSCresponder(net, '/beenoir/playerdeleted', { |t, r, msg| 
-	msg.postln;
+OSCresponder(net, '/beenoir/newplayer', { |t, r, msg| 
+	var cmd, playerid, xpos, ypos, value, dur, drone;
+	#cmd, playerid, xpos, ypos, value, dur = msg;
+	drone = [\bees, nil, nil, \fifths, nil, nil, \texture, nil, nil, nil][playerid];
+	if ( [0,3,6].includes(playerid) ) {
+		Ndef(drone).fadeTime = 0;
+		Ndef(drone).play(out_offset + (playerid*2), addAction:\addToHead);
+	};
+}).add;
+
+OSCresponder(net, '/beenoir/stop', { |t, r, msg| 
+	Ndef(\MASTER).stop;
 }).add;
 
 //////////////////////////////////////////////////////////////////////////
