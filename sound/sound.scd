@@ -206,9 +206,10 @@ SynthDef(\noise) { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.01|
 SynthDef(\kick, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.5|
 	// kick by otophilia @ synth def pool
 	var env0, env1, env1m, son;
+	var att = ypos.linlin(0,1,0.005,0.1);
 	
-	env0 =  EnvGen.ar(Env.new([0.5, 1, 0.5, 0], [0.005, dur/2, dur/2], [-4, -2, -4]), doneAction:2);
-	env1 = EnvGen.ar(Env.new([110, 59, 29, 20], [0.005, 0.29, dur/2], [-4, -5, 1]));
+	env0 =  EnvGen.ar(Env.new([0.5, 1, 0.5, 0], [att, dur/2, dur/2], [-4, -2, -4]));
+	env1 = EnvGen.ar(Env.new([110, 59, 29, 20], [att/10, 0.29, dur/2], [-4, -5, 1]));
 	env1m = env1.midicps * ypos.linlin(0,1,1,2);
 	
 	son = LFPulse.ar(env1m, 0, 0.5, 1, -0.5);
@@ -216,8 +217,15 @@ SynthDef(\kick, { |out=0, xpos=0, ypos=0, dur=1, value=0, amp=0.5|
 	son = LPF.ar(son, env1m*1.5, env0);
 	son = son + SinOsc.ar(env1m, 0.5, env0);
 	
-	son = son * value.linlin(0, 1, 0.3, 1.7);
 	son = son.clip2(1);
+	son = son + RLPF.ar(
+		CombC.ar(son, 4, dur/value.linlin(0,1,1,0.125).round(0.125), value.linlin(0,1,4,0)),
+		Line.kr(ypos.linlin(0,1,1000,8000), 40, dur*4),
+		0.2
+	);
+	son = FreeVerb.ar(son, ypos/2, 1, 1);
+	
+	son = son * EnvGen.kr(Env.linen(0, dur * 2, ypos.linlin(0,1,dur,dur*4)), doneAction:2);
 	
 	Out.ar(out, Pan2.ar(son * amp, xpos.linlin(0,1,-1,1)));
 }).add;
