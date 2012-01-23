@@ -124,12 +124,12 @@ Ndef(\bees, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 
 Ndef(\fifths, { |xpos, ypos, value, gate=1, amp=0, t_trig=1|
 	var snd = Blip.ar(([61-24, 73-24] + 24).midicps + LFNoise2.ar([0.3, 0.2]).range(0, ypos.linlin(0,1,0,5)), ypos.linexp(0,1,1,8).lag(0.1));
-	snd = snd *	LFNoise2.ar([value.linlin(0,1,1,8), value.linlin(0,1,4,20)]).range(0.25, 1);
+	snd = snd * LFNoise2.ar([value.linlin(0,1,1,8), value.linlin(0,1,4,20)]).range(0.25, 1);
 	snd = snd + SinOsc.ar((61 - [24,24.1]).midicps, 0, 0.35);
 	snd = snd * LFNoise2.ar(40).range(0.5, 1);
 	snd = FreeVerb2.ar(snd[0], snd[1], 1, 0.3, 1) * 0.15;
 	snd = Balance2.ar(snd[0], snd[1], xpos.linlin(0,1,-0.8,0.8).lag(0.2));
-	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.2,0.001), 0.5, value.linlin(0,1,4,14)), t_trig, 1, 1);
+	snd = snd * EnvGen.ar(Env.perc(value.linlin(0,1,0.01,0.005), value.linlin(0,1,0.01,0.8), value.linlin(0,1,2,10)), t_trig, 1, 1);
 	snd = snd * EnvGen.ar(Env.asr(1, 1, 1, 8), gate, doneAction:2) * amp.lag(1) * 2
 });
 
