@@ -381,6 +381,7 @@ class Player(Entity):
                                (self.granulation / FPS)])
 
     def change_code(self, index, change = False):
+        if 0 < index > CODESIZE-1: return       
         if change:
             self.code[index] = (self.code[index] + change) % NUMCODES
         else:
@@ -747,7 +748,7 @@ class BeeNoirWorld(object):
         """
         if window.height > y > (window.height -
                                 PLAYERS * LABEL_HEIGHT):
-            if CODEINDENT < x < (CODESIZE * CODEPAD) :
+            if CODEINDENT < x < ((CODESIZE + 1) * CODEPAD) :
                 playerno = int((window.height - y) / LABEL_HEIGHT)
                 player = self.players[playerno]
                 
@@ -757,13 +758,13 @@ class BeeNoirWorld(object):
                 
                 if right_button: left_button = False
                 
-                if player and (CODEPAD >
+                if player and (CODEINDENT >
                                y - ((window.height -
                                      (playerno * LABEL_HEIGHT)) - 60) > 0):
                     change = False
                     if left_button: change = 1
                     elif right_button: change = -1
-                    player.change_code((x - CODEPAD) / CODEPAD, change)
+                    player.change_code((x - CODEINDENT) / CODEPAD, change)
                 elif player and right_button:
                     player.delete()
                 elif (not player) and left_button:
