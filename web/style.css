@@ -184,6 +184,7 @@ div#help, div#about {
 p.descr {
     text-align: left;
     font-size: 80%;
+    line-height: 125%;
     margin-bottom: 12px;
 }
 

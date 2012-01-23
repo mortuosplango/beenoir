@@ -1,7 +1,7 @@
 # globally used variables and functions, also config
 
 # select language here
-from lang.en import *
+from lang.de import *
 
 DEBUG = False
 
