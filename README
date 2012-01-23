@@ -17,6 +17,9 @@ How to use it:
 
 There are a lot of configuration options in common.py.
 
+If you have trouble getting pyglet to run on Mac 10.6 you might try:
+defaults write com.apple.versioner.python Prefer-32-Bit -bool yes
+
 You can receive messages with OSC in e. g. SuperCollider:
     port: 57120
 
@@ -55,6 +58,5 @@ For debugging purposes, you can also change the code of a player
 by clicking on the code in the game - it will cycle through the 
 possibilities forward (left-click), backward (right-click) 
 or reset it to 'wait' (middle-click).
-
 
 [1] http://pawfal.org/index.php?page=AlJazari
