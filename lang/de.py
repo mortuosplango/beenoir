@@ -23,7 +23,12 @@ I18N = {
     "back_to_help": "Zur&uumlck zur Hilfe",
     "about": "Mehr Informationen",
     #html
-    "about_page": "<p class='descr'>Muss noch geschrieben werden ...</p>",
+    "about_page": """<p class='descr'>BeeNoir ist ein interaktives Klangspielzeug und stark von Dave Griffiths Spiel Al Jazari beeinflusst. Es bietet einen verst&auml;ndlichen Einblick in das Live-Coding, dem Programmieren von Kl&auml;ngen, Musik und Bildern als Teil der Performance. Die Spielfiguren in BeeNoir lassen sich mit einfachen Befehlen programmieren, um sich auf dem Spielfeld zu bewegen, es zu ver&auml;ndern oder Kl&auml;nge zu erzeugen. Die Kl&auml;nge sind abh&auml;ngig von Farbe und Position des Spielers sowie dem Feldwert, auf dem sich der Spieler im Moment befindet. Die synthetischen Kl&auml;nge wurden in der Musikprogrammiersprache SuperCollider entwickelt.</p>
+    <p class='descr'>Das Spiel wurde u.a. auf der LINKS &ndash; Biennale f&uuml;r Neue Musik 2010 in Heidelberg, der ton:art 2011 in Karlsruhe, der Next Level Conference 2011 in K&ouml;ln und dem  Network Music Festival 2012  in Birmingham pr&auml;sentiert.</p>
+    <p class='descr'>BeeNoir ist Open Source Software. Der Quelltext steht auf GitHub zur Verf&uuml;gung.</p>
+    <h2>Credits</h2>
+    <p class='descr'>BeeNoir wurde am IMWI (Institut f&uuml;r Musikwissenschaft und Musikinformatik) der Hochschule f&uuml;r Musik Karlsruhe von den Mitgliedern der Laptop-Band Benoit and the Mandelbrots &ndash; Holger Ballweg, Patrick Borgeat, Juan A. Romero und Matthias Schneiderbanger &ndash; entwickelt.</p>
+    """,
 
     
     # maybe don't translate
