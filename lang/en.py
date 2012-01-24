@@ -27,7 +27,7 @@ I18N = {
     "back_to_help": "Return to Help",
     "about": "More Info",
     #html
-    "about_page": """<p class='descr'>BeeNoir is an interactive sound toy and heavily influenced by Dave Griffiths Al Jazari. It provides an easy insight into live coding, the programming of sound, music and pictures as part of a performance. The bees can be programmed with simple instructions, in order to move, modify the playing field or produce sounds. The sounds depend on colour and position of the bee, as well as the current field value. The synthetic sounds were all developed in the audio programming environment SuperCollider.</p>
+    "about_page": """<p class='descr'>BeeNoir is an interactive sound toy inspired by Dave Griffiths' Al Jazari. It provides an easy insight into live coding, the programming of sound, music and pictures as part of a performance. The bees can be programmed with simple instructions, in order to move, modify the playing field or produce sounds. The sounds depend on the colour and position of the bee, as well as the current value of the field. The synthetic sounds were all developed in the audio programming environment SuperCollider.</p>
     <p class='descr'>The game was presented amongst others at LINKS &ndash; Biennale f&uumlr Neue Musik 2010 in Heidelberg, ton:art 2011 in Karlsruhe, Next Level Conference 2011 in Cologne and Network Music Festival 2012 in Birmingham.</p>
     <p class='descr'>BeeNoir is open source software. The source code is available on GitHub. </p>
     <h2>Credits</h2>
