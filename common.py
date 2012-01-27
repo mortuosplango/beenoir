@@ -3,7 +3,7 @@
 # select language here
 from lang.en import *
 
-DEBUG = False
+DEBUG = True
 
 if DEBUG:
     def debug_print(string):

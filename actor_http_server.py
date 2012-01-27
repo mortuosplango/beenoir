@@ -15,9 +15,13 @@ def run(actors, port=8000):
     httpd = ActorHTTPServer(server_address, ActorHandler, actors)
     try:
         httpd.serve_forever()
-    except:
-        print "Waiting for Server-thread to finish"
-        httpd.server_close()
+#    except:
+#        print "Waiting for Server-thread to finish"
+#        httpd.server_close()
+    except Exception, e:
+        traceback.print_exc()
+        print "BEENOIR IS STILL RUNNING :-)"
+        exit()
 
 class ActorHTTPServerThread(Thread):
     def __init__(self, actors, port=8000):
